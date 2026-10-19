@@ -13,3 +13,10 @@ Actualización del 18/10/2026:
 6. Un enlace antiguo de Facebook devolvió «Cannot parse data». Facebook puede restringir videos o cambiar su estructura; la aplicación permite usar la sesión del navegador y muestra el error del extractor cuando ocurre.
 
 Comprobación anterior: conversión VOB sintética a MPEG-2 720x480 con audio AC-3.
+
+Ampliación de TikTok y Guardar como:
+1. Se analizó un enlace público de TikTok y se confirmó que la API ofrece dimensiones reales de las versiones disponibles.
+2. Se comprobó la respuesta de Guardar como con una ruta de Windows simulada. El script nativo de SaveFileDialog se ejecutó en modo STA sin mostrar una ventana durante la prueba automatizada.
+3. Se descargó un TikTok público de 6 segundos en MP4 con video y audio, con el nombre elegido.
+4. Se descargó el mismo TikTok en MP3 solo audio, también con el nombre elegido.
+5. ffprobe confirmó las pistas de ambos archivos y la limpieza temporal terminó sin archivos bloqueados.

@@ -7,6 +7,9 @@ const state = {
   currentPage: "home",
   confirmResolver: null,
   source: "youtube",
+  destinationFolder: "",
+  savePath: "",
+  overwrite: false,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -60,9 +63,11 @@ function formatDate(value) {
   });
 }
 
-function qualityLabel(format, quality) {
+function qualityLabel(format, quality, source = "") {
   if (["m4a", "wav"].includes(format)) return "Original";
   if (format === "mp3") return `${quality} kbps`;
+  if (String(quality) === "0") return "Mejor disponible";
+  if (source === "TikTok") return `${quality} px de alto`;
   if (String(quality) === "1440") return "2K (1440p)";
   if (String(quality) === "2160") return "4K (2160p)";
   return `${quality}p`;
@@ -78,12 +83,17 @@ function selectSource(source) {
   state.source = source;
   $$(".source-tab").forEach((button) => button.classList.toggle("active", button.dataset.source === source));
   const facebook = source === "facebook";
-  $("#urlLabel").textContent = facebook ? "Enlace de Facebook" : "Enlace de YouTube";
-  $("#videoUrl").placeholder = facebook ? "https://www.facebook.com/.../videos/..." : "https://www.youtube.com/watch?v=...";
-  $("#sourceMark").textContent = facebook ? "f" : "▶";
+  const tiktok = source === "tiktok";
+  $("#urlLabel").textContent = `Enlace de ${facebook ? "Facebook" : tiktok ? "TikTok" : "YouTube"}`;
+  $("#videoUrl").placeholder = facebook
+    ? "https://www.facebook.com/.../videos/..."
+    : tiktok ? "https://www.tiktok.com/@usuario/video/..." : "https://www.youtube.com/watch?v=...";
+  $("#sourceMark").textContent = facebook ? "f" : tiktok ? "♪" : "▶";
   $("#sourceMark").classList.toggle("facebook-mark", facebook);
+  $("#sourceMark").classList.toggle("tiktok-mark", tiktok);
   $("#sourceHelp").innerHTML = facebook
     ? "<span>ⓘ</span> Pega un enlace público de video o reel de Facebook."
+    : tiktok ? "<span>ⓘ</span> Pega un enlace de video de TikTok. La calidad depende de las versiones disponibles."
     : "<span>ⓘ</span> Puedes agregar hasta 10 videos a la cola.";
   $("#facebookNotice").classList.toggle("hidden", !facebook);
 }
@@ -137,6 +147,7 @@ async function loadSettings() {
   const data = await api("/api/settings");
   state.settings = data.settings;
   applyTheme(state.settings.theme);
+  state.destinationFolder = state.settings.default_folder;
   $("#folderPath").value = state.settings.default_folder;
   $("#settingsFolder").value = state.settings.default_folder;
   $("#settingsFormat").value = state.settings.default_format;
@@ -197,6 +208,12 @@ function rebuildQualityOptions() {
 
   $("#finalExtension").textContent = `.${format}`;
   $("#vobNotice").classList.toggle("hidden", format !== "vob");
+  if (state.savePath && !state.savePath.toLowerCase().endsWith(`.${format}`)) {
+    state.savePath = "";
+    state.overwrite = false;
+    $("#folderPath").value = state.destinationFolder;
+    $("#destinationHint").textContent = "Cambió el formato. Elige «Guardar como» otra vez para fijar nombre y ubicación.";
+  }
   updateEstimate();
 }
 
@@ -204,10 +221,13 @@ function rebuildFormatOptions() {
   const mode = $("#modeSelect").value;
   const select = $("#formatSelect");
   const previous = select.value;
-  select.innerHTML = formatChoices[mode]
+  const choices = state.video?.source === "TikTok"
+    ? formatChoices[mode].filter(([value]) => value !== "vob")
+    : formatChoices[mode];
+  select.innerHTML = choices
     .map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
-  if (formatChoices[mode].some(([value]) => value === previous)) select.value = previous;
-  else if (formatChoices[mode].some(([value]) => value === state.settings.default_format)) select.value = state.settings.default_format;
+  if (choices.some(([value]) => value === previous)) select.value = previous;
+  else if (choices.some(([value]) => value === state.settings.default_format)) select.value = state.settings.default_format;
   rebuildQualityOptions();
 }
 
@@ -228,7 +248,11 @@ function showVideo(video) {
     : `${video.source} · ${video.uploader}`;
   $("#videoDuration").textContent = video.duration_human;
   $("#modeSelect").value = ["mp3", "m4a", "wav"].includes(state.settings.default_format) ? "audio" : "video_audio";
+  state.destinationFolder = state.settings.default_folder;
+  state.savePath = "";
+  state.overwrite = false;
   $("#folderPath").value = state.settings.default_folder;
+  $("#destinationHint").textContent = "Se guardará con nombre automático en la carpeta indicada. Usa «Guardar como» para elegir nombre y ubicación.";
   rebuildFormatOptions();
   $("#videoResult").classList.remove("hidden");
   $("#videoResult").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -237,7 +261,7 @@ function showVideo(video) {
 async function analyzeVideo() {
   const url = $("#videoUrl").value.trim();
   if (!url) {
-    toast("Falta el enlace", "Pega una URL de YouTube o Facebook para continuar.", "error");
+    toast("Falta el enlace", "Pega una URL de YouTube, Facebook o TikTok para continuar.", "error");
     $("#videoUrl").focus();
     return;
   }
@@ -250,7 +274,7 @@ async function analyzeVideo() {
       body: JSON.stringify({ url, browser: $("#facebookBrowser").value }),
     });
     showVideo(data.video);
-    toast("Video analizado", "Ya puedes elegir el formato, la calidad y la carpeta.", "success");
+    toast("Video analizado", "Ya puedes elegir el formato, la calidad y dónde guardarlo.", "success");
   } catch (error) {
     toast("No se pudo analizar", error.message, "error", 6500);
   } finally {
@@ -272,12 +296,40 @@ async function pickFolder(targetInput) {
   }
 }
 
+async function pickSavePath() {
+  if (!state.video) return;
+  const button = $("#browseFolderButton");
+  button.disabled = true;
+  try {
+    const data = await api("/api/save-path", {
+      method: "POST",
+      body: JSON.stringify({
+        initial: state.destinationFolder || state.settings.default_folder,
+        title: state.video.title,
+        format: $("#formatSelect").value,
+      }),
+    });
+    if (data.cancelled) return;
+    state.savePath = data.path;
+    state.destinationFolder = data.folder;
+    state.overwrite = Boolean(data.overwrite);
+    $("#folderPath").value = data.path;
+    $("#destinationHint").textContent = state.overwrite
+      ? "El archivo existente se reemplazará al terminar la descarga."
+      : "El archivo se guardará exactamente con este nombre y en esta ubicación.";
+  } catch (error) {
+    toast("No se pudo elegir el archivo", error.message, "error");
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function addToQueue() {
   if (!state.video) return;
   const format = $("#formatSelect").value;
   const mode = $("#modeSelect").value;
   const quality = $("#qualitySelect").value;
-  const folder = $("#folderPath").value.trim();
+  const folder = state.destinationFolder;
   const option = getCurrentQualityOption();
   const estimatedSize = Number(option?.dataset.size || 0);
   if (!folder) {
@@ -300,6 +352,8 @@ async function addToQueue() {
         browser: state.video.source === "Facebook" ? $("#facebookBrowser").value : "",
         quality,
         folder,
+        save_path: state.savePath,
+        overwrite: state.overwrite,
         estimated_size: estimatedSize,
       }),
     });
@@ -375,7 +429,7 @@ function renderDownloads() {
             <span>${escapeHtml(task.source || "YouTube")}</span>
             <span>${escapeHtml(task.format.toUpperCase())}</span>
             <span>${escapeHtml(task.mode === "video_only" ? "Solo video" : task.mode === "audio" ? "Solo audio" : "Video + audio")}</span>
-            <span>${escapeHtml(qualityLabel(task.format, task.quality))}</span>
+            <span>${escapeHtml(qualityLabel(task.format, task.quality, task.source))}</span>
             <span>${escapeHtml(task.downloaded_human)} / ${escapeHtml(total)}</span>
             <span>${escapeHtml(detail)}</span>
           </div>
@@ -496,7 +550,7 @@ function renderHistory() {
       </td>
       <td>${escapeHtml(formatDate(item.downloaded_at))}</td>
       <td><span class="format-tag">${escapeHtml(item.format)}</span></td>
-      <td>${escapeHtml(qualityLabel(item.format, item.quality))}</td>
+      <td>${escapeHtml(qualityLabel(item.format, item.quality, item.source))}</td>
       <td>${escapeHtml(item.size_human)}</td>
       <td><button class="path-button" data-open-path="${escapeHtml(item.filepath)}" title="${escapeHtml(item.filepath)}">${escapeHtml(item.filepath)}</button></td>
     </tr>
@@ -520,6 +574,9 @@ async function saveSettings() {
     const data = await api("/api/settings", { method: "PUT", body: JSON.stringify(payload) });
     state.settings = data.settings;
     applyTheme(state.settings.theme);
+    state.destinationFolder = state.settings.default_folder;
+    state.savePath = "";
+    state.overwrite = false;
     $("#folderPath").value = state.settings.default_folder;
     toast("Configuración guardada", "Los cambios se aplicaron correctamente.", "success");
   } catch (error) {
@@ -551,7 +608,7 @@ function bindEvents() {
   $("#modeSelect").addEventListener("change", rebuildFormatOptions);
   $("#formatSelect").addEventListener("change", rebuildQualityOptions);
   $("#qualitySelect").addEventListener("change", updateEstimate);
-  $("#browseFolderButton").addEventListener("click", () => pickFolder("#folderPath"));
+  $("#browseFolderButton").addEventListener("click", pickSavePath);
   $("#settingsBrowseButton").addEventListener("click", () => pickFolder("#settingsFolder"));
   $("#addQueueButton").addEventListener("click", addToQueue);
   $("#clearVideoButton").addEventListener("click", () => {

@@ -1,6 +1,6 @@
 # VideoFlow Local
 
-Aplicación local para Windows que funciona en `http://127.0.0.1:8765`. Permite analizar y guardar videos autorizados de YouTube y Facebook, con cola, progreso, historial y configuración local.
+Aplicación local para Windows que funciona en `http://127.0.0.1:8765`. Permite analizar y guardar videos autorizados de YouTube, Facebook y TikTok, con cola, progreso, historial y configuración local.
 
 ## Inicio rápido
 
@@ -24,13 +24,15 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 
 - Pantalla de bienvenida estilo Windows 11.
 - Modo claro y oscuro.
-- Análisis de enlaces de YouTube y Facebook: miniatura, título, autor, duración y calidades disponibles.
+- Análisis de enlaces de YouTube, Facebook y TikTok: miniatura, título, autor, duración y calidades disponibles.
+- TikTok muestra las dimensiones reales de cada versión disponible, incluidas las verticales.
 - Estimación del peso del archivo antes de descargar.
 - Video con audio en MP4, MKV, WEBM o VOB; video sin audio en MP4, MKV o WEBM; audio en MP3, M4A o WAV.
 - Uso opcional de la sesión de Chrome, Edge o Firefox para enlaces de Facebook que la requieran.
 - Video desde 144p hasta 4K cuando la fuente lo permita.
 - Audio MP3 a 128, 192 o 320 kbps.
 - Selector nativo de carpetas de Windows.
+- Cuadro nativo «Guardar como» para elegir carpeta y nombre del archivo de cada descarga. Windows avisa antes de reemplazar un archivo existente.
 - Cola máxima de 10 trabajos.
 - Entre 1 y 10 descargas simultáneas, configurable.
 - Progreso, velocidad, tiempo restante y progreso general.
@@ -44,6 +46,8 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 
 - VOB se convierte a una calidad compatible de hasta 480p. Es una limitación práctica del formato orientado a DVD.
 - Algunas publicaciones de Facebook requieren iniciar sesión o no son accesibles para yt-dlp. Selecciona tu navegador en la pestaña Facebook si el enlace lo necesita; no se guardan las cookies en la aplicación.
+- Si no usas «Guardar como», se mantiene el nombre automático en la carpeta predeterminada. Si cambias de formato después de elegir un nombre, abre «Guardar como» otra vez para confirmar la extensión.
+- TikTok puede bloquear determinados videos según la publicación, la región o la conexión. La aplicación muestra el error correspondiente cuando no puede analizarlos.
 - El tamaño mostrado antes de descargar es una estimación. Puede variar por el códec y la conversión final.
 - La pausa es cooperativa: se aplica en el siguiente bloque recibido o etapa de procesamiento.
 - No cierres la ventana negra mientras haya descargas activas.

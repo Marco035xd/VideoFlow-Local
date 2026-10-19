@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import queue
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -11,10 +12,11 @@ import time
 import uuid
 import tempfile
 import webbrowser
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 from urllib.parse import urlparse
 
 import yt_dlp
@@ -84,6 +86,8 @@ def source_for_url(url: str) -> str | None:
             return "YouTube"
         if host == "fb.watch" or any(host == name or host.endswith("." + name) for name in ("facebook.com", "fb.com")):
             return "Facebook"
+        if host == "tiktok.com" or host.endswith(".tiktok.com"):
+            return "TikTok"
         return None
     except Exception:
         return None
@@ -123,6 +127,8 @@ def describe_error(exc: Exception, source: str) -> str:
     message = str(exc).strip() or exc.__class__.__name__
     if source == "Facebook" and "Cannot parse data" in message:
         return "Facebook no entregó datos de este video. Comprueba que el enlace abra en el navegador y, si requiere sesión, elige ese navegador en la pestaña Facebook."
+    if source == "TikTok" and "IP address is blocked" in message:
+        return "TikTok bloqueó el acceso a esta publicación desde esta conexión. Prueba otro enlace público o inténtalo más tarde."
     return message[:600]
 
 
@@ -163,10 +169,15 @@ class HistoryStore:
         self.path = path
         self._init_db()
 
-    def connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def connect(self) -> Iterator[sqlite3.Connection]:
         con = sqlite3.connect(self.path, timeout=20)
         con.row_factory = sqlite3.Row
-        return con
+        try:
+            with con:
+                yield con
+        finally:
+            con.close()
 
     def _init_db(self) -> None:
         with self.connect() as con:
@@ -259,6 +270,8 @@ class DownloadTask:
     source: str = "YouTube"
     mode: str = "video_audio"
     browser: str = ""
+    save_path: str = ""
+    overwrite: bool = False
     estimated_size: int = 0
     status: str = "Pendiente"
     progress: float = 0.0
@@ -288,6 +301,7 @@ class DownloadTask:
             "mode": self.mode,
             "quality": self.quality,
             "folder": self.folder,
+            "save_path": self.save_path,
             "estimated_size": self.estimated_size,
             "estimated_size_human": human_bytes(self.estimated_size),
             "status": self.status,
@@ -354,9 +368,6 @@ class DownloadManager:
             )
 
     def add(self, payload: dict[str, Any]) -> DownloadTask:
-        if self.count_unfinished() >= MAX_QUEUE_ITEMS:
-            raise ValueError("Solo se permiten hasta 10 videos pendientes o activos.")
-
         task = DownloadTask(
             id=uuid.uuid4().hex[:10],
             url=str(payload["url"]).strip(),
@@ -370,9 +381,19 @@ class DownloadManager:
             source=source_for_url(str(payload["url"])) or "YouTube",
             mode=str(payload.get("mode") or "video_audio"),
             browser=str(payload.get("browser") or ""),
+            save_path=str(payload.get("save_path") or ""),
+            overwrite=payload.get("overwrite") is True,
             estimated_size=int(payload.get("estimated_size") or 0),
         )
         with self.lock:
+            if self.count_unfinished() >= MAX_QUEUE_ITEMS:
+                raise ValueError("Solo se permiten hasta 10 videos pendientes o activos.")
+            if task.save_path and any(
+                existing.save_path == task.save_path
+                and existing.status not in {"Completado", "Error", "Cancelado"}
+                for existing in self.tasks.values()
+            ):
+                raise ValueError("Ese archivo ya está reservado por otra descarga en curso.")
             self.tasks[task.id] = task
         self.work_queue.put(task.id)
         return task
@@ -564,10 +585,10 @@ class DownloadManager:
                     }
                 )
             else:
+                height_filter = f"[height<={quality_number}]" if quality_number else ""
                 selector = (
-                    f"bestvideo[height<={quality_number}]/best[height<={quality_number}]"
-                    if task.mode == "video_only"
-                    else f"bestvideo[height<={quality_number}]+bestaudio/best[height<={quality_number}]"
+                    f"bestvideo{height_filter}/best{height_filter}" if task.mode == "video_only"
+                    else f"bestvideo{height_filter}+bestaudio/best{height_filter}"
                 )
                 common_opts.update(
                     {
@@ -605,6 +626,16 @@ class DownloadManager:
 
             if not final_file:
                 raise RuntimeError("La descarga terminó, pero no se encontró el archivo final.")
+            if final_file.suffix.lower() != f".{task.output_format}":
+                raise RuntimeError("El archivo descargado no coincide con el formato elegido.")
+            if task.save_path:
+                target = Path(task.save_path)
+                if target.exists() and not task.overwrite:
+                    raise FileExistsError("El archivo elegido ya existe. Usa Guardar como para confirmar si deseas reemplazarlo.")
+                if target.is_dir():
+                    raise IsADirectoryError("La ruta elegida corresponde a una carpeta.")
+                final_file.replace(target)
+                final_file = target
 
             task.final_path = str(final_file.resolve())
             task.final_size = final_file.stat().st_size
@@ -810,7 +841,7 @@ def format_size(item: dict[str, Any]) -> int:
     return int(item.get("filesize") or item.get("filesize_approx") or 0)
 
 
-def estimate_video_options(info: dict[str, Any]) -> list[dict[str, Any]]:
+def estimate_video_options(info: dict[str, Any], source: str = "YouTube") -> list[dict[str, Any]]:
     formats = info.get("formats") or []
     targets = [144, 240, 360, 480, 720, 1080, 1440, 2160]
     video_formats = [
@@ -827,6 +858,28 @@ def estimate_video_options(info: dict[str, Any]) -> list[dict[str, Any]]:
     best_audio_size = max((format_size(f) for f in audio_formats), default=0)
     options: list[dict[str, Any]] = []
     seen_actual: set[int] = set()
+
+    if source == "TikTok":
+        for height in sorted({int(f.get("height") or 0) for f in video_formats}):
+            selected = max(
+                (f for f in video_formats if int(f.get("height") or 0) == height),
+                key=lambda f: (float(f.get("tbr") or 0), format_size(f)),
+            )
+            size = format_size(selected)
+            if selected.get("acodec") in {None, "none"}:
+                size += best_audio_size
+            width = int(selected.get("width") or 0)
+            options.append({
+                "value": str(height),
+                "label": f"{width} × {height}" if width else f"{height}p",
+                "estimated_size": size,
+                "estimated_size_human": human_bytes(size),
+                "actual_height": height,
+            })
+        return options or [{
+            "value": "0", "label": "Mejor disponible", "estimated_size": 0,
+            "estimated_size_human": "—", "actual_height": 0,
+        }]
 
     for target in targets:
         if target > max_height:
@@ -877,7 +930,7 @@ def api_analyze():
     url = str(payload.get("url") or "").strip()
     source = source_for_url(url)
     if not source:
-        return jsonify({"ok": False, "error": "Pega una URL válida de YouTube o Facebook."}), 400
+        return jsonify({"ok": False, "error": "Pega una URL válida de YouTube, Facebook o TikTok."}), 400
 
     try:
         opts = {
@@ -920,7 +973,7 @@ def api_analyze():
             "uploader": str(info.get("uploader") or info.get("channel") or source),
             "source": source,
             "view_count": int(info.get("view_count") or 0),
-            "video_options": estimate_video_options(info),
+            "video_options": estimate_video_options(info, source),
             "audio_options": audio_options,
             "source_audio_size": max((format_size(f) for f in (info.get("formats") or []) if f.get("acodec") not in {None, "none"} and f.get("vcodec") == "none"), default=0),
         }
@@ -943,8 +996,9 @@ def api_add_download():
     required = ("url", "format", "quality", "folder")
     if any(not payload.get(key) for key in required):
         return jsonify({"ok": False, "error": "Faltan datos de la descarga."}), 400
-    if not source_for_url(str(payload["url"])):
-        return jsonify({"ok": False, "error": "URL de YouTube o Facebook no válida."}), 400
+    source = source_for_url(str(payload["url"]))
+    if not source:
+        return jsonify({"ok": False, "error": "URL de YouTube, Facebook o TikTok no válida."}), 400
     mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav"} else "video_audio"))
     payload["mode"] = mode
     allowed_formats = {
@@ -960,13 +1014,29 @@ def api_add_download():
         return jsonify({"ok": False, "error": "Calidad no válida."}), 400
     if mode == "audio" and quality not in ({128, 192, 320} if payload["format"] == "mp3" else {0}):
         return jsonify({"ok": False, "error": "Calidad de audio no válida."}), 400
-    if mode != "audio" and quality not in {144, 240, 360, 480, 720, 1080, 1440, 2160}:
+    valid_video_quality = (
+        quality == 0 or 144 <= quality <= 4320
+        if source == "TikTok" else quality in {144, 240, 360, 480, 720, 1080, 1440, 2160}
+    )
+    if mode != "audio" and not valid_video_quality:
         return jsonify({"ok": False, "error": "Calidad de video no válida."}), 400
 
     try:
         folder = Path(str(payload["folder"])).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
         payload["folder"] = str(folder)
+        if payload.get("save_path"):
+            raw_target = Path(str(payload["save_path"])).expanduser()
+            if not raw_target.is_absolute():
+                raise ValueError("La ruta de Guardar como debe ser absoluta.")
+            target = raw_target.resolve()
+            if target.parent != folder:
+                raise ValueError("La ruta de Guardar como no coincide con la carpeta de destino.")
+            if target.suffix.lower() != f".{payload['format']}":
+                raise ValueError("La extensión del archivo debe coincidir con el formato elegido.")
+            if target.exists() and payload.get("overwrite") is not True:
+                raise FileExistsError("Ese archivo ya existe. Elígelo otra vez con Guardar como para confirmar el reemplazo.")
+            payload["save_path"] = str(target)
         task = download_manager.add(payload)
         return jsonify({"ok": True, "download": task.as_dict()}), 201
     except Exception as exc:
@@ -1102,6 +1172,64 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {{
         return jsonify({"ok": True, "path": str(Path(selected).resolve())})
     except Exception as exc:
         return jsonify({"ok": False, "error": f"No se pudo abrir el selector: {exc}"}), 500
+
+
+@app.post("/api/save-path")
+def api_save_path():
+    if os.name != "nt":
+        return jsonify({"ok": False, "error": "Guardar como está preparado para Windows."}), 501
+    payload = request.get_json(silent=True) or {}
+    output_format = str(payload.get("format") or "").lower()
+    if output_format not in {"mp4", "mkv", "webm", "vob", "mp3", "m4a", "wav"}:
+        return jsonify({"ok": False, "error": "Formato no válido."}), 400
+    initial = Path(str(payload.get("initial") or settings_store.load()["default_folder"])).expanduser().resolve()
+    if not initial.is_dir():
+        initial = Path(settings_store.load()["default_folder"])
+    title = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", str(payload.get("title") or "Video"))
+    title = title.strip(" .")[:110].rstrip(" .") or "Video"
+    initial_escaped = str(initial).replace("'", "''")
+    filename_escaped = f"{title}.{output_format}".replace("'", "''")
+    format_label = output_format.upper()
+    script = rf"""
+Add-Type -AssemblyName System.Windows.Forms
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$dialog = New-Object System.Windows.Forms.SaveFileDialog
+$dialog.Title = 'Guardar descarga como'
+$dialog.InitialDirectory = '{initial_escaped}'
+$dialog.FileName = '{filename_escaped}'
+$dialog.Filter = '{format_label} (*.{output_format})|*.{output_format}'
+$dialog.DefaultExt = '{output_format}'
+$dialog.AddExtension = $true
+$dialog.OverwritePrompt = $true
+$dialog.CheckPathExists = $true
+try {{
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {{
+        @{{ path = $dialog.FileName; overwrite = (Test-Path -LiteralPath $dialog.FileName -PathType Leaf) }} | ConvertTo-Json -Compress
+    }}
+}} finally {{
+    $dialog.Dispose()
+}}
+"""
+    try:
+        completed = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-STA", "-ExecutionPolicy", "Bypass", "-Command", script],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        if completed.returncode != 0:
+            raise RuntimeError(completed.stderr.strip()[-400:] or "Windows no pudo abrir Guardar como.")
+        if not completed.stdout.strip():
+            return jsonify({"ok": True, "cancelled": True})
+        selected = json.loads(completed.stdout.strip())
+        target = Path(str(selected["path"])).resolve()
+        if target.suffix.lower() != f".{output_format}" or not target.parent.is_dir():
+            raise ValueError("El archivo debe tener la extensión elegida y una carpeta existente.")
+        return jsonify({
+            "ok": True, "path": str(target), "folder": str(target.parent),
+            "overwrite": bool(selected.get("overwrite")),
+        })
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"No se pudo elegir el archivo: {exc}"}), 500
 
 
 @app.post("/api/open-path")

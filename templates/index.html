@@ -20,7 +20,7 @@
         </div>
         <span class="eyebrow">TU CENTRO MULTIMEDIA PERSONAL</span>
           <h1>Guarda tus videos y audios en un solo lugar.</h1>
-          <p>Analiza enlaces de YouTube o Facebook, elige cómo guardarlos y organiza hasta diez descargas en tu PC.</p>
+        <p>Analiza enlaces de YouTube, Facebook o TikTok, elige cómo guardarlos y organiza hasta diez descargas en tu PC.</p>
         <button id="startButton" class="primary-button large-button" type="button">
           <span>Comenzar</span><span aria-hidden="true">→</span>
         </button>
@@ -98,7 +98,7 @@
             <div>
               <span class="eyebrow">DESCARGA INTELIGENTE</span>
               <h1>¿Qué quieres guardar hoy?</h1>
-              <p>Pega un enlace de YouTube o Facebook, revisa la información y agrégalo a tu cola.</p>
+              <p>Pega un enlace de YouTube, Facebook o TikTok, revisa la información y agrégalo a tu cola.</p>
             </div>
             <div class="hero-counter">
               <strong id="slotsAvailable">10</strong>
@@ -110,6 +110,7 @@
             <div class="source-tabs" role="group" aria-label="Plataforma">
               <button class="source-tab active" data-source="youtube" type="button"><span class="source-tab-icon youtube">▶</span> YouTube</button>
               <button class="source-tab" data-source="facebook" type="button"><span class="source-tab-icon facebook">f</span> Facebook</button>
+              <button class="source-tab" data-source="tiktok" type="button"><span class="source-tab-icon tiktok">♪</span> TikTok</button>
             </div>
             <label id="urlLabel" for="videoUrl">Enlace de YouTube</label>
             <div class="url-row">
@@ -178,11 +179,12 @@
                 </div>
 
                 <label class="form-field">
-                  <span>Carpeta de destino</span>
+                  <span>Destino de la descarga</span>
                   <div class="folder-input">
                     <input id="folderPath" type="text" readonly>
-                    <button id="browseFolderButton" class="secondary-button" type="button">Examinar</button>
+                    <button id="browseFolderButton" class="secondary-button" type="button">Guardar como…</button>
                   </div>
+                  <small id="destinationHint" class="destination-hint">Se guardará con nombre automático en la carpeta indicada. Usa «Guardar como» para elegir nombre y ubicación.</small>
                 </label>
 
                 <div class="estimate-card">
@@ -307,7 +309,7 @@
               <div class="about-list">
                 <span><i></i> Servidor: 127.0.0.1</span>
                 <span><i></i> Base de datos local</span>
-                <span><i></i> YouTube y Facebook</span>
+                <span><i></i> YouTube, Facebook y TikTok</span>
               </div>
               <div class="legal-note">Descarga solamente material que tengas derecho a guardar. Algunos contenidos o servicios pueden imponer restricciones adicionales.</div>
             </aside>
