@@ -1,0 +1,15 @@
+VIDEOFLOW LOCAL - COMPROBACIONES
+
+Actualización del 18/10/2026:
+1. app.py compilado correctamente con py_compile y app.js validado con node --check.
+2. La API detectó FFmpeg, FFprobe y Deno en Windows.
+3. El análisis devolvió metadatos y resoluciones de un video público de YouTube y otro de Facebook.
+4. Se descargaron en una carpeta temporal cuatro casos reales:
+   - YouTube: MP4 con video y audio.
+   - YouTube: MP4 solo video; ffprobe confirmó que no contiene audio.
+   - YouTube: MP3 solo audio; ffprobe confirmó que no contiene video.
+   - Facebook: MP4 con video y audio.
+5. Los cuatro archivos se comprobaron con ffprobe. La descarga temporal terminó antes de que Windows liberase history.db y la primera limpieza automática de esa carpeta encontró el archivo abierto; los archivos se generaron correctamente. El estado «Completado» ahora se publica después de guardar el historial para evitar esa carrera.
+6. Un enlace antiguo de Facebook devolvió «Cannot parse data». Facebook puede restringir videos o cambiar su estructura; la aplicación permite usar la sesión del navegador y muestra el error del extractor cuando ocurre.
+
+Comprobación anterior: conversión VOB sintética a MPEG-2 720x480 con audio AC-3.

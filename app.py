@@ -1,0 +1,1142 @@
+from __future__ import annotations
+
+import json
+import os
+import queue
+import shutil
+import sqlite3
+import subprocess
+import threading
+import time
+import uuid
+import tempfile
+import webbrowser
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
+
+import yt_dlp
+from flask import Flask, jsonify, render_template, request
+
+APP_DIR = Path(__file__).resolve().parent
+DATA_DIR = APP_DIR / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+SETTINGS_FILE = DATA_DIR / "settings.json"
+DB_FILE = DATA_DIR / "history.db"
+HOST = "127.0.0.1"
+PORT = 8765
+MAX_QUEUE_ITEMS = 10
+
+DEFAULT_FOLDER = str((Path.home() / "Downloads").resolve())
+DEFAULT_SETTINGS = {
+    "default_folder": DEFAULT_FOLDER,
+    "default_format": "mp4",
+    "default_video_quality": "720",
+    "default_audio_quality": "192",
+    "theme": "dark",
+    "notifications": True,
+    "max_concurrent": 3,
+    "welcome_seen": False,
+}
+
+SUPPORTED_FORMATS = [
+    "mp4", "mp3", "vob", "avi", "mkv", "mov",
+    "wmv", "flv", "webm", "mpeg", "wav", "aac"
+]
+
+AUDIO_FORMATS = ["mp3", "wav", "aac", "flac", "ogg", "m4a"]
+
+
+
+def now_iso() -> str:
+    return datetime.now().isoformat(timespec="seconds")
+
+
+def human_bytes(value: int | float | None) -> str:
+    if not value:
+        return "—"
+    size = float(value)
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if size < 1024 or unit == "TB":
+            return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} B"
+        size /= 1024
+    return "—"
+
+
+def human_duration(seconds: int | float | None) -> str:
+    if seconds is None:
+        return "—"
+    seconds = max(0, int(seconds))
+    hours, rem = divmod(seconds, 3600)
+    minutes, secs = divmod(rem, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+
+
+def source_for_url(url: str) -> str | None:
+    try:
+        parsed = urlparse(url.strip())
+        host = (parsed.hostname or "").lower()
+        if parsed.scheme not in {"http", "https"}:
+            return None
+        if host == "youtu.be" or any(host == name or host.endswith("." + name) for name in ("youtube.com", "youtube-nocookie.com")):
+            return "YouTube"
+        if host == "fb.watch" or any(host == name or host.endswith("." + name) for name in ("facebook.com", "fb.com")):
+            return "Facebook"
+        return None
+    except Exception:
+        return None
+
+
+def find_tool(name: str) -> str | None:
+    found = shutil.which(name)
+    if found:
+        return found
+    exe = name + (".exe" if os.name == "nt" else "")
+    candidates = [APP_DIR / "bin" / exe, APP_DIR / exe]
+    if os.name == "nt":
+        local = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+        package = "Gyan.FFmpeg_*" if name in {"ffmpeg", "ffprobe"} else "DenoLand.Deno_*"
+        if local.exists():
+            candidates.extend(local.glob(f"{package}/**/{exe}"))
+    return next((str(path) for path in candidates if path.is_file()), None)
+
+
+def ydl_environment(source: str = "YouTube", browser: str = "") -> dict[str, Any]:
+    options: dict[str, Any] = {}
+    ffmpeg = find_tool("ffmpeg")
+    if ffmpeg:
+        options["ffmpeg_location"] = str(Path(ffmpeg).parent)
+    deno = find_tool("deno")
+    if deno:
+        options["js_runtimes"] = {"deno": {"path": deno}}
+    if source == "Facebook":
+        from yt_dlp.networking.impersonate import ImpersonateTarget
+        options["impersonate"] = ImpersonateTarget("chrome")
+        if browser in {"chrome", "edge", "firefox"}:
+            options["cookiesfrombrowser"] = (browser,)
+    return options
+
+
+def describe_error(exc: Exception, source: str) -> str:
+    message = str(exc).strip() or exc.__class__.__name__
+    if source == "Facebook" and "Cannot parse data" in message:
+        return "Facebook no entregó datos de este video. Comprueba que el enlace abra en el navegador y, si requiere sesión, elige ese navegador en la pestaña Facebook."
+    return message[:600]
+
+
+class SettingsStore:
+    def __init__(self, path: Path):
+        self.path = path
+        self.lock = threading.RLock()
+        if not self.path.exists():
+            self.save(DEFAULT_SETTINGS.copy())
+
+    def load(self) -> dict[str, Any]:
+        with self.lock:
+            try:
+                data = json.loads(self.path.read_text(encoding="utf-8"))
+            except Exception:
+                data = {}
+            merged = DEFAULT_SETTINGS.copy()
+            merged.update(data)
+            return merged
+
+    def save(self, data: dict[str, Any]) -> dict[str, Any]:
+        with self.lock:
+            merged = DEFAULT_SETTINGS.copy()
+            merged.update(data)
+            self.path.write_text(
+                json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            return merged
+
+    def update(self, patch: dict[str, Any]) -> dict[str, Any]:
+        current = self.load()
+        current.update(patch)
+        return self.save(current)
+
+
+class HistoryStore:
+    def __init__(self, path: Path):
+        self.path = path
+        self._init_db()
+
+    def connect(self) -> sqlite3.Connection:
+        con = sqlite3.connect(self.path, timeout=20)
+        con.row_factory = sqlite3.Row
+        return con
+
+    def _init_db(self) -> None:
+        with self.connect() as con:
+            con.execute(
+                """
+                CREATE TABLE IF NOT EXISTS history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    task_id TEXT NOT NULL,
+                    video_id TEXT,
+                    title TEXT NOT NULL,
+                    downloaded_at TEXT NOT NULL,
+                    format TEXT NOT NULL,
+                    quality TEXT NOT NULL,
+                    size_bytes INTEGER DEFAULT 0,
+                    filepath TEXT NOT NULL,
+                    thumbnail TEXT,
+                    duration INTEGER DEFAULT 0,
+                    source TEXT DEFAULT 'YouTube',
+                    mode TEXT DEFAULT 'video_audio'
+                )
+                """
+            )
+            columns = {row[1] for row in con.execute("PRAGMA table_info(history)")}
+            if "source" not in columns:
+                con.execute("ALTER TABLE history ADD COLUMN source TEXT DEFAULT 'YouTube'")
+            if "mode" not in columns:
+                con.execute("ALTER TABLE history ADD COLUMN mode TEXT DEFAULT 'video_audio'")
+            con.commit()
+
+    def add(self, task: "DownloadTask") -> None:
+        with self.connect() as con:
+            con.execute(
+                """
+                INSERT INTO history
+                (task_id, video_id, title, downloaded_at, format, quality,
+                 size_bytes, filepath, thumbnail, duration, source, mode)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    task.id,
+                    task.video_id,
+                    task.title,
+                    task.completed_at or now_iso(),
+                    task.output_format,
+                    task.quality,
+                    int(task.final_size or 0),
+                    task.final_path or "",
+                    task.thumbnail,
+                    int(task.duration or 0),
+                    task.source,
+                    task.mode,
+                ),
+            )
+            con.commit()
+
+    def list(self, limit: int = 250) -> list[dict[str, Any]]:
+        with self.connect() as con:
+            rows = con.execute(
+                "SELECT * FROM history ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["size_human"] = human_bytes(item.get("size_bytes"))
+            item["duration_human"] = human_duration(item.get("duration"))
+            result.append(item)
+        return result
+
+    def clear(self) -> None:
+        with self.connect() as con:
+            con.execute("DELETE FROM history")
+            con.commit()
+
+
+class DownloadCancelled(Exception):
+    pass
+
+
+@dataclass
+class DownloadTask:
+    id: str
+    url: str
+    video_id: str
+    title: str
+    thumbnail: str
+    duration: int
+    output_format: str
+    quality: str
+    folder: str
+    source: str = "YouTube"
+    mode: str = "video_audio"
+    browser: str = ""
+    estimated_size: int = 0
+    status: str = "Pendiente"
+    progress: float = 0.0
+    downloaded_bytes: int = 0
+    total_bytes: int = 0
+    speed: float = 0.0
+    eta: int | None = None
+    error: str = ""
+    created_at: str = field(default_factory=now_iso)
+    completed_at: str = ""
+    final_path: str = ""
+    final_size: int = 0
+    pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
+    cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "url": self.url,
+            "video_id": self.video_id,
+            "title": self.title,
+            "thumbnail": self.thumbnail,
+            "duration": self.duration,
+            "duration_human": human_duration(self.duration),
+            "format": self.output_format,
+            "source": self.source,
+            "mode": self.mode,
+            "quality": self.quality,
+            "folder": self.folder,
+            "estimated_size": self.estimated_size,
+            "estimated_size_human": human_bytes(self.estimated_size),
+            "status": self.status,
+            "progress": round(self.progress, 1),
+            "downloaded_bytes": self.downloaded_bytes,
+            "downloaded_human": human_bytes(self.downloaded_bytes),
+            "total_bytes": self.total_bytes,
+            "total_human": human_bytes(self.total_bytes),
+            "speed": self.speed,
+            "speed_human": f"{human_bytes(self.speed)}/s" if self.speed else "—",
+            "eta": self.eta,
+            "eta_human": human_duration(self.eta),
+            "error": self.error,
+            "created_at": self.created_at,
+            "completed_at": self.completed_at,
+            "final_path": self.final_path,
+            "final_size": self.final_size,
+            "final_size_human": human_bytes(self.final_size),
+        }
+
+
+class QuietLogger:
+    def __init__(self, task: DownloadTask):
+        self.task = task
+
+    def debug(self, msg: str) -> None:
+        pass
+
+    def warning(self, msg: str) -> None:
+        pass
+
+    def error(self, msg: str) -> None:
+        if msg and not self.task.error:
+            self.task.error = str(msg)
+
+
+class DownloadManager:
+    def __init__(self, settings: SettingsStore, history: HistoryStore):
+        self.settings = settings
+        self.history = history
+        self.tasks: dict[str, DownloadTask] = {}
+        self.lock = threading.RLock()
+        self.condition = threading.Condition(self.lock)
+        self.work_queue: queue.Queue[str] = queue.Queue()
+        self.active_count = 0
+        for index in range(10):
+            thread = threading.Thread(
+                target=self._worker,
+                name=f"download-worker-{index + 1}",
+                daemon=True,
+            )
+            thread.start()
+
+    def notify_settings_changed(self) -> None:
+        with self.condition:
+            self.condition.notify_all()
+
+    def count_unfinished(self) -> int:
+        with self.lock:
+            return sum(
+                1
+                for task in self.tasks.values()
+                if task.status not in {"Completado", "Error", "Cancelado"}
+            )
+
+    def add(self, payload: dict[str, Any]) -> DownloadTask:
+        if self.count_unfinished() >= MAX_QUEUE_ITEMS:
+            raise ValueError("Solo se permiten hasta 10 videos pendientes o activos.")
+
+        task = DownloadTask(
+            id=uuid.uuid4().hex[:10],
+            url=str(payload["url"]).strip(),
+            video_id=str(payload.get("video_id") or "video"),
+            title=str(payload.get("title") or "Video"),
+            thumbnail=str(payload.get("thumbnail") or ""),
+            duration=int(payload.get("duration") or 0),
+            output_format=str(payload["format"]).lower(),
+            quality=str(payload["quality"]),
+            folder=str(Path(payload["folder"]).expanduser().resolve()),
+            source=source_for_url(str(payload["url"])) or "YouTube",
+            mode=str(payload.get("mode") or "video_audio"),
+            browser=str(payload.get("browser") or ""),
+            estimated_size=int(payload.get("estimated_size") or 0),
+        )
+        with self.lock:
+            self.tasks[task.id] = task
+        self.work_queue.put(task.id)
+        return task
+
+    def list(self) -> list[dict[str, Any]]:
+        with self.lock:
+            values = sorted(
+                self.tasks.values(), key=lambda item: item.created_at, reverse=True
+            )
+            return [task.as_dict() for task in values]
+
+    def get(self, task_id: str) -> DownloadTask | None:
+        with self.lock:
+            return self.tasks.get(task_id)
+
+    def pause(self, task_id: str) -> DownloadTask:
+        task = self._require(task_id)
+        if task.status == "Descargando":
+            task.pause_event.set()
+            task.status = "Pausado"
+        return task
+
+    def resume(self, task_id: str) -> DownloadTask:
+        task = self._require(task_id)
+        if task.status == "Pausado":
+            task.pause_event.clear()
+            task.status = "Descargando"
+        return task
+
+    def cancel(self, task_id: str) -> DownloadTask:
+        task = self._require(task_id)
+        if task.status not in {"Completado", "Error", "Cancelado"}:
+            task.cancel_event.set()
+            task.pause_event.clear()
+            if task.status == "Pendiente":
+                task.status = "Cancelado"
+        return task
+
+    def delete(self, task_id: str) -> None:
+        task = self._require(task_id)
+        if task.status not in {"Completado", "Error", "Cancelado"}:
+            raise ValueError("Cancela la descarga antes de eliminarla de la lista.")
+        with self.lock:
+            self.tasks.pop(task_id, None)
+
+    def _require(self, task_id: str) -> DownloadTask:
+        task = self.get(task_id)
+        if not task:
+            raise KeyError("Descarga no encontrada.")
+        return task
+
+    def _worker(self) -> None:
+        while True:
+            task_id = self.work_queue.get()
+            try:
+                task = self.get(task_id)
+                if not task or task.cancel_event.is_set():
+                    if task:
+                        task.status = "Cancelado"
+                    continue
+
+                slot_acquired = False
+                with self.condition:
+                    while True:
+                        if task.cancel_event.is_set():
+                            task.status = "Cancelado"
+                            break
+                        limit = int(self.settings.load().get("max_concurrent", 3))
+                        limit = max(1, min(10, limit))
+                        if self.active_count < limit:
+                            self.active_count += 1
+                            slot_acquired = True
+                            break
+                        self.condition.wait(timeout=1)
+
+                if not slot_acquired:
+                    continue
+
+                try:
+                    self._download(task)
+                finally:
+                    with self.condition:
+                        self.active_count = max(0, self.active_count - 1)
+                        self.condition.notify_all()
+            finally:
+                self.work_queue.task_done()
+
+    def _wait_if_paused(self, task: DownloadTask) -> None:
+        while task.pause_event.is_set():
+            if task.cancel_event.is_set():
+                raise DownloadCancelled("Descarga cancelada")
+            task.status = "Pausado"
+            time.sleep(0.25)
+        if task.cancel_event.is_set():
+            raise DownloadCancelled("Descarga cancelada")
+
+    def _download(self, task: DownloadTask) -> None:
+        try:
+            folder = Path(task.folder)
+            folder.mkdir(parents=True, exist_ok=True)
+            if not os.access(folder, os.W_OK):
+                raise PermissionError("No hay permiso de escritura en la carpeta elegida.")
+            if not find_tool("ffmpeg") or not find_tool("ffprobe"):
+                raise RuntimeError(
+                    "FFmpeg/FFprobe no están disponibles. Ejecuta INSTALAR.bat o agrégalos al PATH."
+                )
+
+            task.status = "Descargando"
+            task.error = ""
+            task.progress = max(task.progress, 0.1)
+
+            def progress_hook(data: dict[str, Any]) -> None:
+                self._wait_if_paused(task)
+                status = data.get("status")
+                if status == "downloading":
+                    total = int(
+                        data.get("total_bytes")
+                        or data.get("total_bytes_estimate")
+                        or task.estimated_size
+                        or 0
+                    )
+                    downloaded = int(data.get("downloaded_bytes") or 0)
+                    task.total_bytes = total
+                    task.downloaded_bytes = downloaded
+                    task.speed = float(data.get("speed") or 0)
+                    task.eta = data.get("eta")
+                    if total > 0:
+                        task.progress = min(98.5, downloaded * 100 / total)
+                    task.status = "Descargando"
+                elif status == "finished":
+                    task.progress = max(task.progress, 98.5)
+                    task.status = "Procesando"
+
+            def postprocessor_hook(data: dict[str, Any]) -> None:
+                self._wait_if_paused(task)
+                if data.get("status") in {"started", "processing"}:
+                    task.status = "Procesando"
+                    task.progress = max(task.progress, 98.5)
+
+            quality_number = int(task.quality)
+            quality_suffix = (f"{quality_number}kbps" if quality_number else "original") if task.mode == "audio" else f"{quality_number}p"
+            output_template = str(
+                folder / f"%(title).160B [%(id)s] [{quality_suffix}] [{task.id}].%(ext)s"
+            )
+            common_opts: dict[str, Any] = {
+                "outtmpl": {"default": output_template},
+                "noplaylist": True,
+                "continuedl": True,
+                "retries": 5,
+                "fragment_retries": 5,
+                "concurrent_fragment_downloads": 4,
+                "windowsfilenames": True,
+                "overwrites": False,
+                "quiet": True,
+                "no_warnings": True,
+                "logger": QuietLogger(task),
+                "progress_hooks": [progress_hook],
+                "postprocessor_hooks": [postprocessor_hook],
+                "socket_timeout": 30,
+                **ydl_environment(task.source, task.browser),
+            }
+
+            if task.mode == "audio":
+                common_opts.update(
+                    {
+                        "format": "bestaudio/best",
+                        "postprocessors": [
+                            {
+                                "key": "FFmpegExtractAudio",
+                                "preferredcodec": task.output_format,
+                                "preferredquality": str(quality_number) if task.output_format == "mp3" else None,
+                            },
+                            {"key": "FFmpegMetadata", "add_metadata": True},
+                        ],
+                    }
+                )
+            elif task.output_format == "vob":
+                vob_height = min(480, quality_number)
+                common_opts.update(
+                    {
+                        "format": (
+                            f"bestvideo[height<={vob_height}]+bestaudio/"
+                            f"best[height<={vob_height}]/best"
+                        ),
+                        "merge_output_format": "mp4",
+                        "postprocessors": [
+                            {"key": "FFmpegMetadata", "add_metadata": True}
+                        ],
+                    }
+                )
+            else:
+                selector = (
+                    f"bestvideo[height<={quality_number}]/best[height<={quality_number}]"
+                    if task.mode == "video_only"
+                    else f"bestvideo[height<={quality_number}]+bestaudio/best[height<={quality_number}]"
+                )
+                common_opts.update(
+                    {
+                        "format": selector,
+                        "merge_output_format": task.output_format,
+                        "postprocessors": [
+                            {
+                                "key": "FFmpegVideoConvertor",
+                                "preferedformat": task.output_format,
+                            },
+                            {"key": "FFmpegMetadata", "add_metadata": True},
+                        ],
+                    }
+                )
+
+            with yt_dlp.YoutubeDL(common_opts) as ydl:
+                info = ydl.extract_info(task.url, download=True)
+                if info:
+                    task.video_id = str(info.get("id") or task.video_id or "video")
+                    task.title = str(info.get("title") or task.title)
+
+            self._wait_if_paused(task)
+            if task.output_format == "vob":
+                source_file = self._find_final_file(folder, task.id, "mp4")
+                if not source_file:
+                    source_file = self._find_final_file(folder, task.id, "")
+                if not source_file:
+                    raise RuntimeError("La descarga terminó, pero no se encontró el archivo intermedio.")
+                final_file = self._convert_to_vob(task, source_file)
+            else:
+                final_file = self._find_final_file(folder, task.id, task.output_format)
+
+            if final_file and task.mode == "video_only":
+                final_file = self._strip_audio(task, final_file)
+
+            if not final_file:
+                raise RuntimeError("La descarga terminó, pero no se encontró el archivo final.")
+
+            task.final_path = str(final_file.resolve())
+            task.final_size = final_file.stat().st_size
+            task.total_bytes = task.final_size
+            task.downloaded_bytes = task.final_size
+            task.progress = 100.0
+            task.completed_at = now_iso()
+            self.history.add(task)
+            task.status = "Completado"
+        except DownloadCancelled:
+            task.status = "Cancelado"
+            task.error = ""
+            self._cleanup_partials(Path(task.folder), task.id)
+        except Exception as exc:
+            if task.cancel_event.is_set():
+                task.status = "Cancelado"
+                task.error = ""
+            else:
+                task.status = "Error"
+                task.error = describe_error(exc, task.source)
+            self._cleanup_partials(Path(task.folder), task.id)
+
+    def _strip_audio(self, task: DownloadTask, source_file: Path) -> Path:
+        target_file = source_file.with_name(source_file.stem + ".video-only" + source_file.suffix)
+        task.status = "Procesando"
+        result = subprocess.run(
+            [find_tool("ffmpeg") or "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+             "-i", str(source_file), "-map", "0:v:0", "-an", "-c:v", "copy", str(target_file)],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        if result.returncode != 0 or not target_file.is_file():
+            target_file.unlink(missing_ok=True)
+            raise RuntimeError("FFmpeg no pudo preparar el video sin audio: " + result.stderr[-350:])
+        if task.cancel_event.is_set():
+            target_file.unlink(missing_ok=True)
+            raise DownloadCancelled("Descarga cancelada")
+        source_file.unlink()
+        target_file.replace(source_file)
+        return source_file
+
+    def _convert_to_vob(self, task: DownloadTask, source_file: Path) -> Path:
+        target_file = source_file.with_suffix(".vob")
+        command = [
+            find_tool("ffmpeg") or "ffmpeg",
+            "-y",
+            "-i",
+            str(source_file),
+            "-vf",
+            "scale=720:480:force_original_aspect_ratio=decrease,"
+            "pad=720:480:(ow-iw)/2:(oh-ih)/2,setsar=1",
+            "-r",
+            "30000/1001",
+            "-c:v",
+            "mpeg2video",
+            "-pix_fmt",
+            "yuv420p",
+            "-b:v",
+            "6000k",
+            "-maxrate",
+            "9000k",
+            "-bufsize",
+            "1835k",
+            "-g",
+            "18",
+            "-c:a",
+            "ac3",
+            "-b:a",
+            "192k",
+            "-ar",
+            "48000",
+            "-ac",
+            "2",
+            "-f",
+            "vob",
+            "-progress",
+            "pipe:1",
+            "-nostats",
+            str(target_file),
+        ]
+        task.status = "Procesando"
+        task.progress = max(task.progress, 98.5)
+        creation_flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=creation_flags,
+        )
+        try:
+            assert process.stdout is not None
+            for raw_line in process.stdout:
+                if task.cancel_event.is_set():
+                    process.terminate()
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                    target_file.unlink(missing_ok=True)
+                    raise DownloadCancelled("Descarga cancelada")
+                line = raw_line.strip()
+                if line.startswith("out_time_ms=") and task.duration > 0:
+                    try:
+                        elapsed_seconds = int(line.split("=", 1)[1]) / 1_000_000
+                        fraction = min(1.0, elapsed_seconds / task.duration)
+                        task.progress = 98.5 + fraction * 1.4
+                    except (TypeError, ValueError, ZeroDivisionError):
+                        pass
+            return_code = process.wait()
+            if return_code != 0 or not target_file.exists():
+                target_file.unlink(missing_ok=True)
+                raise RuntimeError("FFmpeg no pudo convertir el video al formato VOB.")
+        finally:
+            if process.poll() is None:
+                process.kill()
+
+        if source_file != target_file:
+            try:
+                source_file.unlink(missing_ok=True)
+            except OSError:
+                pass
+        return target_file
+
+    @staticmethod
+    def _find_final_file(folder: Path, video_id: str, output_format: str) -> Path | None:
+        candidates: list[Path] = []
+        if not folder.exists():
+            return None
+        for path in folder.iterdir():
+            if not path.is_file():
+                continue
+            lower = path.name.lower()
+            if lower.endswith((".part", ".ytdl", ".temp")):
+                continue
+            if f"[{video_id}]" in path.name:
+                candidates.append(path)
+        preferred = (
+            [p for p in candidates if p.suffix.lower() == f".{output_format}"]
+            if output_format
+            else []
+        )
+        pool = preferred or candidates
+        return max(pool, key=lambda p: p.stat().st_mtime, default=None)
+
+    @staticmethod
+    def _cleanup_partials(folder: Path, video_id: str) -> None:
+        if not folder.exists():
+            return
+        for path in folder.iterdir():
+            if not path.is_file() or f"[{video_id}]" not in path.name:
+                continue
+            if path.name.lower().endswith((".part", ".ytdl", ".temp")):
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+
+settings_store = SettingsStore(SETTINGS_FILE)
+history_store = HistoryStore(DB_FILE)
+download_manager = DownloadManager(settings_store, history_store)
+app = Flask(__name__)
+app.config["JSON_AS_ASCII"] = False
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.get("/")
+def index():
+    return render_template("index.html")
+
+
+@app.get("/api/system")
+def api_system():
+    try:
+        ytdlp_version = yt_dlp.version.__version__
+    except Exception:
+        ytdlp_version = "desconocida"
+    return jsonify(
+        {
+            "ok": True,
+            "ffmpeg": bool(find_tool("ffmpeg")),
+            "ffprobe": bool(find_tool("ffprobe")),
+            "deno": bool(find_tool("deno")),
+            "yt_dlp": ytdlp_version,
+            "platform": os.name,
+        }
+    )
+
+
+def format_size(item: dict[str, Any]) -> int:
+    return int(item.get("filesize") or item.get("filesize_approx") or 0)
+
+
+def estimate_video_options(info: dict[str, Any]) -> list[dict[str, Any]]:
+    formats = info.get("formats") or []
+    targets = [144, 240, 360, 480, 720, 1080, 1440, 2160]
+    video_formats = [
+        f
+        for f in formats
+        if f.get("vcodec") not in {None, "none"} and int(f.get("height") or 0) > 0
+    ]
+    audio_formats = [
+        f
+        for f in formats
+        if f.get("acodec") not in {None, "none"} and f.get("vcodec") == "none"
+    ]
+    max_height = max((int(f.get("height") or 0) for f in video_formats), default=0)
+    best_audio_size = max((format_size(f) for f in audio_formats), default=0)
+    options: list[dict[str, Any]] = []
+    seen_actual: set[int] = set()
+
+    for target in targets:
+        if target > max_height:
+            continue
+        candidates = [f for f in video_formats if int(f.get("height") or 0) <= target]
+        if not candidates:
+            continue
+        selected = max(
+            candidates,
+            key=lambda f: (
+                int(f.get("height") or 0),
+                float(f.get("tbr") or 0),
+                format_size(f),
+            ),
+        )
+        actual = int(selected.get("height") or target)
+        if actual in seen_actual and target != actual:
+            continue
+        seen_actual.add(actual)
+        size = format_size(selected)
+        if selected.get("acodec") in {None, "none"}:
+            size += best_audio_size
+        options.append(
+            {
+                "value": str(target),
+                "label": "2K (1440p)" if target == 1440 else "4K (2160p)" if target == 2160 else f"{target}p",
+                "estimated_size": size,
+                "estimated_size_human": human_bytes(size),
+                "actual_height": actual,
+            }
+        )
+    if not options:
+        options.append(
+            {
+                "value": "360",
+                "label": "360p",
+                "estimated_size": 0,
+                "estimated_size_human": "—",
+                "actual_height": 0,
+            }
+        )
+    return options
+
+
+@app.post("/api/analyze")
+def api_analyze():
+    payload = request.get_json(silent=True) or {}
+    url = str(payload.get("url") or "").strip()
+    source = source_for_url(url)
+    if not source:
+        return jsonify({"ok": False, "error": "Pega una URL válida de YouTube o Facebook."}), 400
+
+    try:
+        opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "skip_download": True,
+            "noplaylist": True,
+            "socket_timeout": 25,
+            **ydl_environment(source, str(payload.get("browser") or "")),
+        }
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+        if not info:
+            raise RuntimeError("No se pudo leer la información del video.")
+        if info.get("entries"):
+            info = next((entry for entry in info["entries"] if entry), None)
+            if not info:
+                raise RuntimeError("No se encontró un video válido en el enlace.")
+
+        duration = int(info.get("duration") or 0)
+        audio_options = []
+        for bitrate in (128, 192, 320):
+            estimated = int(duration * bitrate * 1000 / 8 * 1.03) if duration else 0
+            audio_options.append(
+                {
+                    "value": str(bitrate),
+                    "label": f"{bitrate} kbps",
+                    "estimated_size": estimated,
+                    "estimated_size_human": human_bytes(estimated),
+                }
+            )
+
+        result = {
+            "id": str(info.get("id") or "video"),
+            "url": str(info.get("webpage_url") or url),
+            "title": str(info.get("title") or f"Video de {source}"),
+            "thumbnail": str(info.get("thumbnail") or ""),
+            "duration": duration,
+            "duration_human": human_duration(duration),
+            "uploader": str(info.get("uploader") or info.get("channel") or source),
+            "source": source,
+            "view_count": int(info.get("view_count") or 0),
+            "video_options": estimate_video_options(info),
+            "audio_options": audio_options,
+            "source_audio_size": max((format_size(f) for f in (info.get("formats") or []) if f.get("acodec") not in {None, "none"} and f.get("vcodec") == "none"), default=0),
+        }
+        return jsonify({"ok": True, "video": result})
+    except Exception as exc:
+        return (
+            jsonify(
+                {
+                    "ok": False,
+                    "error": f"No se pudo analizar el video: {describe_error(exc, source)[:500]}",
+                }
+            ),
+            422,
+        )
+
+
+@app.post("/api/downloads")
+def api_add_download():
+    payload = request.get_json(silent=True) or {}
+    required = ("url", "format", "quality", "folder")
+    if any(not payload.get(key) for key in required):
+        return jsonify({"ok": False, "error": "Faltan datos de la descarga."}), 400
+    if not source_for_url(str(payload["url"])):
+        return jsonify({"ok": False, "error": "URL de YouTube o Facebook no válida."}), 400
+    mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav"} else "video_audio"))
+    payload["mode"] = mode
+    allowed_formats = {
+        "video_audio": {"mp4", "mkv", "webm", "vob"},
+        "video_only": {"mp4", "mkv", "webm"},
+        "audio": {"mp3", "m4a", "wav"},
+    }
+    if mode not in allowed_formats or payload["format"] not in allowed_formats[mode]:
+        return jsonify({"ok": False, "error": "Formato no válido."}), 400
+    try:
+        quality = int(payload["quality"])
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "Calidad no válida."}), 400
+    if mode == "audio" and quality not in ({128, 192, 320} if payload["format"] == "mp3" else {0}):
+        return jsonify({"ok": False, "error": "Calidad de audio no válida."}), 400
+    if mode != "audio" and quality not in {144, 240, 360, 480, 720, 1080, 1440, 2160}:
+        return jsonify({"ok": False, "error": "Calidad de video no válida."}), 400
+
+    try:
+        folder = Path(str(payload["folder"])).expanduser().resolve()
+        folder.mkdir(parents=True, exist_ok=True)
+        payload["folder"] = str(folder)
+        task = download_manager.add(payload)
+        return jsonify({"ok": True, "download": task.as_dict()}), 201
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.get("/api/downloads")
+def api_downloads():
+    return jsonify({"ok": True, "downloads": download_manager.list()})
+
+
+@app.post("/api/downloads/<task_id>/<action>")
+def api_download_action(task_id: str, action: str):
+    try:
+        if action == "pause":
+            task = download_manager.pause(task_id)
+        elif action == "resume":
+            task = download_manager.resume(task_id)
+        elif action == "cancel":
+            task = download_manager.cancel(task_id)
+        else:
+            return jsonify({"ok": False, "error": "Acción no válida."}), 404
+        return jsonify({"ok": True, "download": task.as_dict()})
+    except KeyError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 404
+
+
+@app.delete("/api/downloads/<task_id>")
+def api_delete_download(task_id: str):
+    try:
+        download_manager.delete(task_id)
+        return jsonify({"ok": True})
+    except KeyError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 409
+
+
+@app.get("/api/history")
+def api_history():
+    return jsonify({"ok": True, "history": history_store.list()})
+
+
+@app.delete("/api/history")
+def api_clear_history():
+    history_store.clear()
+    return jsonify({"ok": True})
+
+
+@app.get("/api/settings")
+def api_get_settings():
+    return jsonify({"ok": True, "settings": settings_store.load()})
+
+
+@app.put("/api/settings")
+def api_update_settings():
+    payload = request.get_json(silent=True) or {}
+    allowed: dict[str, Any] = {}
+    if "default_folder" in payload:
+        folder = Path(str(payload["default_folder"])).expanduser().resolve()
+        folder.mkdir(parents=True, exist_ok=True)
+        allowed["default_folder"] = str(folder)
+    if payload.get("default_format") in {"mp4", "mkv", "webm", "vob", "mp3", "m4a", "wav"}:
+        allowed["default_format"] = payload["default_format"]
+    if str(payload.get("default_video_quality")) in {
+        "144", "240", "360", "480", "720", "1080", "1440", "2160"
+    }:
+        allowed["default_video_quality"] = str(payload["default_video_quality"])
+    if str(payload.get("default_audio_quality")) in {"128", "192", "320"}:
+        allowed["default_audio_quality"] = str(payload["default_audio_quality"])
+    if payload.get("theme") in {"light", "dark"}:
+        allowed["theme"] = payload["theme"]
+    if "notifications" in payload:
+        allowed["notifications"] = bool(payload["notifications"])
+    if "welcome_seen" in payload:
+        allowed["welcome_seen"] = bool(payload["welcome_seen"])
+    if "max_concurrent" in payload:
+        allowed["max_concurrent"] = max(1, min(10, int(payload["max_concurrent"])))
+
+    updated = settings_store.update(allowed)
+    download_manager.notify_settings_changed()
+    return jsonify({"ok": True, "settings": updated})
+
+
+@app.post("/api/select-folder")
+def api_select_folder():
+    if os.name != "nt":
+        return (
+            jsonify(
+                {
+                    "ok": False,
+                    "error": "El selector nativo de carpeta está preparado para Windows.",
+                }
+            ),
+            501,
+        )
+    payload = request.get_json(silent=True) or {}
+    initial = str(payload.get("initial") or settings_store.load()["default_folder"])
+    initial_escaped = initial.replace("'", "''")
+    script = rf"""
+Add-Type -AssemblyName System.Windows.Forms
+$dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+$dialog.Description = 'Selecciona la carpeta de destino'
+$dialog.ShowNewFolderButton = $true
+$dialog.SelectedPath = '{initial_escaped}'
+$result = $dialog.ShowDialog()
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {{
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    Write-Output $dialog.SelectedPath
+}}
+"""
+    try:
+        completed = subprocess.run(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-STA",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                script,
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=600,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        selected = completed.stdout.strip()
+        if not selected:
+            return jsonify({"ok": True, "cancelled": True})
+        return jsonify({"ok": True, "path": str(Path(selected).resolve())})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"No se pudo abrir el selector: {exc}"}), 500
+
+
+@app.post("/api/open-path")
+def api_open_path():
+    payload = request.get_json(silent=True) or {}
+    raw_path = str(payload.get("path") or "")
+    if not raw_path:
+        return jsonify({"ok": False, "error": "Ruta vacía."}), 400
+    path = Path(raw_path).expanduser().resolve()
+    try:
+        if os.name == "nt":
+            if path.is_file():
+                subprocess.Popen(["explorer.exe", "/select,", str(path)])
+            elif path.exists():
+                os.startfile(str(path))  # type: ignore[attr-defined]
+            else:
+                raise FileNotFoundError("La ruta ya no existe.")
+        else:
+            subprocess.Popen(["xdg-open", str(path if path.is_dir() else path.parent)])
+        return jsonify({"ok": True})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+def open_browser() -> None:
+    webbrowser.open_new(f"http://{HOST}:{PORT}")
+
+
+if __name__ == "__main__":
+    from waitress import serve
+
+    threading.Timer(1.0, open_browser).start()
+    print("=" * 64)
+    print(" VideoFlow Local está funcionando")
+    print(f" Abre: http://{HOST}:{PORT}")
+    print(" Para cerrar, presiona Ctrl + C")
+    print("=" * 64)
+    serve(app, host=HOST, port=PORT, threads=16)

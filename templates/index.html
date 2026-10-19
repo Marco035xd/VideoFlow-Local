@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>VideoFlow Local</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+  <div id="welcomeScreen" class="welcome-screen hidden" aria-hidden="true">
+    <div class="welcome-glow glow-one"></div>
+    <div class="welcome-glow glow-two"></div>
+    <section class="welcome-card">
+      <div class="welcome-copy">
+        <div class="brand brand-large">
+          <img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo VideoFlow">
+          <span>VideoFlow <b>Local</b></span>
+        </div>
+        <span class="eyebrow">TU CENTRO MULTIMEDIA PERSONAL</span>
+          <h1>Guarda tus videos y audios en un solo lugar.</h1>
+          <p>Analiza enlaces de YouTube o Facebook, elige cómo guardarlos y organiza hasta diez descargas en tu PC.</p>
+        <button id="startButton" class="primary-button large-button" type="button">
+          <span>Comenzar</span><span aria-hidden="true">→</span>
+        </button>
+        <small>Úsalo únicamente con contenido propio, de dominio público o con autorización.</small>
+      </div>
+      <div class="welcome-art" aria-hidden="true">
+        <div class="art-orbit orbit-one"></div>
+        <div class="art-orbit orbit-two"></div>
+        <div class="download-illustration">
+          <div class="video-window">
+            <div class="video-top"><i></i><i></i><i></i></div>
+            <div class="video-body">
+              <div class="play-triangle"></div>
+            </div>
+            <div class="video-line"><span></span></div>
+          </div>
+          <div class="download-badge">↓</div>
+          <div class="format-pill pill-mp4">MP4</div>
+          <div class="format-pill pill-mp3">MP3</div>
+          <div class="format-pill pill-vob">VOB</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand sidebar-brand">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo">
+        <span>VideoFlow <b>Local</b></span>
+      </div>
+
+      <nav class="nav-list" aria-label="Navegación principal">
+        <button class="nav-item active" data-page="home" type="button">
+          <span class="nav-icon">⌂</span><span>Inicio</span>
+        </button>
+        <button class="nav-item" data-page="downloads" type="button">
+          <span class="nav-icon">⇩</span><span>Descargas</span>
+          <span id="downloadCountBadge" class="nav-badge hidden">0</span>
+        </button>
+        <button class="nav-item" data-page="history" type="button">
+          <span class="nav-icon">↶</span><span>Historial</span>
+        </button>
+        <button class="nav-item" data-page="settings" type="button">
+          <span class="nav-icon">⚙</span><span>Configuración</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <div id="systemCard" class="system-card">
+        <div class="system-card-head">
+          <span class="status-dot checking"></span>
+          <strong>Comprobando sistema</strong>
+        </div>
+        <p>Verificando FFmpeg y el motor de descarga.</p>
+      </div>
+      <div class="sidebar-footer">Solo se ejecuta en tu computadora</div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <div>
+          <span class="topbar-kicker">VIDEOFLOW LOCAL</span>
+          <h2 id="pageTitle">Nueva descarga</h2>
+        </div>
+        <div class="topbar-actions">
+          <span id="connectionStatus" class="connection-pill"><i></i> Localhost activo</span>
+          <button id="themeToggle" class="icon-button" type="button" title="Cambiar tema">◐</button>
+        </div>
+      </header>
+
+      <main class="content-area">
+        <section id="page-home" class="page active-page">
+          <div class="hero-panel">
+            <div>
+              <span class="eyebrow">DESCARGA INTELIGENTE</span>
+              <h1>¿Qué quieres guardar hoy?</h1>
+              <p>Pega un enlace de YouTube o Facebook, revisa la información y agrégalo a tu cola.</p>
+            </div>
+            <div class="hero-counter">
+              <strong id="slotsAvailable">10</strong>
+              <span>espacios disponibles</span>
+            </div>
+          </div>
+
+          <section class="panel url-panel">
+            <div class="source-tabs" role="group" aria-label="Plataforma">
+              <button class="source-tab active" data-source="youtube" type="button"><span class="source-tab-icon youtube">▶</span> YouTube</button>
+              <button class="source-tab" data-source="facebook" type="button"><span class="source-tab-icon facebook">f</span> Facebook</button>
+            </div>
+            <label id="urlLabel" for="videoUrl">Enlace de YouTube</label>
+            <div class="url-row">
+              <div class="url-input-wrap">
+                <span id="sourceMark" class="youtube-mark">▶</span>
+                <input id="videoUrl" type="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
+                <button id="pasteButton" class="text-button" type="button">Pegar</button>
+              </div>
+              <button id="analyzeButton" class="primary-button" type="button">
+                <span class="button-label">Analizar video</span>
+                <span class="button-loader" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div id="sourceHelp" class="input-help"><span>ⓘ</span> Puedes agregar hasta 10 videos a la cola.</div>
+            <div id="facebookNotice" class="facebook-options hidden">
+              <label class="form-field" for="facebookBrowser"><span>Sesión de Facebook (opcional)</span></label>
+              <select id="facebookBrowser">
+                <option value="">Sin sesión · videos públicos</option>
+                <option value="chrome">Usar sesión de Chrome</option>
+                <option value="edge">Usar sesión de Edge</option>
+                <option value="firefox">Usar sesión de Firefox</option>
+              </select>
+              <small>Para videos restringidos, inicia sesión en Facebook en el navegador elegido. Algunas publicaciones pueden seguir sin estar disponibles.</small>
+            </div>
+          </section>
+
+          <section id="videoResult" class="panel video-result hidden">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">VIDEO DETECTADO</span>
+                <h3>Información y opciones</h3>
+              </div>
+              <button id="clearVideoButton" class="icon-button small" type="button" title="Cerrar">×</button>
+            </div>
+
+            <div class="video-layout">
+              <article class="video-preview-card">
+                <div class="thumbnail-wrap">
+                  <img id="videoThumbnail" alt="Miniatura del video">
+                  <span id="videoDuration" class="duration-badge">—</span>
+                </div>
+                <div class="video-meta">
+                  <h3 id="videoTitle">—</h3>
+                  <p id="videoUploader">—</p>
+                </div>
+              </article>
+
+              <div class="download-options">
+                <label class="form-field">
+                  <span>¿Qué quieres guardar?</span>
+                  <select id="modeSelect">
+                    <option value="video_audio">Video con audio</option>
+                    <option value="video_only">Solo video, sin audio</option>
+                    <option value="audio">Solo audio</option>
+                  </select>
+                </label>
+                <div class="field-grid">
+                  <label class="form-field">
+                    <span>Formato</span>
+                    <select id="formatSelect"></select>
+                  </label>
+                  <label class="form-field">
+                    <span>Calidad</span>
+                    <select id="qualitySelect"></select>
+                  </label>
+                </div>
+
+                <label class="form-field">
+                  <span>Carpeta de destino</span>
+                  <div class="folder-input">
+                    <input id="folderPath" type="text" readonly>
+                    <button id="browseFolderButton" class="secondary-button" type="button">Examinar</button>
+                  </div>
+                </label>
+
+                <div class="estimate-card">
+                  <div>
+                    <span>Peso estimado</span>
+                    <strong id="estimatedSize">—</strong>
+                  </div>
+                  <div>
+                    <span>Archivo final</span>
+                    <strong id="finalExtension">.mp4</strong>
+                  </div>
+                  <div>
+                    <span>Estado</span>
+                    <strong class="ready-text">Listo para agregar</strong>
+                  </div>
+                </div>
+
+                <div id="vobNotice" class="notice-box hidden">
+                  VOB se prepara en calidad compatible de hasta 480p mediante FFmpeg.
+                </div>
+                <button id="addQueueButton" class="primary-button wide-button" type="button">
+                  <span>Agregar a la cola</span><span>＋</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="quick-features">
+            <article><span>⚡</span><div><strong>Hasta 10 simultáneas</strong><small>Configura la cantidad de trabajos activos.</small></div></article>
+            <article><span>◫</span><div><strong>Tamaño estimado</strong><small>Revisa el peso antes de comenzar.</small></div></article>
+            <article><span>⌁</span><div><strong>Todo permanece local</strong><small>La app escucha solo en 127.0.0.1.</small></div></article>
+          </section>
+        </section>
+
+        <section id="page-downloads" class="page">
+          <div class="stats-grid">
+            <article class="stat-card"><span>En cola</span><strong id="statQueued">0</strong><small>Pendientes</small></article>
+            <article class="stat-card"><span>Activas</span><strong id="statActive">0</strong><small>Descargando</small></article>
+            <article class="stat-card"><span>Completadas</span><strong id="statCompleted">0</strong><small>En esta sesión</small></article>
+            <article class="stat-card progress-stat"><span>Progreso general</span><strong id="generalProgressText">0%</strong><div class="mini-progress"><i id="generalProgressBar"></i></div></article>
+          </div>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div><span class="eyebrow">COLA DE TRABAJO</span><h3>Descargas</h3></div>
+              <button id="newDownloadButton" class="secondary-button" type="button">＋ Nueva descarga</button>
+            </div>
+            <div id="downloadList" class="download-list"></div>
+            <div id="emptyDownloads" class="empty-state">
+              <div class="empty-icon">⇩</div>
+              <h3>Todavía no hay descargas</h3>
+              <p>Agrega un video desde la pantalla de inicio.</p>
+            </div>
+          </section>
+        </section>
+
+        <section id="page-history" class="page">
+          <section class="panel">
+            <div class="section-heading">
+              <div><span class="eyebrow">ARCHIVOS FINALIZADOS</span><h3>Historial de descargas</h3></div>
+              <button id="clearHistoryButton" class="secondary-button danger-soft" type="button">Limpiar historial</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Video</th><th>Fecha</th><th>Formato</th><th>Calidad</th><th>Peso</th><th>Ubicación</th></tr></thead>
+                <tbody id="historyBody"></tbody>
+              </table>
+            </div>
+            <div id="emptyHistory" class="empty-state compact">
+              <div class="empty-icon">↶</div>
+              <h3>Tu historial está vacío</h3>
+              <p>Las descargas completadas aparecerán aquí.</p>
+            </div>
+          </section>
+        </section>
+
+        <section id="page-settings" class="page">
+          <div class="settings-layout">
+            <section class="panel settings-panel">
+              <div class="section-heading"><div><span class="eyebrow">PREFERENCIAS</span><h3>Configuración general</h3></div></div>
+
+              <div class="settings-group">
+                <h4>Descargas</h4>
+                <label class="form-field">
+                  <span>Carpeta predeterminada</span>
+                  <div class="folder-input">
+                    <input id="settingsFolder" type="text" readonly>
+                    <button id="settingsBrowseButton" class="secondary-button" type="button">Cambiar</button>
+                  </div>
+                </label>
+                <div class="field-grid three-fields">
+                  <label class="form-field"><span>Formato predeterminado</span><select id="settingsFormat"><option value="mp4">MP4 · video</option><option value="mkv">MKV · video</option><option value="webm">WEBM · video</option><option value="vob">VOB · video</option><option value="mp3">MP3 · audio</option><option value="m4a">M4A · audio</option><option value="wav">WAV · audio</option></select></label>
+                  <label class="form-field"><span>Calidad de video</span><select id="settingsVideoQuality"><option value="144">144p</option><option value="240">240p</option><option value="360">360p</option><option value="480">480p</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">2K</option><option value="2160">4K</option></select></label>
+                  <label class="form-field"><span>Calidad de audio</span><select id="settingsAudioQuality"><option value="128">128 kbps</option><option value="192">192 kbps</option><option value="320">320 kbps</option></select></label>
+                </div>
+                <label class="form-field">
+                  <span>Descargas simultáneas: <b id="concurrentValue">3</b></span>
+                  <input id="settingsConcurrent" type="range" min="1" max="10" step="1">
+                  <div class="range-labels"><span>1</span><span>10</span></div>
+                </label>
+              </div>
+
+              <div class="settings-group">
+                <h4>Apariencia y avisos</h4>
+                <div class="setting-row">
+                  <div><strong>Tema oscuro</strong><small>Alterna entre el modo claro y oscuro.</small></div>
+                  <label class="switch"><input id="settingsTheme" type="checkbox"><span></span></label>
+                </div>
+                <div class="setting-row">
+                  <div><strong>Notificaciones</strong><small>Avisa cuando una descarga finaliza o falla.</small></div>
+                  <label class="switch"><input id="settingsNotifications" type="checkbox"><span></span></label>
+                </div>
+              </div>
+
+              <button id="saveSettingsButton" class="primary-button" type="button">Guardar configuración</button>
+            </section>
+
+            <aside class="panel about-panel">
+              <img src="{{ url_for('static', filename='logo.svg') }}" alt="VideoFlow">
+              <h3>VideoFlow Local</h3>
+              <p>Aplicación privada para administrar tus descargas multimedia desde Windows.</p>
+              <div class="about-list">
+                <span><i></i> Servidor: 127.0.0.1</span>
+                <span><i></i> Base de datos local</span>
+                <span><i></i> YouTube y Facebook</span>
+              </div>
+              <div class="legal-note">Descarga solamente material que tengas derecho a guardar. Algunos contenidos o servicios pueden imponer restricciones adicionales.</div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+  <div id="confirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card">
+      <div class="modal-icon">!</div>
+      <h3 id="confirmTitle">Confirmar acción</h3>
+      <p id="confirmMessage">¿Deseas continuar?</p>
+      <div class="modal-actions">
+        <button id="confirmCancel" class="secondary-button" type="button">Cancelar</button>
+        <button id="confirmAccept" class="primary-button danger-button" type="button">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
