@@ -236,7 +236,7 @@ function updateEstimate() {
     : "—";
 }
 
-function showVideo(video) {
+function showVideo(video, previous = {}) {
   state.video = video;
   selectSource(video.source.toLowerCase());
   $("#videoThumbnail").src = video.thumbnail || "/static/logo.svg";
@@ -245,13 +245,25 @@ function showVideo(video) {
     ? `${video.source} · ${video.uploader} · ${formatNumber(video.view_count)} visualizaciones`
     : `${video.source} · ${video.uploader}`;
   $("#videoDuration").textContent = video.duration_human;
-  $("#modeSelect").value = ["mp3", "m4a", "wav"].includes(state.settings.default_format) ? "audio" : "video_audio";
-  state.destinationFolder = state.settings.default_folder;
+  const preferredFormat = previous.format || state.settings.default_format;
+  $("#modeSelect").value = ["mp3", "m4a", "wav"].includes(preferredFormat)
+    ? "audio" : previous.mode === "video_only" ? "video_only" : "video_audio";
+  state.destinationFolder = previous.folder || state.settings.default_folder;
   state.savePath = "";
   state.overwrite = false;
-  $("#folderPath").value = state.settings.default_folder;
-  $("#destinationHint").textContent = "Se guardará con nombre automático en la carpeta indicada. Usa «Guardar como» para elegir nombre y ubicación.";
+  $("#folderPath").value = state.destinationFolder;
+  $("#destinationHint").textContent = previous.folder
+    ? "Carpeta recuperada del historial. Se usará un nombre automático para esta nueva descarga."
+    : "Se guardará en la última carpeta elegida. Usa «Guardar como» para cambiar nombre y ubicación.";
   rebuildFormatOptions();
+  if ([...$("#formatSelect").options].some((option) => option.value === preferredFormat)) {
+    $("#formatSelect").value = preferredFormat;
+    rebuildQualityOptions();
+  }
+  if (previous.quality !== undefined && [...$("#qualitySelect").options].some((option) => option.value === String(previous.quality))) {
+    $("#qualitySelect").value = String(previous.quality);
+    updateEstimate();
+  }
   $("#videoResult").classList.remove("hidden");
   $("#videoResult").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -310,6 +322,8 @@ async function pickSavePath() {
     if (data.cancelled) return;
     state.savePath = data.path;
     state.destinationFolder = data.folder;
+    state.settings.default_folder = data.folder;
+    $("#settingsFolder").value = data.folder;
     state.overwrite = Boolean(data.overwrite);
     $("#folderPath").value = data.path;
     $("#destinationHint").textContent = state.overwrite
@@ -337,7 +351,7 @@ async function addToQueue() {
   const button = $("#addQueueButton");
   button.disabled = true;
   try {
-    await api("/api/downloads", {
+    const data = await api("/api/downloads", {
       method: "POST",
       body: JSON.stringify({
         url: state.video.url,
@@ -356,6 +370,8 @@ async function addToQueue() {
         estimated_size: estimatedSize,
       }),
     });
+    state.settings.default_folder = data.download.folder;
+    $("#settingsFolder").value = data.download.folder;
     toast("Añadido a la cola", `${state.video.title} comenzará según el límite configurado.`, "success");
     $("#videoResult").classList.add("hidden");
     $("#videoUrl").value = "";
@@ -548,6 +564,28 @@ async function copyHistoryUrl(url) {
   }
 }
 
+async function redownloadFromHistory(id, button) {
+  const item = state.history.find((entry) => String(entry.id) === String(id));
+  if (!item || !/^https?:\/\//i.test(item.url || "")) return;
+  button.disabled = true;
+  button.textContent = "Analizando…";
+  try {
+    const data = await api("/api/analyze", {
+      method: "POST",
+      body: JSON.stringify({ url: item.url, browser: $("#facebookBrowser").value }),
+    });
+    navigate("home");
+    $("#videoUrl").value = item.url;
+    showVideo(data.video, item);
+    toast("Listo para volver a descargar", "Se recuperó el destino anterior. Revisa las opciones y agrega el video a la cola.", "success");
+  } catch (error) {
+    toast("No se pudo recuperar el video", error.message, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "↻ Volver a descargar";
+  }
+}
+
 function renderHistory() {
   const body = $("#historyBody");
   const empty = $("#emptyHistory");
@@ -559,7 +597,7 @@ function renderHistory() {
       <td>
         <div class="history-video">
           <img src="${escapeHtml(item.thumbnail || "/static/logo.svg")}" alt="">
-          <div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.source || "YouTube")} · ${escapeHtml(item.duration_human)}</small></div>
+          <div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.source || "YouTube")} · ${escapeHtml(item.duration_human)}</small><button class="secondary-button history-redownload" type="button" data-redownload-id="${item.id}" ${/^https?:\/\//i.test(item.url || "") ? "" : 'disabled title="Este registro no tiene un enlace guardado"'}>↻ Volver a descargar</button></div>
         </div>
       </td>
       <td>${escapeHtml(formatDate(item.downloaded_at))}</td>
@@ -677,6 +715,8 @@ function bindEvents() {
     if (button) openPath(button.dataset.openPath);
     const copyButton = event.target.closest("[data-copy-url]");
     if (copyButton) copyHistoryUrl(copyButton.dataset.copyUrl);
+    const repeatButton = event.target.closest("[data-redownload-id]");
+    if (repeatButton) redownloadFromHistory(repeatButton.dataset.redownloadId, repeatButton);
   });
 }
 

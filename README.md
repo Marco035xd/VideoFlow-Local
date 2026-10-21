@@ -39,6 +39,8 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 - Pausar, reanudar, cancelar y eliminar trabajos.
 - Historial local con fecha, formato, calidad, peso y ubicación.
 - En cada descarga completada se guarda el enlace que pegaste, con opciones para abrirlo o copiarlo desde el historial. Los enlaces permanecen al cerrar la aplicación. Los registros anteriores a esta función muestran «Enlace no registrado».
+- «Volver a descargar» en el historial analiza el enlace guardado y recupera la carpeta, el modo, el formato y la calidad anteriores cuando siguen disponibles. Revisa las opciones y agrega el video a la cola; la nueva descarga recibe un nombre automático.
+- La última carpeta elegida se recuerda para las siguientes descargas, también al cerrar y abrir la aplicación.
 - Botón para mostrar el archivo descargado en el Explorador.
 - Base de datos SQLite y ajustes guardados solo en la carpeta `data`.
 - Detección de FFmpeg, FFprobe y Deno instalados mediante WinGet aunque una ventana antigua de Windows todavía no los muestre en `PATH`.

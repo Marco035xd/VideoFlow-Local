@@ -247,6 +247,7 @@ class HistoryStore:
             item = dict(row)
             item["size_human"] = human_bytes(item.get("size_bytes"))
             item["duration_human"] = human_duration(item.get("duration"))
+            item["folder"] = str(Path(item["filepath"]).parent) if item.get("filepath") else ""
             result.append(item)
         return result
 
@@ -1048,6 +1049,7 @@ def api_add_download():
             if target.exists() and payload.get("overwrite") is not True:
                 raise FileExistsError("Ese archivo ya existe. Elígelo otra vez con Guardar como para confirmar el reemplazo.")
             payload["save_path"] = str(target)
+        settings_store.update({"default_folder": str(folder)})
         task = download_manager.add(payload)
         return jsonify({"ok": True, "download": task.as_dict()}), 201
     except Exception as exc:
@@ -1235,6 +1237,7 @@ try {{
         target = Path(str(selected["path"])).resolve()
         if target.suffix.lower() != f".{output_format}" or not target.parent.is_dir():
             raise ValueError("El archivo debe tener la extensión elegida y una carpeta existente.")
+        settings_store.update({"default_folder": str(target.parent)})
         return jsonify({
             "ok": True, "path": str(target), "folder": str(target.parent),
             "overwrite": bool(selected.get("overwrite")),

@@ -305,6 +305,7 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
 .history-video img { width: 62px; aspect-ratio: 16/9; object-fit: cover; border-radius: 7px; background: var(--surface-3); }
 .history-video strong { display: block; font-size: 10px; line-height: 1.35; }
 .history-video small { color: var(--muted); }
+.history-redownload { display: flex; margin-top: 7px; min-height: 30px; padding: 0 10px; font-size: 10px; white-space: nowrap; }
 .history-url { display: flex; align-items: center; gap: 9px; min-width: 190px; }
 .history-url a { display: block; max-width: 230px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--primary); text-decoration: none; }
 .history-url a:hover { text-decoration: underline; }

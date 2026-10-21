@@ -26,3 +26,9 @@ Historial de URL:
 2. El enlace original se conservó al agregar una descarga y reabrir la base de datos.
 3. La API rechazó un enlace original que pertenecía a una plataforma diferente a la descarga.
 4. JavaScript pasó node --check y el cambio pasó git diff --check.
+
+Volver a descargar y recordar destino:
+1. Se recuperó la carpeta de un registro de historial después de reabrir su base de datos temporal.
+2. Se verificó que Guardar como actualiza la carpeta recordada y que el valor permanece al reabrir los ajustes.
+3. Se verificó que encolar una descarga en una carpeta anterior también actualiza la carpeta recordada.
+4. JavaScript pasó node --check y el cambio pasó git diff --check.
