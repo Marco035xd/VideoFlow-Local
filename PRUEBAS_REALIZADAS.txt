@@ -27,6 +27,12 @@ Historial de URL:
 3. La API rechazó un enlace original que pertenecía a una plataforma diferente a la descarga.
 4. JavaScript pasó node --check y el cambio pasó git diff --check.
 
+Destinos independientes por plataforma:
+1. Se migraron ajustes antiguos usando la carpeta anterior como destino inicial de las tres plataformas.
+2. Se comprobó que Guardar como y encolar una descarga actualizan solo la carpeta de la plataforma correspondiente y que los valores se conservan al reabrir los ajustes.
+3. Se comprobó que editar el destino de YouTube en Configuración conserva los destinos de Facebook y TikTok.
+4. Una comprobación de JavaScript verificó que cambiar entre pestañas recupera la carpeta correspondiente.
+
 Volver a descargar y recordar destino:
 1. Se recuperó la carpeta de un registro de historial después de reabrir su base de datos temporal.
 2. Se verificó que Guardar como actualiza la carpeta recordada y que el valor permanece al reabrir los ajustes.

@@ -79,6 +79,24 @@ const formatChoices = {
   audio: [["mp3", "MP3"], ["m4a", "M4A"], ["wav", "WAV"]],
 };
 
+const platformNames = { youtube: "YouTube", facebook: "Facebook", tiktok: "TikTok" };
+
+function folderForSource(source = state.source) {
+  return state.settings?.platform_folders?.[source.toLowerCase()] || state.settings?.default_folder || "";
+}
+
+function syncFolderSettings() {
+  for (const source of Object.keys(platformNames)) {
+    $(`#settingsFolder-${source}`).value = folderForSource(source);
+  }
+}
+
+function rememberFolder(source, folder) {
+  const sourceKey = source.toLowerCase();
+  state.settings.platform_folders = { ...state.settings.platform_folders, [sourceKey]: folder };
+  $(`#settingsFolder-${sourceKey}`).value = folder;
+}
+
 function selectSource(source) {
   state.source = source;
   $$(".source-tab").forEach((button) => button.classList.toggle("active", button.dataset.source === source));
@@ -94,6 +112,12 @@ function selectSource(source) {
     : tiktok ? "<span>ⓘ</span> Pega un enlace de video de TikTok. La calidad depende de las versiones disponibles."
     : "<span>ⓘ</span> Puedes agregar hasta 10 videos a la cola.";
   $("#facebookNotice").classList.toggle("hidden", !facebook);
+  state.destinationFolder = folderForSource(source);
+  state.savePath = "";
+  state.overwrite = false;
+  $("#folderPath").value = state.destinationFolder;
+  $("#destinationLabel").textContent = `Destino de la descarga · ${platformNames[source]}`;
+  $("#destinationHint").textContent = `Se guardará en la carpeta de ${platformNames[source]}. Usa «Guardar como» para cambiar nombre y ubicación.`;
 }
 
 function toast(title, message, type = "info", timeout = 4300) {
@@ -145,9 +169,9 @@ async function loadSettings() {
   const data = await api("/api/settings");
   state.settings = data.settings;
   applyTheme(state.settings.theme);
-  state.destinationFolder = state.settings.default_folder;
-  $("#folderPath").value = state.settings.default_folder;
-  $("#settingsFolder").value = state.settings.default_folder;
+  state.destinationFolder = folderForSource();
+  $("#folderPath").value = state.destinationFolder;
+  syncFolderSettings();
   $("#settingsFormat").value = state.settings.default_format;
   $("#settingsVideoQuality").value = state.settings.default_video_quality;
   $("#settingsAudioQuality").value = state.settings.default_audio_quality;
@@ -248,13 +272,13 @@ function showVideo(video, previous = {}) {
   const preferredFormat = previous.format || state.settings.default_format;
   $("#modeSelect").value = ["mp3", "m4a", "wav"].includes(preferredFormat)
     ? "audio" : previous.mode === "video_only" ? "video_only" : "video_audio";
-  state.destinationFolder = previous.folder || state.settings.default_folder;
+  state.destinationFolder = previous.folder || folderForSource(video.source);
   state.savePath = "";
   state.overwrite = false;
   $("#folderPath").value = state.destinationFolder;
   $("#destinationHint").textContent = previous.folder
     ? "Carpeta recuperada del historial. Se usará un nombre automático para esta nueva descarga."
-    : "Se guardará en la última carpeta elegida. Usa «Guardar como» para cambiar nombre y ubicación.";
+    : `Se guardará en la carpeta de ${video.source}. Usa «Guardar como» para cambiar nombre y ubicación.`;
   rebuildFormatOptions();
   if ([...$("#formatSelect").options].some((option) => option.value === preferredFormat)) {
     $("#formatSelect").value = preferredFormat;
@@ -298,7 +322,7 @@ async function pickFolder(targetInput) {
   try {
     const data = await api("/api/select-folder", {
       method: "POST",
-      body: JSON.stringify({ initial: input.value || state.settings.default_folder }),
+      body: JSON.stringify({ initial: input.value || folderForSource() }),
     });
     if (!data.cancelled && data.path) input.value = data.path;
   } catch (error) {
@@ -308,22 +332,24 @@ async function pickFolder(targetInput) {
 
 async function pickSavePath() {
   if (!state.video) return;
+  const video = state.video;
   const button = $("#browseFolderButton");
   button.disabled = true;
   try {
     const data = await api("/api/save-path", {
       method: "POST",
       body: JSON.stringify({
-        initial: state.destinationFolder || state.settings.default_folder,
-        title: state.video.title,
+        initial: state.destinationFolder || folderForSource(video.source),
+        source: video.source,
+        title: video.title,
         format: $("#formatSelect").value,
       }),
     });
     if (data.cancelled) return;
+    rememberFolder(data.source || video.source, data.folder);
+    if (state.video !== video) return;
     state.savePath = data.path;
     state.destinationFolder = data.folder;
-    state.settings.default_folder = data.folder;
-    $("#settingsFolder").value = data.folder;
     state.overwrite = Boolean(data.overwrite);
     $("#folderPath").value = data.path;
     $("#destinationHint").textContent = state.overwrite
@@ -370,8 +396,7 @@ async function addToQueue() {
         estimated_size: estimatedSize,
       }),
     });
-    state.settings.default_folder = data.download.folder;
-    $("#settingsFolder").value = data.download.folder;
+    rememberFolder(data.download.source, data.download.folder);
     toast("Añadido a la cola", `${state.video.title} comenzará según el límite configurado.`, "success");
     $("#videoResult").classList.add("hidden");
     $("#videoUrl").value = "";
@@ -612,7 +637,7 @@ function renderHistory() {
 
 async function saveSettings() {
   const payload = {
-    default_folder: $("#settingsFolder").value,
+    platform_folders: Object.fromEntries(Object.keys(platformNames).map((source) => [source, $(`#settingsFolder-${source}`).value])),
     default_format: $("#settingsFormat").value,
     default_video_quality: $("#settingsVideoQuality").value,
     default_audio_quality: $("#settingsAudioQuality").value,
@@ -627,10 +652,11 @@ async function saveSettings() {
     const data = await api("/api/settings", { method: "PUT", body: JSON.stringify(payload) });
     state.settings = data.settings;
     applyTheme(state.settings.theme);
-    state.destinationFolder = state.settings.default_folder;
+    state.destinationFolder = folderForSource();
     state.savePath = "";
     state.overwrite = false;
-    $("#folderPath").value = state.settings.default_folder;
+    $("#folderPath").value = state.destinationFolder;
+    syncFolderSettings();
     toast("Configuración guardada", "Los cambios se aplicaron correctamente.", "success");
   } catch (error) {
     toast("No se pudo guardar", error.message, "error");
@@ -662,7 +688,7 @@ function bindEvents() {
   $("#formatSelect").addEventListener("change", rebuildQualityOptions);
   $("#qualitySelect").addEventListener("change", updateEstimate);
   $("#browseFolderButton").addEventListener("click", pickSavePath);
-  $("#settingsBrowseButton").addEventListener("click", () => pickFolder("#settingsFolder"));
+  $$("[data-settings-source]").forEach((button) => button.addEventListener("click", () => pickFolder(`#settingsFolder-${button.dataset.settingsSource}`)));
   $("#addQueueButton").addEventListener("click", addToQueue);
   $("#clearVideoButton").addEventListener("click", () => {
     state.video = null;

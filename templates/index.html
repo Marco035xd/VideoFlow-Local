@@ -179,12 +179,12 @@
                 </div>
 
                 <label class="form-field">
-                  <span>Destino de la descarga</span>
+                  <span id="destinationLabel">Destino de la descarga · YouTube</span>
                   <div class="folder-input">
                     <input id="folderPath" type="text" readonly>
                     <button id="browseFolderButton" class="secondary-button" type="button">Guardar como…</button>
                   </div>
-                  <small id="destinationHint" class="destination-hint">Se guardará en la última carpeta elegida. Usa «Guardar como» para cambiar nombre y ubicación.</small>
+                  <small id="destinationHint" class="destination-hint">Se guardará en la carpeta de YouTube. Usa «Guardar como» para cambiar nombre y ubicación.</small>
                 </label>
 
                 <div class="estimate-card">
@@ -269,10 +269,24 @@
               <div class="settings-group">
                 <h4>Descargas</h4>
                 <label class="form-field">
-                  <span>Carpeta predeterminada</span>
+                  <span>Destino de YouTube</span>
                   <div class="folder-input">
-                    <input id="settingsFolder" type="text" readonly>
-                    <button id="settingsBrowseButton" class="secondary-button" type="button">Cambiar</button>
+                    <input id="settingsFolder-youtube" type="text" readonly>
+                    <button data-settings-source="youtube" class="secondary-button" type="button">Cambiar</button>
+                  </div>
+                </label>
+                <label class="form-field">
+                  <span>Destino de Facebook</span>
+                  <div class="folder-input">
+                    <input id="settingsFolder-facebook" type="text" readonly>
+                    <button data-settings-source="facebook" class="secondary-button" type="button">Cambiar</button>
+                  </div>
+                </label>
+                <label class="form-field">
+                  <span>Destino de TikTok</span>
+                  <div class="folder-input">
+                    <input id="settingsFolder-tiktok" type="text" readonly>
+                    <button data-settings-source="tiktok" class="secondary-button" type="button">Cambiar</button>
                   </div>
                 </label>
                 <div class="field-grid three-fields">

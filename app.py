@@ -30,10 +30,12 @@ DB_FILE = DATA_DIR / "history.db"
 HOST = "127.0.0.1"
 PORT = 8765
 MAX_QUEUE_ITEMS = 10
+PLATFORMS = {"youtube": "YouTube", "facebook": "Facebook", "tiktok": "TikTok"}
 
 DEFAULT_FOLDER = str((Path.home() / "Downloads").resolve())
 DEFAULT_SETTINGS = {
     "default_folder": DEFAULT_FOLDER,
+    "platform_folders": {},
     "default_format": "mp4",
     "default_video_quality": "720",
     "default_audio_quality": "192",
@@ -145,23 +147,44 @@ class SettingsStore:
                 data = json.loads(self.path.read_text(encoding="utf-8"))
             except Exception:
                 data = {}
-            merged = DEFAULT_SETTINGS.copy()
-            merged.update(data)
-            return merged
+            return self._merge(data)
+
+    @staticmethod
+    def _merge(data: dict[str, Any]) -> dict[str, Any]:
+        merged = {**DEFAULT_SETTINGS, **data}
+        folders = data.get("platform_folders")
+        folders = folders if isinstance(folders, dict) else {}
+        merged["platform_folders"] = {
+            source: str(folders.get(source) or merged["default_folder"])
+            for source in PLATFORMS
+        }
+        return merged
 
     def save(self, data: dict[str, Any]) -> dict[str, Any]:
         with self.lock:
-            merged = DEFAULT_SETTINGS.copy()
-            merged.update(data)
+            merged = self._merge(data)
             self.path.write_text(
                 json.dumps(merged, ensure_ascii=False, indent=2), encoding="utf-8"
             )
             return merged
 
     def update(self, patch: dict[str, Any]) -> dict[str, Any]:
-        current = self.load()
-        current.update(patch)
-        return self.save(current)
+        with self.lock:
+            current = self.load()
+            patch = patch.copy()
+            if "platform_folders" in patch:
+                current["platform_folders"].update(patch.pop("platform_folders"))
+            current.update(patch)
+            return self.save(current)
+
+    def folder_for(self, source: str) -> str:
+        return self.load()["platform_folders"][source.lower()]
+
+    def remember_folder(self, source: str, folder: str) -> dict[str, Any]:
+        source_key = source.lower()
+        if source_key not in PLATFORMS:
+            raise ValueError("Plataforma no válida.")
+        return self.update({"platform_folders": {source_key: folder}})
 
 
 class HistoryStore:
@@ -1049,7 +1072,7 @@ def api_add_download():
             if target.exists() and payload.get("overwrite") is not True:
                 raise FileExistsError("Ese archivo ya existe. Elígelo otra vez con Guardar como para confirmar el reemplazo.")
             payload["save_path"] = str(target)
-        settings_store.update({"default_folder": str(folder)})
+        settings_store.remember_folder(source, str(folder))
         task = download_manager.add(payload)
         return jsonify({"ok": True, "download": task.as_dict()}), 201
     except Exception as exc:
@@ -1112,6 +1135,19 @@ def api_update_settings():
         folder = Path(str(payload["default_folder"])).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
         allowed["default_folder"] = str(folder)
+    if "platform_folders" in payload:
+        if not isinstance(payload["platform_folders"], dict):
+            return jsonify({"ok": False, "error": "Los destinos por plataforma no son válidos."}), 400
+        folders = {}
+        for source_key in PLATFORMS:
+            if source_key in payload["platform_folders"]:
+                raw_folder = payload["platform_folders"][source_key]
+                if not isinstance(raw_folder, str) or not raw_folder.strip():
+                    return jsonify({"ok": False, "error": "El destino no puede estar vacío."}), 400
+                folder = Path(raw_folder).expanduser().resolve()
+                folder.mkdir(parents=True, exist_ok=True)
+                folders[source_key] = str(folder)
+        allowed["platform_folders"] = folders
     if payload.get("default_format") in {"mp4", "mkv", "webm", "vob", "mp3", "m4a", "wav"}:
         allowed["default_format"] = payload["default_format"]
     if str(payload.get("default_video_quality")) in {
@@ -1192,12 +1228,15 @@ def api_save_path():
     if os.name != "nt":
         return jsonify({"ok": False, "error": "Guardar como está preparado para Windows."}), 501
     payload = request.get_json(silent=True) or {}
+    source_key = str(payload.get("source") or "YouTube").lower()
+    if source_key not in PLATFORMS:
+        return jsonify({"ok": False, "error": "Plataforma no válida."}), 400
     output_format = str(payload.get("format") or "").lower()
     if output_format not in {"mp4", "mkv", "webm", "vob", "mp3", "m4a", "wav"}:
         return jsonify({"ok": False, "error": "Formato no válido."}), 400
-    initial = Path(str(payload.get("initial") or settings_store.load()["default_folder"])).expanduser().resolve()
+    initial = Path(str(payload.get("initial") or settings_store.folder_for(source_key))).expanduser().resolve()
     if not initial.is_dir():
-        initial = Path(settings_store.load()["default_folder"])
+        initial = Path(settings_store.folder_for(source_key))
     title = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", str(payload.get("title") or "Video"))
     title = title.strip(" .")[:110].rstrip(" .") or "Video"
     initial_escaped = str(initial).replace("'", "''")
@@ -1237,9 +1276,10 @@ try {{
         target = Path(str(selected["path"])).resolve()
         if target.suffix.lower() != f".{output_format}" or not target.parent.is_dir():
             raise ValueError("El archivo debe tener la extensión elegida y una carpeta existente.")
-        settings_store.update({"default_folder": str(target.parent)})
+        settings_store.remember_folder(source_key, str(target.parent))
         return jsonify({
             "ok": True, "path": str(target), "folder": str(target.parent),
+            "source": PLATFORMS[source_key],
             "overwrite": bool(selected.get("overwrite")),
         })
     except Exception as exc:

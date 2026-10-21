@@ -40,7 +40,7 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 - Historial local con fecha, formato, calidad, peso y ubicación.
 - En cada descarga completada se guarda el enlace que pegaste, con opciones para abrirlo o copiarlo desde el historial. Los enlaces permanecen al cerrar la aplicación. Los registros anteriores a esta función muestran «Enlace no registrado».
 - «Volver a descargar» en el historial analiza el enlace guardado y recupera la carpeta, el modo, el formato y la calidad anteriores cuando siguen disponibles. Revisa las opciones y agrega el video a la cola; la nueva descarga recibe un nombre automático.
-- La última carpeta elegida se recuerda para las siguientes descargas, también al cerrar y abrir la aplicación.
+- YouTube, Facebook y TikTok recuerdan cada uno su propia carpeta de destino, también al cerrar y abrir la aplicación. Puedes cambiarlas por separado en Configuración o con «Guardar como» en cada plataforma.
 - Botón para mostrar el archivo descargado en el Explorador.
 - Base de datos SQLite y ajustes guardados solo en la carpeta `data`.
 - Detección de FFmpeg, FFprobe y Deno instalados mediante WinGet aunque una ventana antigua de Windows todavía no los muestre en `PATH`.
@@ -49,7 +49,7 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 
 - VOB se convierte a una calidad compatible de hasta 480p. Es una limitación práctica del formato orientado a DVD.
 - Algunas publicaciones de Facebook requieren iniciar sesión o no son accesibles para yt-dlp. Selecciona tu navegador en la pestaña Facebook si el enlace lo necesita; no se guardan las cookies en la aplicación.
-- Si no usas «Guardar como», se mantiene el nombre automático en la carpeta predeterminada. Si cambias de formato después de elegir un nombre, abre «Guardar como» otra vez para confirmar la extensión.
+- Si no usas «Guardar como», se mantiene el nombre automático en la carpeta guardada para esa plataforma. Si cambias de formato después de elegir un nombre, abre «Guardar como» otra vez para confirmar la extensión.
 - TikTok puede bloquear determinados videos según la publicación, la región o la conexión. La aplicación muestra el error correspondiente cuando no puede analizarlos.
 - El tamaño mostrado antes de descargar es una estimación. Puede variar por el códec y la conversión final.
 - La pausa es cooperativa: se aplica en el siguiente bloque recibido o etapa de procesamiento.
