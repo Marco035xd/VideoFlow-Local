@@ -1,4 +1,4 @@
-"""Windowed Windows launcher. The existing interface opens in the browser."""
+"""Desktop entry point: serve the UI inside a native Windows application window."""
 from __future__ import annotations
 
 import argparse
@@ -8,11 +8,12 @@ import logging
 import os
 import sys
 import threading
+import time
 import urllib.request
-import webbrowser
-from pathlib import Path
 
-from app_paths import APP_DIR, APP_VERSION, DATA_DIR
+from app_paths import APP_DIR, DATA_DIR
+
+WINDOW_TITLE = "VideoFlow Local"
 
 
 def configure_logging() -> None:
@@ -30,19 +31,39 @@ def configure_logging() -> None:
 def existing_app(url: str) -> bool:
     try:
         with urllib.request.urlopen(url + "/api/system", timeout=2) as response:
-            return json.load(response).get("app") == "VideoFlow Local"
+            return json.load(response).get("app") == WINDOW_TITLE
     except Exception:
         return False
 
 
+def focus_existing_window() -> None:
+    """Restore the first instance when its shortcut is opened a second time."""
+    user = ctypes.WinDLL("user32", use_last_error=True)
+    user.FindWindowW.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
+    user.FindWindowW.restype = ctypes.c_void_p
+    user.IsIconic.argtypes = [ctypes.c_void_p]
+    user.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    user.SetForegroundWindow.argtypes = [ctypes.c_void_p]
+    for _ in range(50):
+        handle = user.FindWindowW(None, WINDOW_TITLE)
+        if handle:
+            if user.IsIconic(handle):
+                user.ShowWindow(handle, 9)  # SW_RESTORE
+            user.SetForegroundWindow(handle)
+            return
+        time.sleep(0.1)
+
+
 def run() -> None:
-    parser = argparse.ArgumentParser(description="VideoFlow Local")
+    parser = argparse.ArgumentParser(description=WINDOW_TITLE)
     parser.add_argument("--headless", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--port", type=int, default=8765, help=argparse.SUPPRESS)
     args = parser.parse_args()
     configure_logging()
     url = f"http://127.0.0.1:{args.port}"
     mutex = None
+    server = None
+    manager = None
     if os.name == "nt":
         kernel = ctypes.WinDLL("kernel32", use_last_error=True)
         kernel.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_wchar_p]
@@ -54,76 +75,84 @@ def run() -> None:
         if ctypes.get_last_error() == 183:
             kernel.CloseHandle(mutex)
             if not args.headless:
-                webbrowser.open_new(url)
+                focus_existing_window()
             return
+        # Give the app its own taskbar identity instead of grouping it with Python.
+        shell = ctypes.WinDLL("shell32")
+        shell.SetCurrentProcessExplicitAppUserModelID.argtypes = [ctypes.c_wchar_p]
+        shell.SetCurrentProcessExplicitAppUserModelID("VideoFlow.Local.Desktop")
     try:
         if existing_app(url):
-            if not args.headless:
-                webbrowser.open_new(url)
-            return
+            raise RuntimeError("Cierra la versión anterior de VideoFlow antes de abrir la aplicación de escritorio.")
 
         from waitress import create_server
         from app import app, download_manager
 
+        manager = download_manager
         server = create_server(app, host="127.0.0.1", port=args.port, threads=16)
         if args.headless:
             server.run()
             return
 
-        import tkinter as tk
-        from tkinter import messagebox, ttk
+        import webview
 
-        root = tk.Tk()
-        root.title("VideoFlow Local")
-        root.geometry("470x245")
-        root.resizable(False, False)
-        icon = APP_DIR / "static" / "app.ico"
-        if icon.is_file():
-            root.iconbitmap(str(icon))
-        root.configure(bg="#101827")
-        style = ttk.Style(root)
-        style.configure("TButton", font=("Segoe UI", 10), padding=(12, 8))
-        tk.Label(root, text="VideoFlow Local", font=("Segoe UI", 22, "bold"),
-                 fg="#eef3ff", bg="#101827").pack(pady=(24, 5))
-        tk.Label(root, text="YouTube · Facebook · TikTok", font=("Segoe UI", 11),
-                 fg="#92b6ff", bg="#101827").pack()
-        tk.Label(root, text="La aplicación está lista. Administra tus descargas\nen la ventana del navegador.",
-                 font=("Segoe UI", 10), fg="#b9c5d8", bg="#101827", justify="center").pack(pady=13)
-        actions = tk.Frame(root, bg="#101827")
-        actions.pack()
+        webview.settings["ALLOW_FILE_URLS"] = False
+        webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
+        profile_dir = DATA_DIR / "webview"
+        profile_dir.mkdir(parents=True, exist_ok=True)
+        window = webview.create_window(
+            WINDOW_TITLE, url, width=1280, height=820, min_size=(960, 640),
+            resizable=True, maximized=True, text_select=True, zoomable=True,
+            background_color="#101827",
+        )
 
-        def close() -> None:
-            active = any(task["status"] not in {"Completado", "Error", "Cancelado"}
-                         for task in download_manager.list())
-            if active and not messagebox.askyesno("Cerrar VideoFlow", "Hay descargas en curso. ¿Quieres detenerlas y cerrar?"):
-                return
-            for task in list(download_manager.tasks.values()):
-                task.cancel_event.set()
-                task.pause_event.clear()
-            server.close()
-            root.destroy()
+        def on_closing() -> bool:
+            if manager.count_unfinished():
+                return window.create_confirmation_dialog(
+                    "Cerrar VideoFlow",
+                    "Hay descargas pendientes o en curso. ¿Quieres detenerlas y cerrar?",
+                )
+            return True
 
-        ttk.Button(actions, text="Abrir VideoFlow", command=lambda: webbrowser.open_new(url)).pack(side="left", padx=5)
-        ttk.Button(actions, text="Cerrar aplicación", command=close).pack(side="left", padx=5)
-        root.protocol("WM_DELETE_WINDOW", close)
+        window.events.closing += on_closing
         threading.Thread(target=server.run, daemon=True, name="videoflow-server").start()
-        root.after(500, lambda: webbrowser.open_new(url))
-        root.mainloop()
+        webview.start(
+            gui="edgechromium", debug=False, private_mode=False,
+            storage_path=str(profile_dir), icon=str(APP_DIR / "static" / "app.ico"),
+            localization={
+                "global.ok": "Aceptar", "global.cancel": "Cancelar",
+                "global.quit": "Cerrar", "global.saveFile": "Guardar archivo",
+                "windows.fileFilter.allFiles": "Todos los archivos",
+            },
+        )
     finally:
+        if manager is not None:
+            with manager.lock:
+                for task in manager.tasks.values():
+                    task.cancel_event.set()
+                    task.pause_event.clear()
+        if server is not None:
+            server.close()
         if mutex:
             kernel.CloseHandle(mutex)
 
 
-if __name__ == "__main__":
+def main() -> None:
     try:
         run()
     except Exception as exc:
         logging.exception("No se pudo iniciar VideoFlow")
-        if "--headless" not in sys.argv:
-            import tkinter as tk
-            from tkinter import messagebox
-            error_root = tk.Tk()
-            error_root.withdraw()
-            messagebox.showerror("VideoFlow Local", f"No se pudo iniciar la aplicación.\n\n{exc}\n\nRevisa el registro en:\n{DATA_DIR.parent / 'logs' / 'app.log'}")
-            error_root.destroy()
+        if "--headless" not in sys.argv and os.name == "nt":
+            message = (
+                f"No se pudo iniciar VideoFlow.\n\n{exc}\n\n"
+                "Si falta Microsoft Edge WebView2, ejecuta de nuevo el instalador de VideoFlow.\n\n"
+                f"Registro: {DATA_DIR.parent / 'logs' / 'app.log'}"
+            )
+            user = ctypes.WinDLL("user32")
+            user.MessageBoxW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
+            user.MessageBoxW(None, message, WINDOW_TITLE, 0x10)
         raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

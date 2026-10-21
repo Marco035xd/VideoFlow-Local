@@ -5,6 +5,16 @@ $pythonBuild = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $pythonBuild)) { throw 'Ejecuta INSTALAR.bat primero.' }
 & $pythonBuild -m pip install --upgrade -r requirements-build.txt
 if ($LASTEXITCODE -ne 0) { throw 'No se pudieron preparar las herramientas de compilacion.' }
+$prerequisiteFolder = Join-Path $PSScriptRoot 'build\prerequisites'
+New-Item -ItemType Directory -Path $prerequisiteFolder -Force | Out-Null
+$webviewBootstrapper = Join-Path $prerequisiteFolder 'MicrosoftEdgeWebview2Setup.exe'
+if (-not (Test-Path -LiteralPath $webviewBootstrapper)) {
+    Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $webviewBootstrapper
+}
+$bootstrapperSignature = Get-AuthenticodeSignature -FilePath $webviewBootstrapper
+if ($bootstrapperSignature.Status -ne 'Valid' -or $bootstrapperSignature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
+    throw 'El instalador de WebView2 no tiene una firma valida de Microsoft.'
+}
 & $pythonBuild packaging/prepare_build.py
 if ($LASTEXITCODE -ne 0) { throw 'No se pudieron preparar los recursos.' }
 & $pythonBuild -m PyInstaller --noconfirm --clean VideoFlowLocal.spec

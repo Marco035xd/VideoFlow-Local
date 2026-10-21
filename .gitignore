@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 data/settings.json
 data/history.db
+data/webview/
 build/
 dist/
 release/

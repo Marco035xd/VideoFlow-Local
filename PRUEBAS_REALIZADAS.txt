@@ -1,5 +1,11 @@
 VIDEOFLOW LOCAL - COMPROBACIONES
 
+Actualización de escritorio 1.1.0, 21/10/2026:
+- Se sustituyó el lanzador con navegador por una ventana de escritorio con pywebview y WebView2, controles de ventana e icono propio.
+- Se compiló el ejecutable con las dependencias de escritorio y el instalador con detección y preparación de WebView2.
+- El instalador de WebView2 procede del enlace oficial de Microsoft y su firma se comprobó como válida antes de empaquetarlo.
+- No se ejecutaron pruebas de interfaz, descargas ni instalación durante esta actualización. Las comprobaciones siguientes corresponden a versiones anteriores.
+
 Ejecutable de Windows, 21/10/2026:
 1. Se compiló VideoFlowLocal.exe con Python y sus dependencias, FFmpeg/FFprobe 9.0.2 y Deno 2.9.7 incluidos.
 2. El ejecutable arrancó con un PATH limitado a Windows, sin Python ni herramientas externas disponibles en PATH. Sirvió la interfaz y sus recursos.

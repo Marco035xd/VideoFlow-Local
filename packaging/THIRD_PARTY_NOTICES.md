@@ -9,6 +9,10 @@ Sus licencias se distribuyen en la carpeta `_internal/licenses` de la aplicació
 - Flask: BSD-3-Clause, https://github.com/pallets/flask
 - Waitress: ZPL-2.1, https://github.com/Pylons/waitress
 - curl-cffi: MIT, https://github.com/lexiforest/curl_cffi
+- pywebview: BSD-3-Clause, https://github.com/r0x0r/pywebview
+- Python.NET: MIT, https://github.com/pythonnet/pythonnet
+- Microsoft Edge WebView2: componente de Microsoft instalado solo si falta, mediante su instalador oficial firmado.
+  Distribución y condiciones: https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution
 - Deno: MIT, https://github.com/denoland/deno
 - FFmpeg/FFprobe: compilación Gyan con GPLv3; licencia completa incluida en `licenses/ffmpeg`.
   Código fuente de FFmpeg: https://ffmpeg.org/download.html

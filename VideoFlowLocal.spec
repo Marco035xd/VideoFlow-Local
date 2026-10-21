@@ -11,7 +11,7 @@ datas += [
     (str(root / "README.md"), "."),
 ]
 binaries = []
-hiddenimports = []
+hiddenimports = ["webview.platforms.winforms", "webview.platforms.edgechromium", "clr"]
 for package in ("yt_dlp", "yt_dlp_ejs", "curl_cffi"):
     package_data, package_binaries, package_imports = collect_all(package)
     datas += package_data
@@ -20,7 +20,9 @@ for package in ("yt_dlp", "yt_dlp_ejs", "curl_cffi"):
 
 a = Analysis([str(root / "launcher.py")], pathex=[str(root)], binaries=binaries,
              datas=datas, hiddenimports=hiddenimports, hookspath=[],
-             excludes=["pytest", "resvg_py"], noarchive=False)
+             excludes=["pytest", "resvg_py", "tkinter", "PyQt5", "PyQt6", "PySide2", "PySide6",
+                       "webview.platforms.android", "webview.platforms.cocoa", "webview.platforms.gtk",
+                       "webview.platforms.qt", "webview.platforms.cef"], noarchive=False)
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="VideoFlowLocal",
           debug=False, bootloader_ignore_signals=False, strip=False, upx=False,

@@ -17,19 +17,22 @@ if errorlevel 1 (
 ) else (
     where ffmpeg >nul 2>&1
     if errorlevel 1 (
-        echo [1/4] Instalando FFmpeg...
+        echo [1/5] Instalando FFmpeg...
         winget install --id Gyan.FFmpeg --exact --accept-package-agreements --accept-source-agreements
     ) else (
-        echo [1/4] FFmpeg ya esta instalado.
+        echo [1/5] FFmpeg ya esta instalado.
     )
 
     where deno >nul 2>&1
     if errorlevel 1 (
-        echo [2/4] Instalando Deno para mejorar la compatibilidad con YouTube...
+        echo [2/5] Instalando Deno para mejorar la compatibilidad con YouTube...
         winget install --id DenoLand.Deno --exact --accept-package-agreements --accept-source-agreements
     ) else (
-        echo [2/4] Deno ya esta instalado.
+        echo [2/5] Deno ya esta instalado.
     )
+
+    echo [3/5] Preparando Microsoft Edge WebView2 para la ventana de escritorio...
+    winget install --id Microsoft.EdgeWebView2Runtime --exact --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
 )
 
 set "PY_CMD="
@@ -63,7 +66,7 @@ if not defined PY_CMD (
     exit /b 1
 )
 
- echo [3/4] Preparando el entorno privado de Python...
+ echo [4/5] Preparando el entorno privado de Python...
 if not exist ".venv\Scripts\python.exe" (
     %PY_CMD% -m venv .venv
     if errorlevel 1 goto :error
@@ -73,7 +76,7 @@ call ".venv\Scripts\activate.bat"
 python -m pip install --upgrade pip wheel
 if errorlevel 1 goto :error
 
- echo [4/4] Instalando VideoFlow y el motor de descarga...
+ echo [5/5] Instalando VideoFlow y el motor de descarga...
 python -m pip install --upgrade -r requirements.txt
 if errorlevel 1 goto :error
 

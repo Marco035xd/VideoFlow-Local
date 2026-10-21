@@ -11,7 +11,6 @@ import threading
 import time
 import uuid
 import tempfile
-import webbrowser
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -1311,17 +1310,11 @@ def api_open_path():
         return jsonify({"ok": False, "error": str(exc)}), 400
 
 
-def open_browser() -> None:
-    webbrowser.open_new(f"http://{HOST}:{PORT}")
-
-
 if __name__ == "__main__":
-    from waitress import serve
+    import sys
 
-    threading.Timer(1.0, open_browser).start()
-    print("=" * 64)
-    print(" VideoFlow Local está funcionando")
-    print(f" Abre: http://{HOST}:{PORT}")
-    print(" Para cerrar, presiona Ctrl + C")
-    print("=" * 64)
-    serve(app, host=HOST, port=PORT, threads=16)
+    # Reuse this module rather than creating a second download queue on import.
+    sys.modules["app"] = sys.modules[__name__]
+    from launcher import main
+
+    main()

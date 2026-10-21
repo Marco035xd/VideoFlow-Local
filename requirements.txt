@@ -1,5 +1,6 @@
 Flask>=3.1,<4
 waitress>=3.0,<4
+pywebview>=6.2.1,<7
 yt-dlp[default,curl-cffi]>=2026.8.19
 
 pyinstaller>=6.0

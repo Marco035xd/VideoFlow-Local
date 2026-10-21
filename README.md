@@ -1,14 +1,14 @@
 # VideoFlow Local
 
-Aplicación local para Windows que funciona en `http://127.0.0.1:8765`. Permite analizar y guardar videos autorizados de YouTube, Facebook y TikTok, con cola, progreso, historial y configuración local.
+Aplicación de escritorio para Windows. Permite analizar y guardar videos autorizados de YouTube, Facebook y TikTok, con cola, progreso, historial y configuración local, dentro de su propia ventana.
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.0.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 y 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.1.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
-El instalador incluye Python, FFmpeg, FFprobe y Deno. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
+El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
-Abre **VideoFlow Local** desde el menú Inicio o el escritorio. La interfaz se abre en el navegador y una pequeña ventana permite abrirla de nuevo o cerrar la aplicación. Mantén esa ventana abierta mientras se descargan los archivos.
+Abre **VideoFlow Local** desde el menú Inicio o el escritorio. Toda la interfaz aparece en una ventana propia con icono en la barra de tareas y controles para minimizar, maximizar y cerrar. Al volver a abrir el acceso directo, se recupera la ventana existente. Si cierras con descargas pendientes, VideoFlow pide confirmación antes de detenerlas.
 
 La versión instalada guarda el historial y las preferencias en `%LOCALAPPDATA%\VideoFlowLocal\data`, fuera de la carpeta del programa. Las actualizaciones mediante un instalador nuevo conservan esos datos. La versión desde código fuente sigue usando su carpeta `data`.
 
@@ -20,21 +20,22 @@ El instalador inicial no tiene firma digital.
 2. Haz doble clic en **INSTALAR.bat**.
 3. Cuando termine, cierra la ventana si se acaban de instalar FFmpeg o Deno.
 4. Haz doble clic en **INICIAR.bat**.
-5. El navegador se abrirá automáticamente en VideoFlow Local.
+5. Se abrirá la ventana de escritorio de VideoFlow Local.
 
 ## Requisitos para ejecutar desde el código fuente
 
-- Windows 10 u 11.
+- Windows 10 (1809 o posterior) u 11 de 64 bits.
 - Conexión a Internet.
 - Python 3.11 o superior.
 - FFmpeg y FFprobe para unir y convertir archivos.
 - Deno, recomendado por yt-dlp para la compatibilidad completa con YouTube.
+- Microsoft Edge WebView2 Runtime para la ventana de escritorio.
 
-`INSTALAR.bat` intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, instala manualmente Python, FFmpeg y Deno, y asegúrate de que estén disponibles en el `PATH` de Windows. El instalador `.exe` ya incluye estas herramientas.
+`INSTALAR.bat` intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, instala manualmente Python, FFmpeg, Deno y [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/), y asegúrate de que las herramientas estén disponibles en el `PATH` de Windows. El instalador `.exe` prepara estos componentes.
 
 ## Funciones incluidas
 
-- Pantalla de bienvenida estilo Windows 11.
+- Ventana de escritorio con pantalla de bienvenida estilo Windows 11.
 - Modo claro y oscuro.
 - Análisis de enlaces de YouTube, Facebook y TikTok: miniatura, título, autor, duración y calidades disponibles.
 - TikTok muestra las dimensiones reales de cada versión disponible, incluidas las verticales.
@@ -65,7 +66,7 @@ El instalador inicial no tiene firma digital.
 - TikTok puede bloquear determinados videos según la publicación, la región o la conexión. La aplicación muestra el error correspondiente cuando no puede analizarlos.
 - El tamaño mostrado antes de descargar es una estimación. Puede variar por el códec y la conversión final.
 - La pausa es cooperativa: se aplica en el siguiente bloque recibido o etapa de procesamiento.
-- Mantén abierta la ventana de VideoFlow mientras haya descargas activas. Si ejecutas desde el código fuente, mantén abierta también la consola.
+- Mantén abierta la ventana de VideoFlow mientras haya descargas activas. Cerrar la aplicación detiene los trabajos pendientes.
 - Los cambios de YouTube pueden requerir una versión nueva de yt-dlp. Actualiza la aplicación con un instalador nuevo; si ejecutas desde el código fuente, usa **ACTUALIZAR.bat**.
 - Las listas de reproducción se tratan como un solo video para evitar agregar más de diez elementos accidentalmente.
 
@@ -101,7 +102,7 @@ En un equipo Windows de 64 bits, instala las dependencias con `INSTALAR.bat` y [
 powershell -ExecutionPolicy Bypass -File .\CREAR_INSTALADOR.ps1
 ```
 
-El script usa PyInstaller, prepara los iconos y las herramientas externas, y compila el instalador en `release`. El ejecutable sin instalar queda en `dist\VideoFlowLocal\VideoFlowLocal.exe`; necesita el resto de esa carpeta para funcionar. Los archivos de compilación, instaladores y datos personales no se incluyen en Git.
+El script usa PyInstaller, prepara los iconos y las herramientas externas, descarga el instalador oficial de WebView2, comprueba su firma de Microsoft y compila el instalador en `release`. El ejecutable sin instalar queda en `dist\VideoFlowLocal\VideoFlowLocal.exe`; necesita el resto de esa carpeta y WebView2 Runtime para funcionar. Los archivos de compilación, instaladores y datos personales no se incluyen en Git.
 
 Para una nueva versión, actualiza `APP_VERSION` en `app_paths.py` y los datos de versión en `packaging/windows-version.txt`. La versión instalada se actualiza con el instalador correspondiente; `ACTUALIZAR.bat` se usa para ejecutar desde el código fuente.
 
@@ -119,5 +120,9 @@ Comprueba que el video se abra en tu navegador y prueba la opción «Usar sesió
 **No aparece la ventana para elegir carpeta**  
 La función usa PowerShell y Windows Forms. Comprueba que PowerShell no esté bloqueado por una política empresarial.
 
+**No se abre la ventana de escritorio**
+
+Ejecuta de nuevo el instalador para preparar WebView2. Si ejecutas desde el código fuente, instala WebView2 Runtime y actualiza las dependencias con `INSTALAR.bat`. El registro de errores de la versión instalada está en `%LOCALAPPDATA%\VideoFlowLocal\logs\app.log`.
+
 **El puerto 8765 ya está ocupado**  
-Cierra otra instancia de VideoFlow. Si ejecutas desde el código fuente y necesitas cambiarlo, edita la constante `PORT` al inicio de `app.py`.
+Cierra otra instancia de VideoFlow. Para desarrollo, puedes elegir otro puerto con `python launcher.py --port 8766`.

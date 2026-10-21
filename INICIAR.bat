@@ -16,9 +16,4 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
-".venv\Scripts\python.exe" app.py
-if errorlevel 1 (
-    echo.
-    echo VideoFlow se cerro con un error. Revisa el mensaje mostrado arriba.
-    pause
-)
+start "" ".venv\Scripts\pythonw.exe" launcher.py
