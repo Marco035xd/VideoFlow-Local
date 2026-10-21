@@ -2,7 +2,19 @@
 
 Aplicación local para Windows que funciona en `http://127.0.0.1:8765`. Permite analizar y guardar videos autorizados de YouTube, Facebook y TikTok, con cola, progreso, historial y configuración local.
 
-## Inicio rápido
+## Instalar como programa de Windows
+
+Descarga y ejecuta **VideoFlow-Local-1.0.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 y 11 de 64 bits.
+
+El instalador incluye Python, FFmpeg, FFprobe y Deno. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
+
+Abre **VideoFlow Local** desde el menú Inicio o el escritorio. La interfaz se abre en el navegador y una pequeña ventana permite abrirla de nuevo o cerrar la aplicación. Mantén esa ventana abierta mientras se descargan los archivos.
+
+La versión instalada guarda el historial y las preferencias en `%LOCALAPPDATA%\VideoFlowLocal\data`, fuera de la carpeta del programa. Las actualizaciones mediante un instalador nuevo conservan esos datos. La versión desde código fuente sigue usando su carpeta `data`.
+
+El instalador inicial no tiene firma digital.
+
+## Inicio desde el código fuente
 
 1. Extrae toda la carpeta del ZIP.
 2. Haz doble clic en **INSTALAR.bat**.
@@ -10,7 +22,7 @@ Aplicación local para Windows que funciona en `http://127.0.0.1:8765`. Permite 
 4. Haz doble clic en **INICIAR.bat**.
 5. El navegador se abrirá automáticamente en VideoFlow Local.
 
-## Requisitos
+## Requisitos para ejecutar desde el código fuente
 
 - Windows 10 u 11.
 - Conexión a Internet.
@@ -18,7 +30,7 @@ Aplicación local para Windows que funciona en `http://127.0.0.1:8765`. Permite 
 - FFmpeg y FFprobe para unir y convertir archivos.
 - Deno, recomendado por yt-dlp para la compatibilidad completa con YouTube.
 
-El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, instala manualmente Python, FFmpeg y Deno, y asegúrate de que estén disponibles en el `PATH` de Windows.
+`INSTALAR.bat` intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, instala manualmente Python, FFmpeg y Deno, y asegúrate de que estén disponibles en el `PATH` de Windows. El instalador `.exe` ya incluye estas herramientas.
 
 ## Funciones incluidas
 
@@ -42,7 +54,7 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 - «Volver a descargar» en el historial analiza el enlace guardado y recupera la carpeta, el modo, el formato y la calidad anteriores cuando siguen disponibles. Revisa las opciones y agrega el video a la cola; la nueva descarga recibe un nombre automático.
 - YouTube, Facebook y TikTok recuerdan cada uno su propia carpeta de destino, también al cerrar y abrir la aplicación. Puedes cambiarlas por separado en Configuración o con «Guardar como» en cada plataforma.
 - Botón para mostrar el archivo descargado en el Explorador.
-- Base de datos SQLite y ajustes guardados solo en la carpeta `data`.
+- Base de datos SQLite y ajustes guardados localmente; la aplicación instalada usa la carpeta de datos del usuario de Windows.
 - Detección de FFmpeg, FFprobe y Deno instalados mediante WinGet aunque una ventana antigua de Windows todavía no los muestre en `PATH`.
 
 ## Notas importantes
@@ -53,8 +65,8 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 - TikTok puede bloquear determinados videos según la publicación, la región o la conexión. La aplicación muestra el error correspondiente cuando no puede analizarlos.
 - El tamaño mostrado antes de descargar es una estimación. Puede variar por el códec y la conversión final.
 - La pausa es cooperativa: se aplica en el siguiente bloque recibido o etapa de procesamiento.
-- No cierres la ventana negra mientras haya descargas activas.
-- Los cambios de YouTube pueden requerir una versión nueva de yt-dlp. Ejecuta **ACTUALIZAR.bat** si deja de analizar enlaces.
+- Mantén abierta la ventana de VideoFlow mientras haya descargas activas. Si ejecutas desde el código fuente, mantén abierta también la consola.
+- Los cambios de YouTube pueden requerir una versión nueva de yt-dlp. Actualiza la aplicación con un instalador nuevo; si ejecutas desde el código fuente, usa **ACTUALIZAR.bat**.
 - Las listas de reproducción se tratan como un solo video para evitar agregar más de diez elementos accidentalmente.
 
 ## Uso responsable
@@ -81,13 +93,25 @@ VideoFlow_Localhost/
     └── history.db      (se crea automáticamente)
 ```
 
+## Crear otro instalador
+
+En un equipo Windows de 64 bits, instala las dependencias con `INSTALAR.bat` y [Inno Setup 6](https://jrsoftware.org/isinfo.php). Después ejecuta:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\CREAR_INSTALADOR.ps1
+```
+
+El script usa PyInstaller, prepara los iconos y las herramientas externas, y compila el instalador en `release`. El ejecutable sin instalar queda en `dist\VideoFlowLocal\VideoFlowLocal.exe`; necesita el resto de esa carpeta para funcionar. Los archivos de compilación, instaladores y datos personales no se incluyen en Git.
+
+Para una nueva versión, actualiza `APP_VERSION` en `app_paths.py` y los datos de versión en `packaging/windows-version.txt`. La versión instalada se actualiza con el instalador correspondiente; `ACTUALIZAR.bat` se usa para ejecutar desde el código fuente.
+
 ## Solución rápida de errores
 
 **“FFmpeg/FFprobe no están disponibles”**  
-Ejecuta `INSTALAR.bat` y vuelve a iniciar la app. También puedes comprobarlo con `ffmpeg -version` y `ffprobe -version` en CMD. La aplicación busca ambas herramientas en WinGet y en la carpeta `bin` del proyecto.
+La versión instalada incluye ambas herramientas: reinstala la versión más reciente si faltan sus archivos. Si ejecutas desde el código fuente, usa `INSTALAR.bat` y vuelve a iniciar la app. La aplicación también busca las herramientas en WinGet y en la carpeta `bin` del proyecto.
 
 **El enlace no se analiza**  
-Ejecuta `ACTUALIZAR.bat`. Verifica también que Deno esté instalado con `deno --version`.
+Instala la versión más reciente de VideoFlow. Si ejecutas desde el código fuente, usa `ACTUALIZAR.bat` y verifica que Deno esté instalado con `deno --version`.
 
 **Facebook muestra “Cannot parse data”**  
 Comprueba que el video se abra en tu navegador y prueba la opción «Usar sesión» de ese navegador. Hay enlaces de Facebook que el extractor de yt-dlp no puede leer aunque la sesión esté iniciada.
@@ -96,4 +120,4 @@ Comprueba que el video se abra en tu navegador y prueba la opción «Usar sesió
 La función usa PowerShell y Windows Forms. Comprueba que PowerShell no esté bloqueado por una política empresarial.
 
 **El puerto 8765 ya está ocupado**  
-Cierra otra instancia de VideoFlow. Si necesitas cambiarlo, edita la constante `PORT` al inicio de `app.py`.
+Cierra otra instancia de VideoFlow. Si ejecutas desde el código fuente y necesitas cambiarlo, edita la constante `PORT` al inicio de `app.py`.

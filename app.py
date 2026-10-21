@@ -21,10 +21,8 @@ from urllib.parse import urlparse
 
 import yt_dlp
 from flask import Flask, jsonify, render_template, request
+from app_paths import APP_DIR, APP_VERSION, DATA_DIR, IS_FROZEN
 
-APP_DIR = Path(__file__).resolve().parent
-DATA_DIR = APP_DIR / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
 HOST = "127.0.0.1"
@@ -96,6 +94,9 @@ def source_for_url(url: str) -> str | None:
 
 
 def find_tool(name: str) -> str | None:
+    bundled = APP_DIR / "bin" / (name + ".exe")
+    if IS_FROZEN and bundled.is_file():
+        return str(bundled)
     found = shutil.which(name)
     if found:
         return found
@@ -858,6 +859,8 @@ def api_system():
     return jsonify(
         {
             "ok": True,
+            "app": "VideoFlow Local",
+            "version": APP_VERSION,
             "ffmpeg": bool(find_tool("ffmpeg")),
             "ffprobe": bool(find_tool("ffprobe")),
             "deno": bool(find_tool("deno")),

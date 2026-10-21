@@ -1,5 +1,13 @@
 VIDEOFLOW LOCAL - COMPROBACIONES
 
+Ejecutable de Windows, 21/10/2026:
+1. Se compiló VideoFlowLocal.exe con Python y sus dependencias, FFmpeg/FFprobe 9.0.2 y Deno 2.9.7 incluidos.
+2. El ejecutable arrancó con un PATH limitado a Windows, sin Python ni herramientas externas disponibles en PATH. Sirvió la interfaz y sus recursos.
+3. El ejecutable analizó enlaces públicos de YouTube, Facebook y TikTok.
+4. Se descargó YouTube en MP4 con video y audio y TikTok en MP3, usando nombres y destinos elegidos. FFprobe confirmó las pistas esperadas.
+5. El historial conservó los dos enlaces originales. Se usaron datos y archivos temporales, sin modificar el historial personal.
+6. Inno Setup compiló correctamente VideoFlow-Local-1.0.0-Setup-x64.exe con accesos directos, herramientas incluidas y desinstalador. No se comprobó la instalación interactiva ni se dispone de firma digital.
+
 Actualización del 18/10/2026:
 1. app.py compilado correctamente con py_compile y app.js validado con node --check.
 2. La API detectó FFmpeg, FFprobe y Deno en Windows.
