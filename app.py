@@ -196,7 +196,8 @@ class HistoryStore:
                     thumbnail TEXT,
                     duration INTEGER DEFAULT 0,
                     source TEXT DEFAULT 'YouTube',
-                    mode TEXT DEFAULT 'video_audio'
+                    mode TEXT DEFAULT 'video_audio',
+                    url TEXT NOT NULL DEFAULT ''
                 )
                 """
             )
@@ -205,6 +206,8 @@ class HistoryStore:
                 con.execute("ALTER TABLE history ADD COLUMN source TEXT DEFAULT 'YouTube'")
             if "mode" not in columns:
                 con.execute("ALTER TABLE history ADD COLUMN mode TEXT DEFAULT 'video_audio'")
+            if "url" not in columns:
+                con.execute("ALTER TABLE history ADD COLUMN url TEXT NOT NULL DEFAULT ''")
             con.commit()
 
     def add(self, task: "DownloadTask") -> None:
@@ -213,8 +216,8 @@ class HistoryStore:
                 """
                 INSERT INTO history
                 (task_id, video_id, title, downloaded_at, format, quality,
-                 size_bytes, filepath, thumbnail, duration, source, mode)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 size_bytes, filepath, thumbnail, duration, source, mode, url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     task.id,
@@ -229,6 +232,7 @@ class HistoryStore:
                     int(task.duration or 0),
                     task.source,
                     task.mode,
+                    task.original_url or task.url,
                 ),
             )
             con.commit()
@@ -272,6 +276,7 @@ class DownloadTask:
     browser: str = ""
     save_path: str = ""
     overwrite: bool = False
+    original_url: str = ""
     estimated_size: int = 0
     status: str = "Pendiente"
     progress: float = 0.0
@@ -383,6 +388,7 @@ class DownloadManager:
             browser=str(payload.get("browser") or ""),
             save_path=str(payload.get("save_path") or ""),
             overwrite=payload.get("overwrite") is True,
+            original_url=str(payload.get("original_url") or payload["url"]).strip(),
             estimated_size=int(payload.get("estimated_size") or 0),
         )
         with self.lock:
@@ -966,6 +972,7 @@ def api_analyze():
         result = {
             "id": str(info.get("id") or "video"),
             "url": str(info.get("webpage_url") or url),
+            "original_url": url,
             "title": str(info.get("title") or f"Video de {source}"),
             "thumbnail": str(info.get("thumbnail") or ""),
             "duration": duration,
@@ -999,6 +1006,10 @@ def api_add_download():
     source = source_for_url(str(payload["url"]))
     if not source:
         return jsonify({"ok": False, "error": "URL de YouTube, Facebook o TikTok no válida."}), 400
+    original_url = str(payload.get("original_url") or payload["url"]).strip()
+    if source_for_url(original_url) != source:
+        return jsonify({"ok": False, "error": "El enlace original debe pertenecer a la misma plataforma."}), 400
+    payload["original_url"] = original_url
     mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav"} else "video_audio"))
     payload["mode"] = mode
     allowed_formats = {

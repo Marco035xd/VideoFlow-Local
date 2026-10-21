@@ -341,6 +341,7 @@ async function addToQueue() {
       method: "POST",
       body: JSON.stringify({
         url: state.video.url,
+        original_url: state.video.original_url || state.video.url,
         video_id: state.video.id,
         title: state.video.title,
         thumbnail: state.video.thumbnail,
@@ -532,6 +533,21 @@ async function loadHistory() {
   }
 }
 
+function historyUrlCell(url = "") {
+  if (!/^https?:\/\//i.test(url)) return '<span class="history-url-missing">Enlace no registrado</span>';
+  const escaped = escapeHtml(url);
+  return `<div class="history-url"><a href="${escaped}" target="_blank" rel="noopener noreferrer" title="${escaped}">${escaped}</a><button class="text-button" type="button" data-copy-url="${escaped}" aria-label="Copiar enlace del video">Copiar</button></div>`;
+}
+
+async function copyHistoryUrl(url) {
+  try {
+    await navigator.clipboard.writeText(url);
+    toast("Enlace copiado", "La URL del video está en el portapapeles.", "success");
+  } catch {
+    toast("No se pudo copiar", "Puedes abrir el enlace y copiarlo desde la barra del navegador.", "error");
+  }
+}
+
 function renderHistory() {
   const body = $("#historyBody");
   const empty = $("#emptyHistory");
@@ -550,6 +566,7 @@ function renderHistory() {
       <td><span class="format-tag">${escapeHtml(item.format)}</span></td>
       <td>${escapeHtml(qualityLabel(item.format, item.quality, item.source))}</td>
       <td>${escapeHtml(item.size_human)}</td>
+      <td>${historyUrlCell(item.url)}</td>
       <td><button class="path-button" data-open-path="${escapeHtml(item.filepath)}" title="${escapeHtml(item.filepath)}">${escapeHtml(item.filepath)}</button></td>
     </tr>
   `).join("");
@@ -630,7 +647,7 @@ function bindEvents() {
   });
   $("#saveSettingsButton").addEventListener("click", saveSettings);
   $("#clearHistoryButton").addEventListener("click", async () => {
-    const accepted = await confirmAction("Limpiar historial", "Esto no borrará los archivos descargados, solo la lista del historial.");
+    const accepted = await confirmAction("Limpiar historial", "Se borrarán los registros y enlaces del historial. Los archivos descargados permanecerán en tu computadora.");
     if (!accepted) return;
     try {
       await api("/api/history", { method: "DELETE" });
@@ -658,6 +675,8 @@ function bindEvents() {
   $("#historyBody").addEventListener("click", (event) => {
     const button = event.target.closest("[data-open-path]");
     if (button) openPath(button.dataset.openPath);
+    const copyButton = event.target.closest("[data-copy-url]");
+    if (copyButton) copyHistoryUrl(copyButton.dataset.copyUrl);
   });
 }
 

@@ -38,6 +38,7 @@ El instalador intenta preparar todo con WinGet. Si tu equipo no tiene WinGet, in
 - Progreso, velocidad, tiempo restante y progreso general.
 - Pausar, reanudar, cancelar y eliminar trabajos.
 - Historial local con fecha, formato, calidad, peso y ubicación.
+- En cada descarga completada se guarda el enlace que pegaste, con opciones para abrirlo o copiarlo desde el historial. Los enlaces permanecen al cerrar la aplicación. Los registros anteriores a esta función muestran «Enlace no registrado».
 - Botón para mostrar el archivo descargado en el Explorador.
 - Base de datos SQLite y ajustes guardados solo en la carpeta `data`.
 - Detección de FFmpeg, FFprobe y Deno instalados mediante WinGet aunque una ventana antigua de Windows todavía no los muestre en `PATH`.

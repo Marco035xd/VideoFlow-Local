@@ -20,3 +20,9 @@ Ampliación de TikTok y Guardar como:
 3. Se descargó un TikTok público de 6 segundos en MP4 con video y audio, con el nombre elegido.
 4. Se descargó el mismo TikTok en MP3 solo audio, también con el nombre elegido.
 5. ffprobe confirmó las pistas de ambos archivos y la limpieza temporal terminó sin archivos bloqueados.
+
+Historial de URL:
+1. Se comprobó en una base de datos temporal la migración de registros antiguos sin perder entradas.
+2. El enlace original se conservó al agregar una descarga y reabrir la base de datos.
+3. La API rechazó un enlace original que pertenecía a una plataforma diferente a la descarga.
+4. JavaScript pasó node --check y el cambio pasó git diff --check.

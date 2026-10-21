@@ -305,6 +305,11 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
 .history-video img { width: 62px; aspect-ratio: 16/9; object-fit: cover; border-radius: 7px; background: var(--surface-3); }
 .history-video strong { display: block; font-size: 10px; line-height: 1.35; }
 .history-video small { color: var(--muted); }
+.history-url { display: flex; align-items: center; gap: 9px; min-width: 190px; }
+.history-url a { display: block; max-width: 230px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--primary); text-decoration: none; }
+.history-url a:hover { text-decoration: underline; }
+.history-url .text-button { flex: 0 0 auto; font-size: 10px; }
+.history-url-missing { color: var(--muted-2); white-space: nowrap; }
 .format-tag { display: inline-flex; padding: 4px 7px; border-radius: 7px; background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 9px; text-transform: uppercase; }
 .path-button { max-width: 210px; border: 0; background: none; color: var(--primary); cursor: pointer; font-size: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
