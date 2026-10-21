@@ -88,9 +88,7 @@ function selectSource(source) {
   $("#videoUrl").placeholder = facebook
     ? "https://www.facebook.com/.../videos/..."
     : tiktok ? "https://www.tiktok.com/@usuario/video/..." : "https://www.youtube.com/watch?v=...";
-  $("#sourceMark").textContent = facebook ? "f" : tiktok ? "♪" : "▶";
-  $("#sourceMark").classList.toggle("facebook-mark", facebook);
-  $("#sourceMark").classList.toggle("tiktok-mark", tiktok);
+  $("#sourceMark").src = `/static/icons/${facebook ? "facebook" : tiktok ? "tiktok" : "youtube"}.png`;
   $("#sourceHelp").innerHTML = facebook
     ? "<span>ⓘ</span> Pega un enlace público de video o reel de Facebook."
     : tiktok ? "<span>ⓘ</span> Pega un enlace de video de TikTok. La calidad depende de las versiones disponibles."

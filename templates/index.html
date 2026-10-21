@@ -108,14 +108,14 @@
 
           <section class="panel url-panel">
             <div class="source-tabs" role="group" aria-label="Plataforma">
-              <button class="source-tab active" data-source="youtube" type="button"><span class="source-tab-icon youtube">▶</span> YouTube</button>
-              <button class="source-tab" data-source="facebook" type="button"><span class="source-tab-icon facebook">f</span> Facebook</button>
-              <button class="source-tab" data-source="tiktok" type="button"><span class="source-tab-icon tiktok">♪</span> TikTok</button>
+              <button class="source-tab active" data-source="youtube" type="button"><img class="source-tab-icon youtube" src="{{ url_for('static', filename='icons/youtube.png') }}" alt="" aria-hidden="true"> YouTube</button>
+              <button class="source-tab" data-source="facebook" type="button"><img class="source-tab-icon" src="{{ url_for('static', filename='icons/facebook.png') }}" alt="" aria-hidden="true"> Facebook</button>
+              <button class="source-tab" data-source="tiktok" type="button"><img class="source-tab-icon" src="{{ url_for('static', filename='icons/tiktok.png') }}" alt="" aria-hidden="true"> TikTok</button>
             </div>
             <label id="urlLabel" for="videoUrl">Enlace de YouTube</label>
             <div class="url-row">
               <div class="url-input-wrap">
-                <span id="sourceMark" class="youtube-mark">▶</span>
+                <img id="sourceMark" class="source-mark" src="{{ url_for('static', filename='icons/youtube.png') }}" alt="" aria-hidden="true">
                 <input id="videoUrl" type="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=...">
                 <button id="pasteButton" class="text-button" type="button">Pegar</button>
               </div>
