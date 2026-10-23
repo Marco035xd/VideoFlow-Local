@@ -4,7 +4,7 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.2.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.2.1-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
@@ -136,3 +136,13 @@ Cierra otra instancia de VideoFlow. Para desarrollo, puedes elegir otro puerto c
 - Iconos de navegación de [Microsoft Fluent System Icons](https://github.com/microsoft/fluentui-system-icons), convertidos a ICO. Licencia MIT incluida en `static/icons/navigation/LICENSE.txt`.
 
 Las pruebas de 1.2.0 comprobaron conversiones reales de un video sintético a los cuatro formatos, las pistas de salida, la conservación del original, el historial, las validaciones de configuración y el rechazo de videos sin audio. La lógica de lotes se comprobó con respuestas simuladas, sin descargar videos externos.
+
+
+## Novedades de la versión 1.2.1
+
+- Campo de enlaces de altura fija, con desplazamiento interno y sin desbordar el contenedor. Acepta hasta 10 enlaces, uno por línea.
+- Rutas de carpetas, búsqueda del historial y campos numéricos con estilos coherentes en los temas claro y oscuro.
+- Selectores nativos vinculados a la ventana de escritorio y ejecutados en su hilo de interfaz.
+- Conversor: selección de uno o varios videos, opción de quitar cada selección y «Guardar como» por archivo para elegir nombre y ubicación del audio.
+- La carpeta habitual del conversor se guarda al elegirla. Los destinos personalizados se muestran junto a cada video y se restablecen al cambiar de formato.
+- Se conserva el archivo original y se requiere confirmar en el diálogo de Windows antes de reemplazar un audio existente.

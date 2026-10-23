@@ -1,7 +1,43 @@
 const platformDrafts = {};
 let localFiles = [];
+const conversionTargets = new Map();
+let conversionBusy = false;
+function setConversionBusy(busy) {
+  conversionBusy = busy;
+  ['chooseVideos', 'convertStart', 'conversionBrowse', 'conversionFormat', 'conversionQuality'].forEach(id => { $('#'+id).disabled = busy; });
+  $('#conversionQuality').disabled = busy || ['wav','flac'].includes($('#conversionFormat').value);
+  renderConversionFiles();
+}
+function renderConversionFiles() {
+  const container = $('#conversionFiles');
+  container.replaceChildren();
+  if (!localFiles.length) container.textContent = 'Ningún archivo seleccionado. Elige hasta 10 videos de tu computadora.';
+  for (const path of localFiles) {
+    const row = document.createElement('div'); row.className = 'conversion-file';
+    const info = document.createElement('div'); info.className = 'conversion-file-info';
+    const name = document.createElement('strong'); name.textContent = path.split(/[\\/]/).pop(); name.title = path;
+    const destination = document.createElement('small');
+    destination.textContent = conversionTargets.has(path) ? `Guardar en: ${conversionTargets.get(path).path}` : 'Nombre automático · '+$('#conversionFolder').value;
+    info.append(name, destination);
+    const actions = document.createElement('div'); actions.className = 'conversion-file-actions';
+    const save = document.createElement('button'); save.type = 'button'; save.className = 'secondary-button'; save.textContent = 'Guardar como…'; save.disabled = conversionBusy;
+    save.onclick = async () => {
+      setConversionBusy(true);
+      try {
+        const selected = await api('/api/conversion-save-path', {method:'POST', body:JSON.stringify({path, format:$('#conversionFormat').value, initial:conversionTargets.get(path)?.folder || $('#conversionFolder').value})});
+        if (!selected.cancelled) conversionTargets.set(path, selected);
+      } catch(error) { toast('No se pudo elegir el destino', error.message, 'error'); }
+      finally { setConversionBusy(false); }
+    };
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button'; remove.textContent = 'Quitar'; remove.disabled = conversionBusy;
+    remove.setAttribute('aria-label', 'Quitar '+name.textContent);
+    remove.onclick = () => { localFiles = localFiles.filter(item=>item!==path); conversionTargets.delete(path); renderConversionFiles(); };
+    actions.append(save, remove); row.append(info, actions); container.append(row);
+  }
+}
 function syncBatchDestination() {
   $('#batchDestination').value = folderForSource();
+  $('#batchDestination').title = $('#batchDestination').value;
   $('#batchConcurrency').textContent = `Hasta ${state.settings?.max_concurrent || 3} trabajos simultáneos. Puedes cambiar este límite en Configuración.`;
 }
 function resultLine(container, label, message) {
@@ -60,38 +96,53 @@ function initExtensions() {
       rememberFolder(source, folder);
     } catch(error) { toast('No se pudo guardar', error.message,'error'); }
   };
-  $('#conversionBrowse').onclick = () => pickFolder('#conversionFolder');
-  $('#conversionFormat').onchange = () => { $('#conversionQuality').disabled = ['wav','flac'].includes($('#conversionFormat').value); };
+  $('#conversionBrowse').onclick = async () => {
+    setConversionBusy(true);
+    try {
+      const folder = await pickFolder('#conversionFolder');
+      if (folder) await api('/api/settings', {method:'PUT', body:JSON.stringify({conversion_folder:folder})});
+    } catch(error) { toast('No se pudo guardar la carpeta', error.message, 'error'); }
+    finally { setConversionBusy(false); }
+  };
+  $('#conversionFormat').onchange = () => {
+    if (conversionTargets.size) toast('Formato actualizado', 'Elige «Guardar como» otra vez para usar nombres personalizados con la nueva extensión.');
+    conversionTargets.clear(); setConversionBusy(false);
+  };
   $('#chooseVideos').onclick = async () => {
+    setConversionBusy(true);
     try {
       const data = await api('/api/local-files',{method:'POST',body:'{}'});
-      if (!data.paths.length) return;
-      localFiles = [...new Set(data.paths)];
-      $('#conversionFiles').replaceChildren();
-      localFiles.forEach(p=>resultLine('#conversionFiles', p, 'Seleccionado'));
+      const paths = typeof data.paths === 'string' ? [data.paths] : data.paths || [];
+      if (!paths.length) return;
+      const selected = [...new Set(paths)];
+      if (selected.length > 10) return toast('Demasiados archivos', 'Selecciona hasta 10 videos por lote.', 'error');
+      localFiles = selected;
+      for (const path of conversionTargets.keys()) if (!localFiles.includes(path)) conversionTargets.delete(path);
     } catch(error) { toast('No se pudo seleccionar',error.message,'error'); }
+    finally { setConversionBusy(false); }
   };
   $('#convertStart').onclick = async () => {
     if (!localFiles.length || localFiles.length>10) return toast('Selecciona videos','Puedes convertir entre 1 y 10 archivos por lote.','error');
     const paths = [...localFiles];
     const format = $('#conversionFormat').value, quality = $('#conversionQuality').value, folder = $('#conversionFolder').value;
-    $('#convertStart').disabled = true;
-    $('#chooseVideos').disabled = true;
+    setConversionBusy(true);
     $('#conversionResults').replaceChildren();
     const failed = [];
     try {
       for (const path of paths) {
         try {
-          await api('/api/convert',{method:'POST',body:JSON.stringify({path,format,quality,folder})});
+          const target = conversionTargets.get(path);
+          await api('/api/convert',{method:'POST',body:JSON.stringify({path,format,quality,folder,save_path:target?.path || '',overwrite:target?.overwrite === true})});
+          conversionTargets.delete(path);
           resultLine('#conversionResults',path,'Añadido a la cola');
         } catch(error) { failed.push(path); resultLine('#conversionResults',path,error.message); }
       }
       localFiles=failed;
-      $('#conversionFiles').replaceChildren();
-      failed.forEach(p=>resultLine('#conversionFiles',p,'Pendiente'));
       await loadDownloads();
-    } finally { $('#convertStart').disabled=false; $('#chooseVideos').disabled=false; }
+    } catch(error) { toast('No se pudo actualizar la cola', error.message, 'error'); }
+    finally { setConversionBusy(false); }
   };
+  renderConversionFiles();
   $('#historySearch').oninput = filterHistory;
   $('#exportHistory').onclick = () => {
     const quote = value => '"'+String(value ?? '').replace(/^[=+@\-]/,"'$&").replaceAll('"','""')+'"';

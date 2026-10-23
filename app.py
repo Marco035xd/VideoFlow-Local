@@ -1142,6 +1142,11 @@ def api_get_settings():
 def api_update_settings():
     payload = request.get_json(silent=True) or {}
     allowed: dict[str, Any] = {}
+    if "conversion_folder" in payload:
+        folder = Path(str(payload["conversion_folder"])).expanduser().resolve()
+        if not folder.is_dir():
+            return jsonify(ok=False, error="Selecciona una carpeta existente para el audio."), 400
+        allowed["conversion_folder"] = str(folder)
     if "default_folder" in payload:
         folder = Path(str(payload["default_folder"])).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
@@ -1204,43 +1209,14 @@ def api_select_folder():
         )
     payload = request.get_json(silent=True) or {}
     initial = str(payload.get("initial") or settings_store.load()["default_folder"])
-    initial_escaped = initial.replace("'", "''")
-    script = rf"""
-Add-Type -AssemblyName System.Windows.Forms
-$dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-$dialog.Description = 'Selecciona la carpeta de destino'
-$dialog.ShowNewFolderButton = $true
-$dialog.SelectedPath = '{initial_escaped}'
-$result = $dialog.ShowDialog()
-if ($result -eq [System.Windows.Forms.DialogResult]::OK) {{
-    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-    Write-Output $dialog.SelectedPath
-}}
-"""
     try:
-        completed = subprocess.run(
-            [
-                "powershell.exe",
-                "-NoProfile",
-                "-STA",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                script,
-            ],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=600,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-        selected = completed.stdout.strip()
+        from desktop_dialogs import choose
+        selected = choose('FOLDER', initial)
         if not selected:
-            return jsonify({"ok": True, "cancelled": True})
-        return jsonify({"ok": True, "path": str(Path(selected).resolve())})
+            return jsonify(ok=True, cancelled=True)
+        return jsonify(ok=True, path=str(Path(selected[0]).resolve()))
     except Exception as exc:
-        return jsonify({"ok": False, "error": f"No se pudo abrir el selector: {exc}"}), 500
+        return jsonify(ok=False, error=f"No se pudo abrir el selector: {exc}"), 500
 
 
 @app.post("/api/save-path")
@@ -1259,48 +1235,16 @@ def api_save_path():
         initial = Path(settings_store.folder_for(source_key))
     title = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", str(payload.get("title") or "Video"))
     title = title.strip(" .")[:110].rstrip(" .") or "Video"
-    initial_escaped = str(initial).replace("'", "''")
-    filename_escaped = f"{title}.{output_format}".replace("'", "''")
-    format_label = output_format.upper()
-    script = rf"""
-Add-Type -AssemblyName System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$dialog = New-Object System.Windows.Forms.SaveFileDialog
-$dialog.Title = 'Guardar descarga como'
-$dialog.InitialDirectory = '{initial_escaped}'
-$dialog.FileName = '{filename_escaped}'
-$dialog.Filter = '{format_label} (*.{output_format})|*.{output_format}'
-$dialog.DefaultExt = '{output_format}'
-$dialog.AddExtension = $true
-$dialog.OverwritePrompt = $true
-$dialog.CheckPathExists = $true
-try {{
-    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {{
-        @{{ path = $dialog.FileName; overwrite = (Test-Path -LiteralPath $dialog.FileName -PathType Leaf) }} | ConvertTo-Json -Compress
-    }}
-}} finally {{
-    $dialog.Dispose()
-}}
-"""
     try:
-        completed = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-STA", "-ExecutionPolicy", "Bypass", "-Command", script],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-        if completed.returncode != 0:
-            raise RuntimeError(completed.stderr.strip()[-400:] or "Windows no pudo abrir Guardar como.")
-        if not completed.stdout.strip():
-            return jsonify({"ok": True, "cancelled": True})
-        selected = json.loads(completed.stdout.strip())
-        target = Path(str(selected["path"])).resolve()
-        if target.suffix.lower() != f".{output_format}" or not target.parent.is_dir():
-            raise ValueError("El archivo debe tener la extensión elegida y una carpeta existente.")
+        from desktop_dialogs import save_audio
+        target = save_audio(str(initial), f"{title}.{output_format}", output_format)
+        if target is None:
+            return jsonify(ok=True, cancelled=True)
         settings_store.remember_folder(source_key, str(target.parent))
         return jsonify({
             "ok": True, "path": str(target), "folder": str(target.parent),
             "source": PLATFORMS[source_key],
-            "overwrite": bool(selected.get("overwrite")),
+            "overwrite": target.exists(),
         })
     except Exception as exc:
         return jsonify({"ok": False, "error": f"No se pudo elegir el archivo: {exc}"}), 500

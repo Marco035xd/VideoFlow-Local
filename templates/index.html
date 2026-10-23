@@ -117,7 +117,7 @@
             <div class="url-row">
               <div class="url-input-wrap">
                 <img id="sourceMark" class="source-mark" src="{{ url_for('static', filename='icons/youtube.png') }}" alt="" aria-hidden="true">
-                <textarea id="videoUrl" rows="3" autocomplete="off" placeholder="Pega uno o varios enlaces, uno por línea"></textarea>
+                <textarea id="videoUrl" rows="4" autocomplete="off" spellcheck="false" placeholder="Pega uno o varios enlaces, uno por línea" aria-describedby="sourceHelp"></textarea>
                 <button id="pasteButton" class="text-button" type="button">Pegar</button>
               </div>
               <button id="analyzeButton" class="primary-button" type="button">
@@ -220,7 +220,7 @@
               <label class="form-field"><span>Calidad máxima de video</span><select id="batchVideoQuality"><option>360</option><option>480</option><option selected>720</option><option>1080</option><option>1440</option><option>2160</option></select></label>
               <label class="form-field"><span>Audio (kbps)</span><select id="batchAudioQuality"><option>128</option><option selected>192</option><option>320</option></select></label>
             </div>
-            <label class="form-field"><span>Carpeta de esta plataforma</span><input id="batchDestination" readonly><button id="batchFolder" class="secondary-button" type="button">Elegir carpeta</button></label>
+            <div class="form-field"><label for="batchDestination">Carpeta de esta plataforma</label><div class="folder-input"><input id="batchDestination" type="text" readonly><button id="batchFolder" class="secondary-button" type="button">Elegir carpeta</button></div></div>
             <p id="batchConcurrency"></p><button id="batchStart" class="primary-button" type="button">Añadir enlaces a la cola</button>
             <div id="batchResults" class="job-results" aria-live="polite"></div>
           </section>
@@ -235,12 +235,13 @@
           <section class="panel batch-panel">
             <h3>Convierte tus videos en audio</h3><p>Selecciona videos de tu computadora. Se crean archivos nuevos y se conserva el video original.</p>
             <button id="chooseVideos" class="secondary-button" type="button">Seleccionar videos</button>
-            <div id="conversionFiles" class="job-results">Ningún archivo seleccionado.</div>
+            <div id="conversionFiles" class="conversion-files" aria-live="polite">Ningún archivo seleccionado.</div>
             <div class="field-grid three-fields">
               <label class="form-field"><span>Formato</span><select id="conversionFormat"><option value="mp3">MP3</option><option value="m4a">M4A</option><option value="wav">WAV · sin compresión</option><option value="flac">FLAC · sin pérdida</option></select></label>
               <label class="form-field"><span>Calidad MP3 / M4A</span><select id="conversionQuality"><option>128</option><option selected>192</option><option>320</option></select></label>
             </div>
-            <label class="form-field"><span>Destino del audio</span><input id="conversionFolder" readonly><button id="conversionBrowse" class="secondary-button" type="button">Elegir carpeta</button></label>
+            <div class="form-field"><label for="conversionFolder">Carpeta para nombres automáticos</label><div class="folder-input"><input id="conversionFolder" type="text" readonly><button id="conversionBrowse" class="secondary-button" type="button">Elegir carpeta</button></div></div>
+            <p class="field-hint">Usa «Guardar como» junto a cada video para elegir el nombre y la ubicación exacta de su audio. Los demás se guardarán en esta carpeta con un nombre automático.</p>
             <button id="convertStart" class="primary-button" type="button">Convertir archivos</button>
             <p>El progreso y la cancelación están en Descargas. Las conversiones terminadas también aparecen en Historial.</p>
             <div id="conversionResults" class="job-results" aria-live="polite"></div>
@@ -269,7 +270,7 @@
           </section>
         </section>
 
-        <section id="page-history" class="page"><div class="queue-toolbar"><input id="historySearch" type="search" placeholder="Buscar por título, enlace o plataforma"><button id="exportHistory" class="secondary-button" type="button">Exportar historial CSV</button></div>
+        <section id="page-history" class="page"><div class="queue-toolbar"><input id="historySearch" type="search" aria-label="Buscar en el historial" placeholder="Buscar por título, enlace o plataforma"><button id="exportHistory" class="secondary-button" type="button">Exportar historial CSV</button></div>
           <section class="panel">
             <div class="section-heading">
               <div><span class="eyebrow">ARCHIVOS Y ENLACES GUARDADOS</span><h3>Historial de descargas</h3></div>

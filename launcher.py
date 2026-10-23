@@ -106,6 +106,8 @@ def run() -> None:
             resizable=True, maximized=True, text_select=True, zoomable=True,
             background_color="#101827",
         )
+        from desktop_dialogs import bind_window
+        bind_window(window)
 
         def on_closing() -> bool:
             if manager.count_unfinished():

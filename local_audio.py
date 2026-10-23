@@ -40,7 +40,7 @@ def convert(task, history, find_tool):
     from app import now_iso
     source = Path(task.local_path)
     folder = Path(task.folder)
-    target = folder / f'{source.stem[:120]} [{task.id}].{task.output_format}'
+    target = Path(task.save_path) if task.save_path else folder / f'{source.stem[:120]} [{task.id}].{task.output_format}'
     partial = folder / f'.{task.id}.partial.{task.output_format}'
     process = None
     try:
@@ -90,7 +90,14 @@ def convert(task, history, find_tool):
             if process.returncode:
                 errors.seek(0)
                 raise ValueError(errors.read().decode('utf-8', errors='replace')[-800:] or 'No se pudo convertir el archivo.')
-        partial.rename(target)
+        if target.resolve() == source.resolve() or (target.exists() and source.samefile(target)):
+            raise ValueError('El destino no puede ser el archivo original.')
+        if target.exists() and not task.overwrite:
+            raise ValueError('El archivo de destino ya existe. Elige otro nombre con Guardar como.')
+        if task.overwrite:
+            partial.replace(target)
+        else:
+            partial.rename(target)
         task.final_path = str(target)
         task.final_size = target.stat().st_size
         task.progress = 100
@@ -111,22 +118,33 @@ def convert(task, history, find_tool):
 
 def register(app, settings, manager, find_tool):
     from flask import request, jsonify
+    from desktop_dialogs import choose, save_audio, VIDEO_TYPES
 
     @app.post('/api/local-files')
     def local_files():
-        script = '''Add-Type -AssemblyName System.Windows.Forms
-$d = New-Object System.Windows.Forms.OpenFileDialog
-$d.Title = 'Selecciona videos para convertir a audio'
-$d.Filter = 'Videos|*.mp4;*.mkv;*.mov;*.webm;*.avi;*.wmv;*.flv;*.mpeg;*.vob;*.m4v;*.ts|Todos los archivos|*.*'
-$d.Multiselect = $true
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-if ($d.ShowDialog() -eq 'OK') { ConvertTo-Json -Compress -InputObject @($d.FileNames) } else { '[]' }
-'''
         try:
-            result = subprocess.run(['powershell.exe', '-NoProfile', '-STA', '-Command', script], capture_output=True, text=True, encoding='utf-8', timeout=600, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-            if result.returncode:
-                raise ValueError('No se pudo abrir el selector de archivos.')
-            return jsonify(ok=True, paths=json.loads(result.stdout.strip() or '[]'))
+            paths = choose('OPEN', settings.load().get('conversion_input_folder', ''), file_types=VIDEO_TYPES)
+            if paths:
+                settings.update({'conversion_input_folder': str(Path(paths[0]).parent)})
+            return jsonify(ok=True, paths=paths)
+        except Exception as exc:
+            return jsonify(ok=False, error=str(exc)), 400
+
+    @app.post('/api/conversion-save-path')
+    def conversion_save_path():
+        data = request.get_json(silent=True) or {}
+        try:
+            source = Path(str(data.get('path', ''))).expanduser().resolve()
+            output_format = data.get('format')
+            if not source.is_file() or output_format not in {'mp3', 'm4a', 'wav', 'flac'}:
+                raise ValueError('Selecciona un video y un formato de audio válido.')
+            target = save_audio(data.get('initial') or settings.load().get('conversion_folder') or settings.load()['default_folder'], f'{source.stem[:110]}.{output_format}', output_format)
+            if target is None:
+                return jsonify(ok=True, cancelled=True)
+            if target == source or (target.exists() and source.samefile(target)):
+                raise ValueError('El destino no puede ser el archivo original.')
+            settings.update({'conversion_folder': str(target.parent)})
+            return jsonify(ok=True, path=str(target), folder=str(target.parent), overwrite=target.exists())
         except Exception as exc:
             return jsonify(ok=False, error=str(exc)), 400
 
@@ -146,8 +164,18 @@ if ($d.ShowDialog() -eq 'OK') { ConvertTo-Json -Compress -InputObject @($d.FileN
                 raise ValueError('Faltan las herramientas de conversión. Reinstala VideoFlow.')
             raw_folder = str(data.get('folder') or settings.load().get('conversion_folder') or settings.load()['default_folder'])
             folder = Path(raw_folder).expanduser().resolve()
+            target = None
+            if data.get('save_path'):
+                target = Path(str(data['save_path'])).expanduser().resolve()
+                if target.suffix.lower() != '.' + data['format'] or not target.parent.is_dir():
+                    raise ValueError('Elige un destino válido con Guardar como.')
+                if target == source or (target.exists() and source.samefile(target)):
+                    raise ValueError('El destino no puede ser el archivo original.')
+                if target.exists() and data.get('overwrite') is not True:
+                    raise ValueError('El archivo ya existe. Confirma su reemplazo con Guardar como.')
+                folder = target.parent
             folder.mkdir(parents=True, exist_ok=True)
-            task = manager.add(dict(url='', local_path=str(source), title=source.stem, format=data['format'], quality=quality, folder=str(folder), mode='audio'))
+            task = manager.add(dict(url='', local_path=str(source), title=source.stem, format=data['format'], quality=quality, folder=str(folder), mode='audio', save_path=str(target) if target else '', overwrite=data.get('overwrite') is True))
             settings.update({'conversion_folder': str(folder)})
             return jsonify(ok=True, download=task.as_dict()), 201
         except Exception as exc:

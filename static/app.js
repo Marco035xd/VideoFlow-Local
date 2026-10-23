@@ -106,15 +106,13 @@ function selectSource(source) {
   $$(".source-tab").forEach((button) => button.classList.toggle("active", button.dataset.source === source));
   const facebook = source === "facebook";
   const tiktok = source === "tiktok";
-  $("#urlLabel").textContent = `Enlace de ${facebook ? "Facebook" : tiktok ? "TikTok" : "YouTube"}`;
+  $("#urlLabel").textContent = `Enlaces de ${facebook ? "Facebook" : tiktok ? "TikTok" : "YouTube"}`;
   $("#videoUrl").placeholder = facebook
     ? "https://www.facebook.com/.../videos/..."
     : tiktok ? "https://www.tiktok.com/@usuario/video/..." : "https://www.youtube.com/watch?v=...";
   $("#sourceMark").src = `/static/icons/${facebook ? "facebook" : tiktok ? "tiktok" : "youtube"}.png`;
-  $("#sourceHelp").innerHTML = facebook
-    ? "<span>ⓘ</span> Pega un enlace público de video o reel de Facebook."
-    : tiktok ? "<span>ⓘ</span> Pega un enlace de video de TikTok. La calidad depende de las versiones disponibles."
-    : "<span>ⓘ</span> Puedes agregar hasta 10 videos a la cola.";
+  $("#videoUrl").placeholder += "\nPega hasta 10 enlaces, uno por línea";
+  $("#sourceHelp").textContent = 'Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».';
   $("#facebookNotice").classList.toggle("hidden", !facebook);
   state.destinationFolder = folderForSource(source);
   state.savePath = "";
@@ -329,7 +327,11 @@ async function pickFolder(targetInput) {
       method: "POST",
       body: JSON.stringify({ initial: input.value || folderForSource() }),
     });
-    if (!data.cancelled && data.path) input.value = data.path;
+    if (!data.cancelled && data.path) {
+      input.value = data.path;
+      input.title = data.path;
+      return data.path;
+    }
   } catch (error) {
     toast("No se pudo abrir la carpeta", error.message, "error");
   }
