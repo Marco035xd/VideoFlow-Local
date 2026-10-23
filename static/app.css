@@ -492,10 +492,17 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
 .separation-track strong { font-size: 13px; }
 .separation-track audio { width: 100%; min-width: 0; height: 36px; }
 .separation-track button { justify-self: start; }
+.video-convert-hero { background: linear-gradient(120deg, #183b95, #2665db 65%, #17aacb); }
+.video-convert-mark { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; padding: 15px; border: 1px solid rgba(255,255,255,.25); border-radius: 18px; background: rgba(255,255,255,.1); color: white; }
+.video-convert-mark span { padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.17); font-size: 12px; font-weight: 800; letter-spacing: .6px; }
+.video-convert-mark b { font-size: 20px; font-weight: 400; }
+.video-convert-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.video-convert-saved-path { overflow-wrap: anywhere; padding: 10px 12px; margin: -6px 0 16px; border-radius: 10px; background: var(--primary-soft); color: var(--primary); font-size: 11px; }
 @media (max-width: 1100px) {
   .separation-modes { grid-template-columns: 1fr; }
   .separation-heading { flex-wrap: wrap; }
   .separation-wave { display: none; }
+  .video-convert-mark { display: none; }
 }
 @media (max-width: 760px) {
   .separation-stems { grid-template-columns: 1fr; }

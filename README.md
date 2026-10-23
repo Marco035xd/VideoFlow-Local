@@ -4,7 +4,7 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.3.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.4.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
@@ -165,3 +165,9 @@ La primera separación necesita Internet para descargar el modelo: aproximadamen
 La separación no es perfecta: puede dejar artefactos o filtraciones. «Otros» reúne sonidos que no pertenecen a las pistas reconocidas. Se preservan los niveles relativos entre las pistas aplicando una reducción común de ganancia cuando hace falta evitar saturación.
 
 Fuentes y licencias: [Demucs de Meta](https://github.com/facebookresearch/demucs), [exportación ONNX de StemSplit](https://github.com/StemSplit/demucs-onnx), [modelo de cuatro pistas](https://huggingface.co/StemSplitio/htdemucs-onnx) y [modelo de seis pistas](https://huggingface.co/StemSplitio/htdemucs-6s-onnx). Las revisiones y sumas de integridad están fijadas en `separation_models.py`; las licencias MIT acompañan al instalador.
+
+## Convertir video · versión 1.4.0
+
+La sección **Convertir video** acepta archivos locales y crea MP4, MOV, MKV o WEBM. Para intentar importar un archivo problemático en VEGAS Pro, selecciona **MP4**. Esta opción vuelve a codificar el video como H.264 con color YUV 4:2:0 y fotogramas constantes, y el audio como AAC a 48 kHz; también funciona cuando el archivo de origen ya es MP4. Cambiar únicamente la extensión del archivo no realiza esta conversión.
+
+Puedes elegir calidad, una carpeta independiente para estas conversiones o usar **Guardar como…** para elegir el nombre y ubicación exactos. Se conserva el original, los trabajos aparecen en Descargas y el resultado en Historial. La compatibilidad final depende también de la versión de VEGAS Pro, del archivo original y de la configuración del proyecto. MKV y WEBM sirven para otros usos y pueden no importarse en VEGAS Pro.

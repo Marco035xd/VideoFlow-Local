@@ -43,6 +43,7 @@ DEFAULT_SETTINGS = {
     "rate_limit_kbps": 0,
     "retry_count": 5,
     "conversion_folder": DEFAULT_FOLDER,
+    "video_conversion_folder": DEFAULT_FOLDER,
 }
 
 SUPPORTED_FORMATS = [
@@ -530,6 +531,9 @@ class DownloadManager:
             raise DownloadCancelled("Descarga cancelada")
 
     def _download(self, task: DownloadTask) -> None:
+        if task.mode == 'video_convert':
+            from video_conversion import transcode
+            return transcode(task, self.history, find_tool)
         if task.mode.startswith('separate_'):
             from audio_separation import separate
             return separate(task, self.history, find_tool)
@@ -1149,6 +1153,11 @@ def api_get_settings():
 def api_update_settings():
     payload = request.get_json(silent=True) or {}
     allowed: dict[str, Any] = {}
+    if 'video_conversion_folder' in payload:
+        folder = Path(str(payload['video_conversion_folder'])).expanduser().resolve()
+        if not folder.is_dir():
+            return jsonify(ok=False, error='Selecciona una carpeta existente para el video.'), 400
+        allowed['video_conversion_folder'] = str(folder)
     if 'separation_folder' in payload:
         folder = Path(str(payload['separation_folder'])).expanduser().resolve()
         if not folder.is_dir():
@@ -1288,6 +1297,8 @@ from local_audio import register as register_local_audio
 register_local_audio(app, settings_store, download_manager, find_tool)
 from audio_separation import register as register_separation
 register_separation(app, settings_store, download_manager, find_tool)
+from video_conversion import register as register_video_conversion
+register_video_conversion(app, settings_store, download_manager, find_tool)
 
 
 if __name__ == "__main__":
