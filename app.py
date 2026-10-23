@@ -40,6 +40,9 @@ DEFAULT_SETTINGS = {
     "notifications": True,
     "max_concurrent": 3,
     "welcome_seen": False,
+    "rate_limit_kbps": 0,
+    "retry_count": 5,
+    "conversion_folder": DEFAULT_FOLDER,
 }
 
 SUPPORTED_FORMATS = [
@@ -313,6 +316,7 @@ class DownloadTask:
     completed_at: str = ""
     final_path: str = ""
     final_size: int = 0
+    local_path: str = ""
     pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
 
@@ -407,7 +411,8 @@ class DownloadManager:
             output_format=str(payload["format"]).lower(),
             quality=str(payload["quality"]),
             folder=str(Path(payload["folder"]).expanduser().resolve()),
-            source=source_for_url(str(payload["url"])) or "YouTube",
+            source="Local" if payload.get("local_path") else source_for_url(str(payload["url"])) or "YouTube",
+            local_path=str(payload.get("local_path") or ""),
             mode=str(payload.get("mode") or "video_audio"),
             browser=str(payload.get("browser") or ""),
             save_path=str(payload.get("save_path") or ""),
@@ -521,6 +526,9 @@ class DownloadManager:
             raise DownloadCancelled("Descarga cancelada")
 
     def _download(self, task: DownloadTask) -> None:
+        if task.local_path:
+            from local_audio import convert
+            return convert(task, self.history, find_tool)
         try:
             folder = Path(task.folder)
             folder.mkdir(parents=True, exist_ok=True)
@@ -572,8 +580,9 @@ class DownloadManager:
                 "outtmpl": {"default": output_template},
                 "noplaylist": True,
                 "continuedl": True,
-                "retries": 5,
-                "fragment_retries": 5,
+                "retries": self.settings.load().get("retry_count", 5),
+                "fragment_retries": self.settings.load().get("retry_count", 5),
+                "ratelimit": (self.settings.load().get("rate_limit_kbps", 0) * 1024) or None,
                 "concurrent_fragment_downloads": 4,
                 "windowsfilenames": True,
                 "overwrites": False,
@@ -1167,6 +1176,15 @@ def api_update_settings():
     if "max_concurrent" in payload:
         allowed["max_concurrent"] = max(1, min(10, int(payload["max_concurrent"])))
 
+    for key, maximum in (("rate_limit_kbps", 102400), ("retry_count", 20)):
+        if key in payload:
+            try:
+                value = int(payload[key])
+                if value < 0 or value > maximum:
+                    raise ValueError()
+                allowed[key] = value
+            except (ValueError, TypeError):
+                return jsonify(ok=False, error="Valor de configuración fuera de rango."), 400
     updated = settings_store.update(allowed)
     download_manager.notify_settings_changed()
     return jsonify({"ok": True, "settings": updated})
@@ -1308,6 +1326,10 @@ def api_open_path():
         return jsonify({"ok": True})
     except Exception as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+from local_audio import register as register_local_audio
+register_local_audio(app, settings_store, download_manager, find_tool)
 
 
 if __name__ == "__main__":

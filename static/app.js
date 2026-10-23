@@ -17,6 +17,7 @@ const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 const pageTitles = {
   home: "Nueva descarga",
+  convert: "Video a audio",
   downloads: "Gestión de descargas",
   history: "Historial",
   settings: "Configuración",
@@ -64,7 +65,8 @@ function formatDate(value) {
 }
 
 function qualityLabel(format, quality, source = "") {
-  if (["m4a", "wav"].includes(format)) return "Original";
+  if (["wav", "flac"].includes(format)) return "Sin pérdida";
+  if (format === "m4a") return source === "Local" ? `${quality} kbps` : "Original";
   if (format === "mp3") return `${quality} kbps`;
   if (String(quality) === "0") return "Mejor disponible";
   if (source === "TikTok") return `${quality} px de alto`;
@@ -95,10 +97,12 @@ function rememberFolder(source, folder) {
   const sourceKey = source.toLowerCase();
   state.settings.platform_folders = { ...state.settings.platform_folders, [sourceKey]: folder };
   $(`#settingsFolder-${sourceKey}`).value = folder;
+  syncBatchDestination();
 }
 
 function selectSource(source) {
   state.source = source;
+  syncBatchDestination();
   $$(".source-tab").forEach((button) => button.classList.toggle("active", button.dataset.source === source));
   const facebook = source === "facebook";
   const tiktok = source === "tiktok";
@@ -294,6 +298,7 @@ function showVideo(video, previous = {}) {
 
 async function analyzeVideo() {
   const url = $("#videoUrl").value.trim();
+  if (url.split(/\s+/).length > 1) { toast("Varios enlaces", "Elige las opciones de Descargar varios enlaces y pulsa Añadir enlaces a la cola."); return; }
   if (!url) {
     toast("Falta el enlace", "Pega una URL de YouTube, Facebook o TikTok para continuar.", "error");
     $("#videoUrl").focus();
@@ -569,6 +574,7 @@ async function loadHistory() {
     const data = await api("/api/history");
     state.history = data.history;
     renderHistory();
+    if (typeof filterHistory === "function") filterHistory();
   } catch (error) {
     toast("No se pudo cargar el historial", error.message, "error");
   }
@@ -642,6 +648,8 @@ async function saveSettings() {
     default_video_quality: $("#settingsVideoQuality").value,
     default_audio_quality: $("#settingsAudioQuality").value,
     max_concurrent: Number($("#settingsConcurrent").value),
+    rate_limit_kbps: Number($("#settingsRate").value),
+    retry_count: Number($("#settingsRetries").value),
     theme: $("#settingsTheme").checked ? "dark" : "light",
     notifications: $("#settingsNotifications").checked,
   };
@@ -657,6 +665,7 @@ async function saveSettings() {
     state.overwrite = false;
     $("#folderPath").value = state.destinationFolder;
     syncFolderSettings();
+    syncBatchDestination();
     toast("Configuración guardada", "Los cambios se aplicaron correctamente.", "success");
   } catch (error) {
     toast("No se pudo guardar", error.message, "error");
@@ -666,15 +675,17 @@ async function saveSettings() {
 function bindEvents() {
   $$(".nav-item").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.page)));
   $$(".source-tab").forEach((button) => button.addEventListener("click", () => {
+    platformDrafts[state.source] = $("#videoUrl").value;
     selectSource(button.dataset.source);
     state.video = null;
-    $("#videoUrl").value = "";
+    $("#videoUrl").value = platformDrafts[state.source] || "";
+    syncBatchDestination();
     $("#videoResult").classList.add("hidden");
   }));
   $("#newDownloadButton").addEventListener("click", () => navigate("home"));
   $("#analyzeButton").addEventListener("click", analyzeVideo);
   $("#videoUrl").addEventListener("keydown", (event) => {
-    if (event.key === "Enter") analyzeVideo();
+    if (event.key === "Enter" && event.ctrlKey) { event.preventDefault(); analyzeVideo(); }
   });
   $("#pasteButton").addEventListener("click", async () => {
     try {
@@ -750,6 +761,7 @@ async function init() {
   bindEvents();
   try {
     await loadSettings();
+    initExtensions();
     await Promise.all([loadSystem(), loadDownloads(), loadHistory()]);
   } catch (error) {
     toast("Error de inicio", error.message, "error", 7000);

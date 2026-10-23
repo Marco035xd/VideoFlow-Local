@@ -97,6 +97,7 @@ def run() -> None:
         import webview
 
         webview.settings["ALLOW_FILE_URLS"] = False
+        webview.settings["ALLOW_DOWNLOADS"] = True
         webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
         profile_dir = DATA_DIR / "webview"
         profile_dir.mkdir(parents=True, exist_ok=True)
@@ -131,6 +132,8 @@ def run() -> None:
                 for task in manager.tasks.values():
                     task.cancel_event.set()
                     task.pause_event.clear()
+        from local_audio import shutdown
+        shutdown()
         if server is not None:
             server.close()
         if mutex:

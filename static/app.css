@@ -433,3 +433,12 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
   .welcome-art { min-height: 350px; }
   .download-illustration { transform: scale(.8); }
 }
+.nav-icon img { width: 25px; height: 25px; object-fit: contain; }
+#videoUrl { width: 100%; resize: vertical; min-height: 76px; border: 0; background: transparent; color: var(--text); font: inherit; padding: 12px; }
+.batch-panel { padding: 26px; margin-bottom: 24px; }
+.batch-panel p { color: var(--muted); line-height: 1.6; }
+.batch-panel .form-field { margin: 16px 0; }
+.job-results { max-height: 260px; overflow: auto; overflow-wrap: anywhere; margin: 16px 0; }
+.job-results p { padding: 10px 12px; border-bottom: 1px solid var(--line); margin: 0; font-size: 13px; }
+.queue-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.queue-toolbar input { flex: 1; min-width: 200px; }

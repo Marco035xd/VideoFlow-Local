@@ -4,7 +4,7 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.1.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.2.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
@@ -126,3 +126,13 @@ Ejecuta de nuevo el instalador para preparar WebView2. Si ejecutas desde el cód
 
 **El puerto 8765 ya está ocupado**  
 Cierra otra instancia de VideoFlow. Para desarrollo, puedes elegir otro puerto con `python launcher.py --port 8766`.
+
+## Novedades de la versión 1.2.0
+
+- Video a audio: selecciona varios videos locales y convierte a MP3, M4A, WAV o FLAC; el original se conserva. El progreso y la cancelación aparecen en Descargas y los resultados en Historial.
+- Pega hasta 10 enlaces por plataforma, uno por línea, y usa «Añadir enlaces a la cola». Elige video con audio, solo video o MP3, calidad y carpeta. Los enlaces repetidos se omiten y los que fallan permanecen para corregirlos.
+- Configuración: límite de velocidad por descarga (KB/s, 0 sin límite) y número de reintentos. El límite de trabajos simultáneos también controla las conversiones.
+- Búsqueda del historial, exportación CSV, cancelación de pendientes y limpieza de completadas de la cola.
+- Iconos de navegación de [Microsoft Fluent System Icons](https://github.com/microsoft/fluentui-system-icons), convertidos a ICO. Licencia MIT incluida en `static/icons/navigation/LICENSE.txt`.
+
+Las pruebas de 1.2.0 comprobaron conversiones reales de un video sintético a los cuatro formatos, las pistas de salida, la conservación del original, el historial, las validaciones de configuración y el rechazo de videos sin audio. La lógica de lotes se comprobó con respuestas simuladas, sin descargar videos externos.
