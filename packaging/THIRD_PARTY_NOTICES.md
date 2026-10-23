@@ -23,3 +23,11 @@ Sus licencias se distribuyen en la carpeta `_internal/licenses` de la aplicació
 Los nombres e iconos de YouTube, Facebook y TikTok identifican sus plataformas.
 
 - Microsoft Fluent System Icons: MIT, https://github.com/microsoft/fluentui-system-icons. Licencia incluida en static/icons/navigation/LICENSE.txt.
+
+- NumPy: BSD-3-Clause, https://github.com/numpy/numpy
+- ONNX Runtime: MIT, https://github.com/microsoft/onnxruntime
+- SoundFile: BSD-3-Clause; libsndfile: LGPL-2.1, https://github.com/bastibe/python-soundfile y https://github.com/libsndfile/libsndfile
+- HT-Demucs: MIT, Copyright Meta Platforms, Inc. and affiliates, https://github.com/facebookresearch/demucs
+- Exportaciones ONNX y esquema de inferencia de referencia: MIT, Copyright (c) 2026 StemSplit, https://github.com/StemSplit/demucs-onnx
+  VideoFlow implementa un adaptador de procesamiento por fragmentos para estas exportaciones. Licencias completas en `licenses/separation`.
+  Los pesos se descargan al utilizarlos desde los repositorios públicos StemSplitio/htdemucs-onnx y StemSplitio/htdemucs-6s-onnx, con revisión y SHA-256 fijados. No se incluyen en el instalador.

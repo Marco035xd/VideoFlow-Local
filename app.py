@@ -317,6 +317,8 @@ class DownloadTask:
     final_path: str = ""
     final_size: int = 0
     local_path: str = ""
+    phase: str = ""
+    outputs: list = field(default_factory=list)
     pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
 
@@ -353,6 +355,8 @@ class DownloadTask:
             "final_path": self.final_path,
             "final_size": self.final_size,
             "final_size_human": human_bytes(self.final_size),
+            "phase": self.phase,
+            "outputs": self.outputs,
         }
 
 
@@ -526,6 +530,9 @@ class DownloadManager:
             raise DownloadCancelled("Descarga cancelada")
 
     def _download(self, task: DownloadTask) -> None:
+        if task.mode.startswith('separate_'):
+            from audio_separation import separate
+            return separate(task, self.history, find_tool)
         if task.local_path:
             from local_audio import convert
             return convert(task, self.history, find_tool)
@@ -1142,6 +1149,11 @@ def api_get_settings():
 def api_update_settings():
     payload = request.get_json(silent=True) or {}
     allowed: dict[str, Any] = {}
+    if 'separation_folder' in payload:
+        folder = Path(str(payload['separation_folder'])).expanduser().resolve()
+        if not folder.is_dir():
+            return jsonify(ok=False, error='Selecciona una carpeta existente para las pistas.'), 400
+        allowed['separation_folder'] = str(folder)
     if "conversion_folder" in payload:
         folder = Path(str(payload["conversion_folder"])).expanduser().resolve()
         if not folder.is_dir():
@@ -1274,6 +1286,8 @@ def api_open_path():
 
 from local_audio import register as register_local_audio
 register_local_audio(app, settings_store, download_manager, find_tool)
+from audio_separation import register as register_separation
+register_separation(app, settings_store, download_manager, find_tool)
 
 
 if __name__ == "__main__":

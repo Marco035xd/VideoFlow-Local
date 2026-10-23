@@ -14,7 +14,7 @@ def bind_window(window):
     _window = window
 
 
-def choose(kind, directory='', filename='', file_types=()):
+def choose(kind, directory='', filename='', file_types=(), allow_multiple=True):
     """Always return a list, including for one selected file and cancellation."""
     if not _lock.acquire(blocking=False):
         raise ValueError('Ya hay un selector abierto. Ciérralo antes de abrir otro.')
@@ -29,7 +29,7 @@ def choose(kind, directory='', filename='', file_types=()):
                 try:
                     selection['result'] = _window.create_file_dialog(
                         getattr(webview.FileDialog, kind), directory=directory,
-                        allow_multiple=kind == 'OPEN', save_filename=filename, file_types=file_types,
+                        allow_multiple=kind == 'OPEN' and allow_multiple, save_filename=filename, file_types=file_types,
                     )
                 except Exception as exc:
                     selection['error'] = exc
@@ -46,7 +46,7 @@ def choose(kind, directory='', filename='', file_types=()):
             dialog = {'OPEN': 'OpenFileDialog', 'SAVE': 'SaveFileDialog', 'FOLDER': 'FolderBrowserDialog'}[kind]
             properties = f'$d.SelectedPath = {quoted(directory)}' if kind == 'FOLDER' else f'$d.InitialDirectory = {quoted(directory)}\n$d.Filter = {quoted(filters)}'
             if kind == 'OPEN':
-                properties += '\n$d.Multiselect = $true\n$d.Title = "Selecciona videos para convertir a audio"'
+                properties += '\n$d.Multiselect = ' + ('$true' if allow_multiple else '$false') + '\n$d.Title = "Selecciona un archivo multimedia"'
             if kind == 'SAVE':
                 properties += f'\n$d.FileName = {quoted(filename)}\n$d.OverwritePrompt = $true\n$d.AddExtension = $true\n$d.DefaultExt = {quoted(Path(filename).suffix.lstrip("."))}'
             selected = '$d.SelectedPath' if kind == 'FOLDER' else '$d.FileNames' if kind == 'OPEN' else '$d.FileName'

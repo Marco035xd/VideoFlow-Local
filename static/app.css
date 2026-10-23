@@ -457,7 +457,48 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
 .conversion-file-info small { display: block; margin-top: 5px; overflow-wrap: anywhere; line-height: 1.5; color: var(--muted); }
 .conversion-file-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .field-hint { font-size: 12px; }
+.separation-hero { min-height: 185px; }
+.separation-hero h1 { font-size: clamp(28px, 3vw, 42px); }
+.separation-wave { display: flex; align-items: center; justify-content: center; gap: 9px; width: 180px; height: 100px; flex-shrink: 0; }
+.separation-wave i { width: 8px; height: 32px; border-radius: 9px; background: rgba(255,255,255,.8); }
+.separation-wave i:nth-child(2n) { height: 64px; }
+.separation-wave i:nth-child(3n) { height: 90px; }
+.separation-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.separation-heading h3 { margin: 0; }
+.separation-heading p { margin: 8px 0 16px; }
+.separation-badge { padding: 8px 12px; border-radius: 20px; background: var(--green-soft); color: var(--green); font-size: 11px; white-space: nowrap; }
+.separation-modes { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; padding: 0; margin: 24px 0 14px; border: 0; min-width: 0; }
+.separation-modes legend { color: var(--muted); font-size: 12px; font-weight: 650; margin-bottom: 12px; }
+.separation-mode { display: flex; align-items: flex-start; gap: 10px; padding: 17px; border: 1px solid var(--line-strong); border-radius: 13px; background: var(--surface-solid); cursor: pointer; }
+.separation-mode:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 1px var(--primary); }
+.separation-mode:focus-within { outline: 3px solid var(--primary-soft); outline-offset: 3px; }
+.separation-mode input { margin: 3px 0 0; accent-color: var(--primary); }
+.separation-mode strong { display: block; font-size: 13px; }
+.separation-mode small { display: block; color: var(--muted); line-height: 1.6; margin-top: 7px; font-size: 11px; }
+.separation-mode em { display: inline-block; font-style: normal; font-size: 9px; margin-left: 4px; color: var(--amber); }
+.separation-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.separation-tags span { font-size: 11px; padding: 6px 11px; border-radius: 8px; background: var(--surface-3); color: var(--muted); }
+.separation-notice { display: flex; gap: 13px; align-items: flex-start; padding: 16px; border-radius: 12px; background: var(--primary-soft); color: var(--text); margin: 16px 0; }
+.separation-notice > span { color: var(--primary); font-size: 24px; line-height: 1; }
+.separation-notice strong { font-size: 12px; }
+.separation-notice p { font-size: 12px; margin: 5px 0 0; }
+.separation-job { border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-top: 14px; background: var(--surface-2); }
+.separation-job-title { min-width: 0; overflow-wrap: anywhere; }
+.separation-phase { font-size: 12px; overflow-wrap: anywhere; }
+.separation-job-actions { margin-top: 14px; }
+.separation-empty { padding: 25px 12px; text-align: center; color: var(--muted); font-size: 12px; border: 1px dashed var(--line-strong); border-radius: 12px; }
+.separation-stems { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.separation-track { display: grid; gap: 10px; margin-top: 14px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-solid); min-width: 0; }
+.separation-track strong { font-size: 13px; }
+.separation-track audio { width: 100%; min-width: 0; height: 36px; }
+.separation-track button { justify-self: start; }
+@media (max-width: 1100px) {
+  .separation-modes { grid-template-columns: 1fr; }
+  .separation-heading { flex-wrap: wrap; }
+  .separation-wave { display: none; }
+}
 @media (max-width: 760px) {
+  .separation-stems { grid-template-columns: 1fr; }
   .folder-input { grid-template-columns: minmax(0, 1fr); }
   .conversion-file { align-items: stretch; flex-direction: column; }
   .conversion-file-actions { flex-wrap: wrap; }

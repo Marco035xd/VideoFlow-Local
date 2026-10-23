@@ -66,7 +66,7 @@ def main() -> None:
     (vendor / "build-info.json").write_text(json.dumps({
         "version": APP_VERSION,
         "python": sys.version,
-        "packages": {name: importlib.metadata.version(name) for name in ("yt-dlp", "yt-dlp-ejs", "Flask", "waitress", "curl-cffi", "pywebview", "pythonnet")},
+        "packages": {name: importlib.metadata.version(name) for name in ("yt-dlp", "yt-dlp-ejs", "Flask", "waitress", "curl-cffi", "pywebview", "pythonnet", "numpy", "onnxruntime", "soundfile")},
     }, indent=2), encoding="utf-8")
     print(f"Recursos preparados para VideoFlow Local {APP_VERSION}")
 

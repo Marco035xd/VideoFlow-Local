@@ -9,6 +9,7 @@ datas += [
     (str(root / "build/vendor/build-info.json"), "."),
     (str(root / "packaging/THIRD_PARTY_NOTICES.md"), "."),
     (str(root / "README.md"), "."),
+    (str(root / "packaging/separation-licenses"), "licenses/separation"),
 ]
 binaries = []
 hiddenimports = ["webview.platforms.winforms", "webview.platforms.edgechromium", "clr"]
@@ -17,6 +18,10 @@ for package in ("yt_dlp", "yt_dlp_ejs", "curl_cffi"):
     datas += package_data
     binaries += package_binaries
     hiddenimports += package_imports
+
+from PyInstaller.utils.hooks import collect_dynamic_libs, copy_metadata
+binaries += collect_dynamic_libs('onnxruntime')
+datas += copy_metadata('onnxruntime')
 
 a = Analysis([str(root / "launcher.py")], pathex=[str(root)], binaries=binaries,
              datas=datas, hiddenimports=hiddenimports, hookspath=[],

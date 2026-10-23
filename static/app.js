@@ -18,6 +18,7 @@ const $$ = (selector) => [...document.querySelectorAll(selector)];
 const pageTitles = {
   home: "Nueva descarga",
   convert: "Video a audio",
+  separate: "Voz e instrumentos",
   downloads: "Gestión de descargas",
   history: "Historial",
   settings: "Configuración",
@@ -450,6 +451,7 @@ function actionButtons(task) {
 }
 
 function renderDownloads() {
+  renderSeparationJobs();
   const list = $("#downloadList");
   const empty = $("#emptyDownloads");
   empty.classList.toggle("hidden", state.downloads.length > 0);
@@ -462,7 +464,7 @@ function renderDownloads() {
       : task.status === "Completado"
         ? `${task.final_size_human} · Guardado correctamente`
         : task.status === "Procesando"
-          ? "FFmpeg está preparando el archivo final"
+          ? task.phase || "FFmpeg está preparando el archivo final"
           : task.status;
     return `
       <article class="download-card">
@@ -475,7 +477,7 @@ function renderDownloads() {
           <div class="download-submeta">
             <span>${escapeHtml(task.source || "YouTube")}</span>
             <span>${escapeHtml(task.format.toUpperCase())}</span>
-            <span>${escapeHtml(task.mode === "video_only" ? "Solo video" : task.mode === "audio" ? "Solo audio" : "Video + audio")}</span>
+            <span>${escapeHtml(task.mode.startsWith('separate_') ? 'Separación de audio' : task.mode === "video_only" ? "Solo video" : task.mode === "audio" ? "Solo audio" : "Video + audio")}</span>
             <span>${escapeHtml(qualityLabel(task.format, task.quality, task.source))}</span>
             <span>${escapeHtml(task.downloaded_human)} / ${escapeHtml(total)}</span>
             <span>${escapeHtml(detail)}</span>
@@ -513,12 +515,14 @@ function handleDownloadNotifications(downloads) {
     const previous = state.previousStatuses.get(task.id);
     if (previous && previous !== task.status) {
       if (task.status === "Completado") {
-        toast("Descarga completada", task.title, "success");
-        browserNotification("Descarga completada", task.title);
+        const label = task.mode.startsWith('separate_') ? 'Separación completada' : 'Descarga completada';
+        toast(label, task.title, "success");
+        browserNotification(label, task.title);
         loadHistory();
       } else if (task.status === "Error") {
-        toast("Error en la descarga", task.error || task.title, "error", 6500);
-        browserNotification("Error en la descarga", task.title);
+        const label = task.mode.startsWith('separate_') ? 'Error en la separación' : 'Error en la descarga';
+        toast(label, task.error || task.title, "error", 6500);
+        browserNotification(label, task.title);
       }
     }
     state.previousStatuses.set(task.id, task.status);
@@ -764,6 +768,7 @@ async function init() {
   try {
     await loadSettings();
     initExtensions();
+    initSeparation();
     await Promise.all([loadSystem(), loadDownloads(), loadHistory()]);
   } catch (error) {
     toast("Error de inicio", error.message, "error", 7000);

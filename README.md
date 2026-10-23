@@ -4,7 +4,7 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.2.1-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.3.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
@@ -146,3 +146,22 @@ Las pruebas de 1.2.0 comprobaron conversiones reales de un video sintético a lo
 - Conversor: selección de uno o varios videos, opción de quitar cada selección y «Guardar como» por archivo para elegir nombre y ubicación del audio.
 - La carpeta habitual del conversor se guarda al elegirla. Los destinos personalizados se muestran junto a cada video y se restablecen al cambiar de formato.
 - Se conserva el archivo original y se requiere confirmar en el diálogo de Windows antes de reemplazar un audio existente.
+
+
+## Voz e instrumentos · versión 1.3.0
+
+La nueva sección permite seleccionar un audio o video local y obtener:
+
+- **Voz y música**: dos archivos, voz e instrumental.
+- **4 pistas**: voz, batería, bajo y otros instrumentos.
+- **6 pistas (experimental)**: añade guitarra y piano; la precisión depende de la mezcla y estas dos pistas pueden contener restos de otros sonidos.
+
+Selecciona el archivo, el modo, WAV de 24 bits, FLAC o MP3, y una carpeta de destino. VideoFlow recuerda la carpeta del separador de forma independiente. Cada trabajo crea una subcarpeta nueva. Puedes cancelar, seguir el progreso y escuchar las pistas desde la sección; también se registra cada pista en Historial. Los reproductores de esta sesión permanecen disponibles mientras el trabajo siga en la cola.
+
+El motor usa HT-Demucs con ONNX Runtime en CPU. No requiere GPU, Python ni una cuenta adicional en la versión instalada. Recomendamos 8 GB de RAM; la velocidad depende del equipo y la duración. Una sola separación se procesa a la vez para limitar el consumo de memoria. El audio se prepara en estéreo a 44,1 kHz y se procesa por fragmentos, sin subirlo a servicios externos.
+
+La primera separación necesita Internet para descargar el modelo: aproximadamente **166 MB** para los modos de 2/4 pistas, o **136 MB** para 6 pistas. Se valida el SHA-256 antes de cargarlo. Los modelos quedan en la carpeta de datos del usuario (`separation-models`) y se reutilizan sin conexión. Cancelar la primera descarga elimina su archivo parcial; el siguiente intento empieza de nuevo. El instalador incluye el motor y descarga los modelos solo al utilizarlos.
+
+La separación no es perfecta: puede dejar artefactos o filtraciones. «Otros» reúne sonidos que no pertenecen a las pistas reconocidas. Se preservan los niveles relativos entre las pistas aplicando una reducción común de ganancia cuando hace falta evitar saturación.
+
+Fuentes y licencias: [Demucs de Meta](https://github.com/facebookresearch/demucs), [exportación ONNX de StemSplit](https://github.com/StemSplit/demucs-onnx), [modelo de cuatro pistas](https://huggingface.co/StemSplitio/htdemucs-onnx) y [modelo de seis pistas](https://huggingface.co/StemSplitio/htdemucs-6s-onnx). Las revisiones y sumas de integridad están fijadas en `separation_models.py`; las licencias MIT acompañan al instalador.

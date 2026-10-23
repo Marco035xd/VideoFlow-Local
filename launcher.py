@@ -136,6 +136,8 @@ def run() -> None:
                     task.pause_event.clear()
         from local_audio import shutdown
         shutdown()
+        from audio_separation import wait_for_cleanup
+        wait_for_cleanup()
         if server is not None:
             server.close()
         if mutex:
@@ -143,6 +145,9 @@ def run() -> None:
 
 
 def main() -> None:
+    if len(sys.argv) == 3 and sys.argv[1] == '--separation-worker':
+        from separation_worker import main as separation_main
+        raise SystemExit(separation_main())
     try:
         run()
     except Exception as exc:

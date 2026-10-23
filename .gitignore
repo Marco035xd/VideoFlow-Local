@@ -4,6 +4,7 @@ __pycache__/
 data/settings.json
 data/history.db
 data/webview/
+data/separation-models/
 build/
 dist/
 release/

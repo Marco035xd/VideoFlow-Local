@@ -62,6 +62,7 @@
           <span id="downloadCountBadge" class="nav-badge hidden">0</span>
         </button>
         <button class="nav-item" data-page="convert" type="button"><span class="nav-icon"><img src="/static/icons/navigation/convert.ico" alt=""></span><span>Video a audio</span></button>
+        <button class="nav-item" data-page="separate" type="button"><span class="nav-icon"><img src="/static/icons/navigation/separate.svg" alt=""></span><span>Voz e instrumentos</span></button>
         <button class="nav-item" data-page="history" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/history.ico" alt=""></span><span>Historial</span>
         </button>
@@ -247,6 +248,34 @@
             <div id="conversionResults" class="job-results" aria-live="polite"></div>
           </section>
         </section>
+        <section id="page-separate" class="page">
+          <div class="hero-panel separation-hero">
+            <div><span class="eyebrow">TU ESTUDIO DE AUDIO</span><h1>Escucha cada parte.</h1><p>Extrae la voz, crea una pista instrumental o separa los instrumentos de tu canción.</p></div>
+            <div class="separation-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <section class="panel batch-panel">
+            <div class="separation-heading"><div><h3>Separar voz y música</h3><p>Selecciona un audio o video de tu computadora. El archivo original se conserva.</p></div><span class="separation-badge">Procesamiento local</span></div>
+            <div class="form-field"><label for="separationFile">Archivo de origen</label><div class="folder-input"><input id="separationFile" type="text" readonly placeholder="MP3, WAV, FLAC, M4A, MP4 y más…"><button id="separationChoose" class="secondary-button" type="button">Seleccionar archivo</button></div></div>
+            <fieldset class="separation-modes"><legend>¿Qué quieres obtener?</legend>
+              <label class="separation-mode"><input type="radio" name="separationMode" value="separate_2" checked><span><strong>Voz y música</strong><small>2 pistas · Voz aislada e instrumental sin voz.</small></span></label>
+              <label class="separation-mode"><input type="radio" name="separationMode" value="separate_4"><span><strong>4 pistas</strong><small>Voz, batería, bajo y otros instrumentos.</small></span></label>
+              <label class="separation-mode"><input type="radio" name="separationMode" value="separate_6"><span><strong>6 pistas <em>Experimental</em></strong><small>Añade guitarra y piano a las cuatro pistas.</small></span></label>
+            </fieldset>
+            <div id="separationStemTags" class="separation-tags" aria-live="polite"></div>
+            <div class="field-grid">
+              <label class="form-field"><span>Formato de las pistas</span><select id="separationFormat"><option value="wav">WAV · sin pérdida, 24 bits</option><option value="flac">FLAC · sin pérdida, comprimido</option><option value="mp3">MP3 · archivo más pequeño</option></select></label>
+              <label class="form-field"><span>Calidad MP3</span><select id="separationQuality" disabled><option value="128">128 kbps</option><option value="192">192 kbps</option><option value="320" selected>320 kbps</option></select></label>
+            </div>
+            <div class="form-field"><label for="separationFolder">Destino de las pistas</label><div class="folder-input"><input id="separationFolder" type="text" readonly><button id="separationBrowse" class="secondary-button" type="button">Elegir carpeta</button></div></div>
+            <div class="separation-notice"><span aria-hidden="true">↓</span><div><strong id="separationModelTitle">Modelo de separación</strong><p id="separationModelInfo">La primera separación descarga el modelo. Después podrás usarlo sin Internet.</p></div></div>
+            <p class="field-hint">La calidad depende de la mezcla original; pueden quedar restos de voz o instrumentos. Guitarra y piano son experimentales. Se procesa una separación a la vez; recomendamos 8 GB de RAM.</p>
+            <button id="separationStart" class="primary-button" type="button" disabled>Separar audio</button>
+          </section>
+          <section class="panel batch-panel separation-results-panel">
+            <div class="separation-heading"><div><h3>Tus separaciones</h3><p>Escucha las pistas terminadas o abre su carpeta. También se guardan en Historial.</p></div><button id="separationQueue" class="text-button" type="button">Ver cola →</button></div>
+            <div id="separationJobs"><div class="separation-empty">Aquí aparecerán tus pistas al iniciar una separación.</div></div>
+          </section>
+        </section>
         <section id="page-downloads" class="page">
           <div class="queue-toolbar"><button id="cancelAll" class="secondary-button" type="button">Cancelar pendientes</button><button id="cleanCompleted" class="secondary-button" type="button">Quitar completadas de la cola</button></div>
           <div class="stats-grid">
@@ -380,5 +409,6 @@
 
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 <script src="/static/extensions.js"></script>
+<script src="/static/separation.js"></script>
 </body>
 </html>
