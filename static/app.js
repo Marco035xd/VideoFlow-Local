@@ -673,6 +673,7 @@ async function saveSettings() {
     $("#folderPath").value = state.destinationFolder;
     syncFolderSettings();
     syncBatchDestination();
+    syncVideoConvertConcurrency();
     toast("Configuración guardada", "Los cambios se aplicaron correctamente.", "success");
   } catch (error) {
     toast("No se pudo guardar", error.message, "error");

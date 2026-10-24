@@ -1,20 +1,68 @@
-const videoConvertUI = {busy: false, target: null};
+const videoConvertUI = {busy: false, files: [], targets: new Map()};
 
-function setVideoConvertBusy(busy) {
-  videoConvertUI.busy = busy;
-  for (const id of ['videoConvertChoose', 'videoConvertFormat', 'videoConvertQuality', 'videoConvertBrowse', 'videoConvertSaveAs', 'videoConvertStart']) {
-    $('#' + id).disabled = busy;
+function syncVideoConvertConcurrency() {
+  $('#videoConvertConcurrency').textContent = `Hasta ${state.settings?.max_concurrent || 3} conversiones simultáneas. Puedes cambiar este límite en Configuración.`;
+}
+
+function renderVideoConvertFiles() {
+  const container = $('#videoConvertFiles');
+  container.replaceChildren();
+  $('#videoConvertCount').textContent = `${videoConvertUI.files.length} de 10 archivos`;
+  $('#videoConvertStart').disabled = videoConvertUI.busy || videoConvertUI.files.length === 0;
+  if (!videoConvertUI.files.length) {
+    const empty = document.createElement('div');
+    empty.className = 'separation-empty';
+    empty.textContent = 'Ningún video seleccionado. Elige hasta 10 archivos en una sola ventana.';
+    container.append(empty);
+    return;
+  }
+  for (const path of videoConvertUI.files) {
+    const row = document.createElement('div'); row.className = 'conversion-file';
+    const info = document.createElement('div'); info.className = 'conversion-file-info';
+    const name = document.createElement('strong'); name.textContent = path.split(/[\\/]/).pop(); name.title = path;
+    const destination = document.createElement('small');
+    destination.textContent = videoConvertUI.targets.has(path)
+      ? `Guardar en: ${videoConvertUI.targets.get(path).path}`
+      : `Nombre automático · ${$('#videoConvertFolder').value}`;
+    info.append(name, destination);
+    const actions = document.createElement('div'); actions.className = 'conversion-file-actions';
+    const save = document.createElement('button'); save.type = 'button'; save.className = 'secondary-button'; save.textContent = 'Guardar como…'; save.disabled = videoConvertUI.busy;
+    save.setAttribute('aria-label', `Guardar como ${name.textContent}`);
+    save.onclick = () => chooseVideoConvertTarget(path);
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button'; remove.textContent = 'Quitar'; remove.disabled = videoConvertUI.busy;
+    remove.setAttribute('aria-label', `Quitar ${name.textContent}`);
+    remove.onclick = () => {
+      videoConvertUI.files = videoConvertUI.files.filter(file => file !== path);
+      videoConvertUI.targets.delete(path);
+      renderVideoConvertFiles();
+    };
+    actions.append(save, remove); row.append(info, actions); container.append(row);
   }
 }
 
-function videoConvertResetTarget() {
-  videoConvertUI.target = null;
-  $('#videoConvertSavedPath').textContent = '';
-  $('#videoConvertSavedPath').classList.add('hidden');
+function setVideoConvertBusy(busy) {
+  videoConvertUI.busy = busy;
+  for (const id of ['videoConvertChoose', 'videoConvertFormat', 'videoConvertQuality', 'videoConvertBrowse']) {
+    $('#' + id).disabled = busy;
+  }
+  renderVideoConvertFiles();
+}
+
+async function chooseVideoConvertTarget(path) {
+  setVideoConvertBusy(true);
+  try {
+    const result = await api('/api/video-save-path', {method:'POST', body:JSON.stringify({
+      path, format:$('#videoConvertFormat').value,
+      initial:videoConvertUI.targets.get(path)?.folder || $('#videoConvertFolder').value,
+    })});
+    if (!result.cancelled) videoConvertUI.targets.set(path, result);
+  } catch (error) { toast('No se pudo elegir el archivo de salida', error.message, 'error'); }
+  finally { setVideoConvertBusy(false); }
 }
 
 function updateVideoConvertFormat() {
-  videoConvertResetTarget();
+  videoConvertUI.targets.clear();
+  renderVideoConvertFiles();
   const fmt = $('#videoConvertFormat').value;
   const notice = $('#videoConvertNotice');
   const title = notice.querySelector('strong');
@@ -37,51 +85,54 @@ function initVideoConversion() {
     try {
       const result = await api('/api/video-file', {method:'POST', body:'{}'});
       if (!result.cancelled) {
-        $('#videoConvertInput').value = result.path;
-        $('#videoConvertInput').title = result.path;
-        videoConvertResetTarget();
+        const added = [...new Set([...videoConvertUI.files, ...(result.paths || [result.path]).filter(Boolean)])];
+        if (added.length > 10) return toast('Demasiados videos', 'Puedes seleccionar hasta 10 archivos por lote. Quita alguno antes de añadir más.', 'error');
+        videoConvertUI.files = added;
       }
-    } catch (error) { toast('No se pudo seleccionar el video', error.message, 'error'); }
+    } catch (error) { toast('No se pudieron seleccionar los videos', error.message, 'error'); }
     finally { setVideoConvertBusy(false); }
   };
   $('#videoConvertBrowse').onclick = async () => {
     setVideoConvertBusy(true);
     try {
       const folder = await pickFolder('#videoConvertFolder');
-      if (folder) {
-        videoConvertResetTarget();
-        await api('/api/settings', {method:'PUT', body:JSON.stringify({video_conversion_folder:folder})});
-      }
+      if (folder) await api('/api/settings', {method:'PUT', body:JSON.stringify({video_conversion_folder:folder})});
     } catch (error) { toast('No se pudo elegir la carpeta', error.message, 'error'); }
     finally { setVideoConvertBusy(false); }
   };
-  $('#videoConvertSaveAs').onclick = async () => {
-    if (!$('#videoConvertInput').value) return toast('Selecciona un video', 'Primero elige el video de origen.', 'error');
-    setVideoConvertBusy(true);
-    try {
-      const result = await api('/api/video-save-path', {method:'POST', body:JSON.stringify({path:$('#videoConvertInput').value, format:$('#videoConvertFormat').value, initial:$('#videoConvertFolder').value})});
-      if (!result.cancelled) {
-        videoConvertUI.target = result;
-        $('#videoConvertFolder').value = result.folder;
-        $('#videoConvertFolder').title = result.folder;
-        $('#videoConvertSavedPath').textContent = `Archivo final: ${result.path}`;
-        $('#videoConvertSavedPath').classList.remove('hidden');
-      }
-    } catch (error) { toast('No se pudo elegir el archivo de salida', error.message, 'error'); }
-    finally { setVideoConvertBusy(false); }
-  };
   $('#videoConvertStart').onclick = async () => {
-    const path = $('#videoConvertInput').value;
-    if (!path) return toast('Selecciona un video', 'Elige el archivo que quieres convertir.', 'error');
+    const files = [...videoConvertUI.files];
+    if (!files.length) return toast('Selecciona videos', 'Elige uno o varios videos para convertir.', 'error');
+    const format = $('#videoConvertFormat').value;
+    const quality = $('#videoConvertQuality').value;
+    const folder = $('#videoConvertFolder').value;
+    const failed = [];
+    let queued = 0;
     setVideoConvertBusy(true);
+    $('#videoConvertResults').replaceChildren();
     try {
-      await api('/api/video-convert', {method:'POST', body:JSON.stringify({path, format:$('#videoConvertFormat').value, quality:$('#videoConvertQuality').value, folder:$('#videoConvertFolder').value, save_path:videoConvertUI.target?.path || '', overwrite:videoConvertUI.target?.overwrite === true})});
-      videoConvertResetTarget();
+      for (const path of files) {
+        try {
+          const target = videoConvertUI.targets.get(path);
+          await api('/api/video-convert', {method:'POST', body:JSON.stringify({
+            path, format, quality, folder,
+            save_path:target?.path || '', overwrite:target?.overwrite === true,
+          })});
+          videoConvertUI.targets.delete(path);
+          queued += 1;
+          resultLine('#videoConvertResults', path, 'Añadido a la cola');
+        } catch (error) {
+          failed.push(path);
+          resultLine('#videoConvertResults', path, error.message);
+        }
+      }
+      videoConvertUI.files = failed;
       await loadDownloads();
-      toast('Conversión añadida', 'Revisa el progreso en Descargas. El video original se conserva.', 'success');
-      navigate('downloads');
-    } catch (error) { toast('No se pudo iniciar la conversión', error.message, 'error'); }
+      toast('Lote de conversión', `${queued} añadidos a la cola; ${failed.length} pendientes de revisar.`, failed.length ? 'info' : 'success');
+      if (!failed.length) navigate('downloads');
+    } catch (error) { toast('No se pudo actualizar la cola', error.message, 'error'); }
     finally { setVideoConvertBusy(false); }
   };
+  syncVideoConvertConcurrency();
   updateVideoConvertFormat();
 }

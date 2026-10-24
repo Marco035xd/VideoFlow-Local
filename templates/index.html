@@ -251,19 +251,22 @@
         </section>
         <section id="page-video-convert" class="page">
           <div class="hero-panel separation-hero video-convert-hero">
-            <div><span class="eyebrow">CONVERSIÓN DE VIDEO</span><h1>Un video, listo para editar.</h1><p>Vuelve a codificar tu MP4 o cambia el formato de salida. El original permanece intacto.</p></div>
+            <div><span class="eyebrow">CONVERSIÓN DE VIDEO</span><h1>Tus videos, listos para editar.</h1><p>Vuelve a codificar varios MP4 o cambia su formato de salida. Los originales permanecen intactos.</p></div>
             <div class="video-convert-mark" aria-hidden="true"><span>MP4</span><b>→</b><span>MP4</span></div>
           </div>
           <section class="panel batch-panel">
-            <div class="separation-heading"><div><h3>Convertir un video</h3><p>Para VEGAS Pro, usa MP4: H.264, audio AAC y fotogramas constantes.</p></div><span class="separation-badge">Procesamiento local</span></div>
-            <div class="form-field"><label for="videoConvertInput">Video de origen</label><div class="folder-input"><input id="videoConvertInput" type="text" readonly placeholder="Selecciona un video de tu computadora"><button id="videoConvertChoose" class="secondary-button" type="button">Seleccionar video</button></div></div>
+            <div class="separation-heading"><div><h3>Convertir varios videos</h3><p>Para VEGAS Pro, usa MP4: H.264, audio AAC y fotogramas constantes.</p></div><span class="separation-badge">Procesamiento local</span></div>
+            <div class="video-convert-selection"><div><strong>Videos seleccionados</strong><small id="videoConvertCount">0 de 10 archivos</small></div><button id="videoConvertChoose" class="secondary-button" type="button">Seleccionar videos</button></div>
+            <div id="videoConvertFiles" class="conversion-files" aria-live="polite"></div>
             <div class="field-grid">
               <label class="form-field"><span>Formato de salida</span><select id="videoConvertFormat"><option value="mp4">MP4 · recomendado para VEGAS Pro</option><option value="mov">MOV · H.264 + AAC</option><option value="mkv">MKV · H.264 + AAC</option><option value="webm">WEBM · VP9 + Opus</option></select></label>
               <label class="form-field"><span>Calidad del video</span><select id="videoConvertQuality"><option value="18">Muy alta · archivo más grande</option><option value="20" selected>Alta · recomendada</option><option value="23">Equilibrada · archivo más pequeño</option></select></label>
             </div>
             <div class="form-field"><label for="videoConvertFolder">Carpeta de destino</label><div class="folder-input"><input id="videoConvertFolder" type="text" readonly><button id="videoConvertBrowse" class="secondary-button" type="button">Elegir carpeta</button></div><small class="destination-hint">Se recuerda por separado de tus descargas y conversiones de audio.</small></div>
-            <div class="video-convert-actions"><button id="videoConvertSaveAs" class="secondary-button" type="button">Guardar como…</button><button id="videoConvertStart" class="primary-button" type="button">Convertir video →</button></div>
-            <div id="videoConvertSavedPath" class="video-convert-saved-path hidden" aria-live="polite"></div>
+            <p class="field-hint">Usa «Guardar como…» junto a un video para elegir su nombre y destino. Los demás se guardarán en la carpeta indicada arriba.</p>
+            <div class="video-convert-actions"><button id="videoConvertStart" class="primary-button" type="button">Convertir archivos →</button></div>
+            <p id="videoConvertConcurrency" class="field-hint"></p>
+            <div id="videoConvertResults" class="job-results" aria-live="polite"></div>
             <div id="videoConvertNotice" class="separation-notice"><span aria-hidden="true">ⓘ</span><div><strong>MP4 compatible para edición</strong><p>Se genera un archivo nuevo con H.264, color YUV 4:2:0 y audio AAC. Convertir MP4 a MP4 cambia el contenido interno del archivo, no solo su nombre.</p></div></div>
             <p class="field-hint">El progreso aparece en Descargas y el archivo terminado en Historial. La compatibilidad depende también de la versión y configuración de VEGAS Pro.</p>
           </section>

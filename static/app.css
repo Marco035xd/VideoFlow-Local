@@ -497,12 +497,20 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
 .video-convert-mark span { padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.17); font-size: 12px; font-weight: 800; letter-spacing: .6px; }
 .video-convert-mark b { font-size: 20px; font-weight: 400; }
 .video-convert-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
-.video-convert-saved-path { overflow-wrap: anywhere; padding: 10px 12px; margin: -6px 0 16px; border-radius: 10px; background: var(--primary-soft); color: var(--primary); font-size: 11px; }
+.video-convert-selection { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 20px 0 8px; }
+.video-convert-selection strong, .video-convert-selection small { display: block; }
+.video-convert-selection strong { font-size: 13px; }
+.video-convert-selection small { margin-top: 5px; color: var(--muted); font-size: 11px; }
+.video-convert-selection button { flex-shrink: 0; }
+#videoConvertFiles { margin-top: 10px; }
+#videoConvertFiles .conversion-file { min-width: 0; }
+#videoConvertFiles .conversion-file-info small { overflow-wrap: anywhere; }
 @media (max-width: 1100px) {
   .separation-modes { grid-template-columns: 1fr; }
   .separation-heading { flex-wrap: wrap; }
   .separation-wave { display: none; }
   .video-convert-mark { display: none; }
+  .video-convert-selection { align-items: flex-start; flex-wrap: wrap; }
 }
 @media (max-width: 760px) {
   .separation-stems { grid-template-columns: 1fr; }

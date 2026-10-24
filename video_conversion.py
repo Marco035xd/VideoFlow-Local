@@ -122,10 +122,12 @@ def register(app, settings, manager, find_tool):
     @app.post('/api/video-file')
     def select_video():
         try:
-            paths = choose('OPEN', settings.load().get('video_conversion_input_folder', ''), file_types=VIDEO_TYPES, allow_multiple=False)
+            paths = list(dict.fromkeys(choose('OPEN', settings.load().get('video_conversion_input_folder', ''), file_types=VIDEO_TYPES, allow_multiple=True)))
+            if len(paths) > 10:
+                raise ValueError('Selecciona hasta 10 videos por lote.')
             if paths:
                 settings.update({'video_conversion_input_folder': str(Path(paths[0]).parent)})
-            return jsonify(ok=True, path=paths[0] if paths else '', cancelled=not paths)
+            return jsonify(ok=True, paths=paths, path=paths[0] if paths else '', cancelled=not paths)
         except Exception as exc:
             return jsonify(ok=False, error=str(exc)), 400
 
@@ -143,7 +145,6 @@ def register(app, settings, manager, find_tool):
                 return jsonify(ok=True, cancelled=True)
             if target == source or (target.exists() and source.samefile(target)):
                 raise ValueError('No se puede reemplazar el video original.')
-            settings.update({'video_conversion_folder': str(target.parent)})
             return jsonify(ok=True, path=str(target), folder=str(target.parent), overwrite=target.exists())
         except Exception as exc:
             return jsonify(ok=False, error=str(exc)), 400
@@ -171,7 +172,8 @@ def register(app, settings, manager, find_tool):
             task = manager.add(dict(url='', local_path=str(source), title=source.stem, format=fmt, quality=quality,
                                     folder=str(folder), mode='video_convert', save_path=str(target) if target else '',
                                     overwrite=data.get('overwrite') is True))
-            settings.update({'video_conversion_folder': str(folder)})
+            if target is None:
+                settings.update({'video_conversion_folder': str(folder)})
             return jsonify(ok=True, download=task.as_dict()), 201
         except Exception as exc:
             return jsonify(ok=False, error=str(exc)), 400

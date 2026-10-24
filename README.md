@@ -4,7 +4,7 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.4.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.4.1-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
@@ -171,3 +171,7 @@ Fuentes y licencias: [Demucs de Meta](https://github.com/facebookresearch/demucs
 La sección **Convertir video** acepta archivos locales y crea MP4, MOV, MKV o WEBM. Para intentar importar un archivo problemático en VEGAS Pro, selecciona **MP4**. Esta opción vuelve a codificar el video como H.264 con color YUV 4:2:0 y fotogramas constantes, y el audio como AAC a 48 kHz; también funciona cuando el archivo de origen ya es MP4. Cambiar únicamente la extensión del archivo no realiza esta conversión.
 
 Puedes elegir calidad, una carpeta independiente para estas conversiones o usar **Guardar como…** para elegir el nombre y ubicación exactos. Se conserva el original, los trabajos aparecen en Descargas y el resultado en Historial. La compatibilidad final depende también de la versión de VEGAS Pro, del archivo original y de la configuración del proyecto. MKV y WEBM sirven para otros usos y pueden no importarse en VEGAS Pro.
+
+### Conversión simultánea · versión 1.4.1
+
+En **Convertir video**, selecciona hasta 10 archivos en una sola ventana. Puedes añadir más a la selección, quitar videos y elegir «Guardar como…» para cada archivo. El formato y la calidad seleccionados se aplican a todo el lote. Los demás archivos se guardan con nombres automáticos en la carpeta de conversión. Las conversiones se ejecutan a la vez hasta el límite de trabajos simultáneos de Configuración; los archivos que no pudieron entrar a la cola permanecen seleccionados para reintentarlos.
