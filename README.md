@@ -4,7 +4,7 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.4.1-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.5.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 
@@ -175,3 +175,16 @@ Puedes elegir calidad, una carpeta independiente para estas conversiones o usar 
 ### Conversión simultánea · versión 1.4.1
 
 En **Convertir video**, selecciona hasta 10 archivos en una sola ventana. Puedes añadir más a la selección, quitar videos y elegir «Guardar como…» para cada archivo. El formato y la calidad seleccionados se aplican a todo el lote. Los demás archivos se guardan con nombres automáticos en la carpeta de conversión. Las conversiones se ejecutan a la vez hasta el límite de trabajos simultáneos de Configuración; los archivos que no pudieron entrar a la cola permanecen seleccionados para reintentarlos.
+
+## Apariencia · versión 1.5.0
+
+Abre **Apariencia** en la barra lateral o desde Configuración. Los cambios tienen vista previa inmediata, se guardan automáticamente en este equipo y se aplican a las distintas secciones de la app.
+
+- Modo **claro, oscuro o automático** según la preferencia de Windows. El botón de la barra superior recorre los tres modos.
+- Seis temas: **VideoFlow, Grafito, Océano, Bosque, Ciruela y Arena**.
+- Acento del tema, azul, verde, amarillo, rosa, naranja, morado, blanco o un color personalizado.
+- Fuente del sistema, Trebuchet MS, Georgia o Consolas; espaciado cómodo o compacto y reducción de movimiento.
+- Personalización avanzada de fondo y texto con selector de color y código hexadecimal. Se requiere contraste suficiente para conservar la legibilidad.
+- **Restablecer apariencia** recupera el estilo original sin modificar descargas, destinos ni historial.
+
+Los usuarios que ya tenían un tema claro u oscuro conservan esa preferencia al actualizar. Los colores de los logos de las plataformas se mantienen. Las pruebas de preferencias se ejecutan con `.venv\Scripts\python.exe tests\check_appearance.py` y `node tests\check_appearance.cjs`; usan datos aislados, comprueban persistencia y validación, contraste en 162 combinaciones y guardado de cambios rápidos.

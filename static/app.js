@@ -22,6 +22,7 @@ const pageTitles = {
   separate: "Voz e instrumentos",
   downloads: "Gestión de descargas",
   history: "Historial",
+  appearance: "Apariencia",
   settings: "Configuración",
 };
 
@@ -153,12 +154,6 @@ function closeConfirm(result) {
   state.confirmResolver = null;
 }
 
-function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  $("#settingsTheme").checked = theme === "dark";
-  $("#themeToggle").textContent = theme === "dark" ? "☀" : "◐";
-}
-
 function navigate(page) {
   state.currentPage = page;
   $$(".page").forEach((node) => node.classList.remove("active-page"));
@@ -172,7 +167,7 @@ function navigate(page) {
 async function loadSettings() {
   const data = await api("/api/settings");
   state.settings = data.settings;
-  applyTheme(state.settings.theme);
+  initAppearance();
   state.destinationFolder = folderForSource();
   $("#folderPath").value = state.destinationFolder;
   syncFolderSettings();
@@ -657,7 +652,6 @@ async function saveSettings() {
     max_concurrent: Number($("#settingsConcurrent").value),
     rate_limit_kbps: Number($("#settingsRate").value),
     retry_count: Number($("#settingsRetries").value),
-    theme: $("#settingsTheme").checked ? "dark" : "light",
     notifications: $("#settingsNotifications").checked,
   };
   try {
@@ -666,7 +660,6 @@ async function saveSettings() {
     }
     const data = await api("/api/settings", { method: "PUT", body: JSON.stringify(payload) });
     state.settings = data.settings;
-    applyTheme(state.settings.theme);
     state.destinationFolder = folderForSource();
     state.savePath = "";
     state.overwrite = false;
@@ -719,12 +712,8 @@ function bindEvents() {
     state.settings.welcome_seen = true;
     await api("/api/settings", { method: "PUT", body: JSON.stringify({ welcome_seen: true }) });
   });
-  $("#themeToggle").addEventListener("click", async () => {
-    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    applyTheme(next);
-    state.settings.theme = next;
-    await api("/api/settings", { method: "PUT", body: JSON.stringify({ theme: next }) });
-  });
+  $("#themeToggle").addEventListener("click", cycleAppearanceMode);
+  $("#openAppearance").addEventListener("click", () => navigate("appearance"));
   $("#settingsConcurrent").addEventListener("input", (event) => {
     $("#concurrentValue").textContent = event.target.value;
   });

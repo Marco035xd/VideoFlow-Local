@@ -7,6 +7,7 @@
   <title>VideoFlow Local</title>
   <link rel="icon" href="{{ url_for('static', filename='logo.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='appearance.css') }}">
 </head>
 <body>
   <div id="welcomeScreen" class="welcome-screen hidden" aria-hidden="true">
@@ -67,6 +68,7 @@
         <button class="nav-item" data-page="history" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/history.ico" alt=""></span><span>Historial</span>
         </button>
+        <button class="nav-item" data-page="appearance" type="button"><span class="nav-icon"><img src="/static/icons/navigation/appearance.svg" alt=""></span><span>Apariencia</span></button>
         <button class="nav-item" data-page="settings" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/settings.ico" alt=""></span><span>Configuración</span>
         </button>
@@ -91,7 +93,7 @@
         </div>
         <div class="topbar-actions">
           <span id="connectionStatus" class="connection-pill"><i></i> Lista para descargar</span>
-          <button id="themeToggle" class="icon-button" type="button" title="Cambiar tema">◐</button>
+          <button id="themeToggle" class="icon-button" type="button" title="Cambiar modo de apariencia" aria-label="Cambiar modo de apariencia">◐</button>
         </div>
       </header>
 
@@ -342,6 +344,50 @@
           </section>
         </section>
 
+        <section id="page-appearance" class="page">
+          <div class="appearance-intro"><span class="eyebrow">A TU GUSTO</span><h1>Hazla a tu manera.</h1><p>Elige cómo se ve VideoFlow. Los cambios se muestran al instante y se guardan en este equipo.</p></div>
+          <div class="appearance-layout">
+            <div class="appearance-options">
+              <section class="panel appearance-panel">
+                <fieldset class="appearance-fieldset"><legend>Modo</legend>
+                  <div class="appearance-modes">
+                    <label class="appearance-mode"><input type="radio" name="appearanceMode" value="system"><span class="mode-sample mode-system" aria-hidden="true"><i></i><b></b><em></em></span><strong>Automático</strong><small>Según Windows</small></label>
+                    <label class="appearance-mode"><input type="radio" name="appearanceMode" value="light"><span class="mode-sample mode-light" aria-hidden="true"><i></i><b></b><em></em></span><strong>Claro</strong><small>Más luminoso</small></label>
+                    <label class="appearance-mode"><input type="radio" name="appearanceMode" value="dark"><span class="mode-sample mode-dark" aria-hidden="true"><i></i><b></b><em></em></span><strong>Oscuro</strong><small>Menos brillo</small></label>
+                  </div>
+                </fieldset>
+              </section>
+              <section class="panel appearance-panel">
+                <fieldset class="appearance-fieldset"><legend>Tema visual</legend><p class="appearance-hint">Seis estilos para todas las secciones de la aplicación.</p><div id="appearancePresets" class="appearance-presets"></div></fieldset>
+                <fieldset class="appearance-fieldset appearance-divider"><legend>Color de acento</legend><div id="appearanceAccents" class="appearance-accents"></div>
+                  <div id="appearanceCustomAccentRow" class="appearance-color-row hidden"><label for="appearanceCustomAccent">Tu color</label><div class="appearance-color-control"><input id="appearanceCustomAccent" type="color" aria-label="Elegir color de acento"><input id="appearanceCustomAccentHex" type="text" maxlength="7" spellcheck="false" aria-label="Código hexadecimal del acento"></div></div>
+                </fieldset>
+                <label class="appearance-setting" for="appearanceFont"><span><strong>Fuente</strong><small>Disponible sin descargar archivos.</small></span><select id="appearanceFont"><option value="system">Sistema · Segoe UI</option><option value="humanist">Trebuchet MS</option><option value="serif">Georgia</option><option value="mono">Consolas</option></select></label>
+              </section>
+              <details class="panel appearance-panel appearance-advanced">
+                <summary>Personalización avanzada <span aria-hidden="true">⌄</span></summary>
+                <div class="appearance-setting"><span><strong>Colores personalizados</strong><small>Usar tus propios colores de fondo y texto.</small></span><label class="switch"><input id="appearanceCustomColors" type="checkbox" aria-label="Usar colores personalizados"><span></span></label></div>
+                <div id="appearanceCustomColorFields" class="appearance-custom-colors">
+                  <div class="appearance-color-row"><label for="appearanceBackground">Fondo</label><div class="appearance-color-control"><input id="appearanceBackground" type="color" aria-label="Elegir color de fondo"><input id="appearanceBackgroundHex" type="text" maxlength="7" spellcheck="false" aria-label="Código hexadecimal del fondo"></div></div>
+                  <div class="appearance-color-row"><label for="appearanceForeground">Texto</label><div class="appearance-color-control"><input id="appearanceForeground" type="color" aria-label="Elegir color del texto"><input id="appearanceForegroundHex" type="text" maxlength="7" spellcheck="false" aria-label="Código hexadecimal del texto"></div></div>
+                  <p id="appearanceContrast" class="appearance-hint"></p>
+                </div>
+                <label class="appearance-setting" for="appearanceDensity"><span><strong>Espaciado</strong><small>Elige cuánto espacio ocupan los controles.</small></span><select id="appearanceDensity"><option value="comfortable">Cómodo</option><option value="compact">Compacto</option></select></label>
+                <div class="appearance-setting"><span><strong>Reducir movimiento</strong><small>Desactiva animaciones y transiciones.</small></span><label class="switch"><input id="appearanceMotion" type="checkbox" aria-label="Reducir movimiento"><span></span></label></div>
+              </details>
+            </div>
+            <aside class="panel appearance-preview-panel">
+              <div class="section-heading"><div><span class="eyebrow">VISTA PREVIA</span><h3>Tu VideoFlow</h3></div><span class="appearance-preview-dot" aria-hidden="true"></span></div>
+              <div class="appearance-live-preview" aria-hidden="true"><div class="preview-sidebar"><img src="/static/logo.svg" alt=""><i></i><i></i><i></i></div><div class="preview-main"><div class="preview-hero"><span>Tu próximo video</span><strong>Guarda lo que te inspira.</strong></div><div class="preview-input">Pega un enlace…</div><span class="preview-button">Descargar video ↓</span><div class="preview-job"><span>Mi video.mp4</span><small>Preparando tu archivo</small><div class="progress-track"><i style="width:64%"></i></div></div></div></div>
+              <p id="appearanceSummary" class="appearance-preview-caption"></p>
+              <div id="appearanceSaveStatus" class="appearance-save-status" role="status" aria-live="polite">Apariencia guardada en este equipo.</div>
+              <button id="appearanceRetry" class="secondary-button wide-button hidden" type="button">Reintentar guardado</button>
+              <button id="appearanceReset" class="secondary-button wide-button" type="button">Restablecer apariencia</button>
+              <small class="appearance-hint">Los colores de los logos de las plataformas conservan su identidad.</small>
+            </aside>
+          </div>
+        </section>
+
         <section id="page-settings" class="page">
           <div class="settings-layout">
             <section class="panel settings-panel">
@@ -386,10 +432,10 @@
                 <h4>Conexión y recuperación</h4>
                 <div class="field-grid"><label class="form-field"><span>Límite por descarga (KB/s, 0 = sin límite)</span><input id="settingsRate" type="number" min="0" max="102400" step="1"></label><label class="form-field"><span>Reintentos ante errores de red</span><input id="settingsRetries" type="number" min="0" max="20" step="1"></label></div>
                 <p>Estos valores se aplican a las nuevas descargas. Las conversiones comparten el límite de trabajos simultáneos.</p>
-                <h4>Apariencia y avisos</h4>
+                <h4>Personalización y avisos</h4>
                 <div class="setting-row">
-                  <div><strong>Tema oscuro</strong><small>Alterna entre el modo claro y oscuro.</small></div>
-                  <label class="switch"><input id="settingsTheme" type="checkbox"><span></span></label>
+                  <div><strong>Apariencia</strong><small>Modo, temas, colores y fuente.</small></div>
+                  <button id="openAppearance" class="secondary-button" type="button">Personalizar</button>
                 </div>
                 <div class="setting-row">
                   <div><strong>Notificaciones</strong><small>Avisa cuando una descarga finaliza o falla.</small></div>
@@ -434,5 +480,6 @@
 <script src="/static/extensions.js"></script>
 <script src="/static/separation.js"></script>
 <script src="/static/video_conversion.js"></script>
+<script src="/static/appearance.js"></script>
 </body>
 </html>

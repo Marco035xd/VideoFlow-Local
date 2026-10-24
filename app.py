@@ -21,6 +21,7 @@ from urllib.parse import urlparse
 import yt_dlp
 from flask import Flask, jsonify, render_template, request
 from app_paths import APP_DIR, APP_VERSION, DATA_DIR, IS_FROZEN
+from appearance import DEFAULT_APPEARANCE, normalize_appearance
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
@@ -37,6 +38,7 @@ DEFAULT_SETTINGS = {
     "default_video_quality": "720",
     "default_audio_quality": "192",
     "theme": "dark",
+    "appearance": DEFAULT_APPEARANCE.copy(),
     "notifications": True,
     "max_concurrent": 3,
     "welcome_seen": False,
@@ -156,6 +158,8 @@ class SettingsStore:
     @staticmethod
     def _merge(data: dict[str, Any]) -> dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **data}
+        merged['theme'] = data.get('theme') if data.get('theme') in ('light', 'dark', 'system') else 'dark'
+        merged['appearance'] = normalize_appearance(data.get('appearance'))
         folders = data.get("platform_folders")
         folders = folders if isinstance(folders, dict) else {}
         merged["platform_folders"] = {
@@ -1193,8 +1197,15 @@ def api_update_settings():
         allowed["default_video_quality"] = str(payload["default_video_quality"])
     if str(payload.get("default_audio_quality")) in {"128", "192", "320"}:
         allowed["default_audio_quality"] = str(payload["default_audio_quality"])
-    if payload.get("theme") in {"light", "dark"}:
-        allowed["theme"] = payload["theme"]
+    if 'theme' in payload:
+        if payload['theme'] not in ('light', 'dark', 'system'):
+            return jsonify(ok=False, error='Selecciona un modo de apariencia válido.'), 400
+        allowed['theme'] = payload['theme']
+    if 'appearance' in payload:
+        try:
+            allowed['appearance'] = normalize_appearance(payload['appearance'], strict=True)
+        except ValueError as exc:
+            return jsonify(ok=False, error=str(exc)), 400
     if "notifications" in payload:
         allowed["notifications"] = bool(payload["notifications"])
     if "welcome_seen" in payload:

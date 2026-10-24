@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-APP_VERSION = "1.4.1"
+APP_VERSION = "1.5.0"
 APP_DIR = Path(__file__).resolve().parent
 IS_FROZEN = bool(getattr(sys, "frozen", False))
 
