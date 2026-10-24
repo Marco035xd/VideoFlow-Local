@@ -22,12 +22,12 @@ import yt_dlp
 from flask import Flask, jsonify, render_template, request
 from app_paths import APP_DIR, APP_VERSION, DATA_DIR, IS_FROZEN
 from appearance import DEFAULT_APPEARANCE, normalize_appearance
+from download_options import validate_options, video_selector, apply_options
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
 HOST = "127.0.0.1"
 PORT = 8765
-MAX_QUEUE_ITEMS = 10
 PLATFORMS = {"youtube": "YouTube", "facebook": "Facebook", "tiktok": "TikTok"}
 
 DEFAULT_FOLDER = str((Path.home() / "Downloads").resolve())
@@ -41,6 +41,8 @@ DEFAULT_SETTINGS = {
     "appearance": DEFAULT_APPEARANCE.copy(),
     "notifications": True,
     "max_concurrent": 3,
+    "background_mode": True,
+    "keep_awake": True,
     "welcome_seen": False,
     "rate_limit_kbps": 0,
     "retry_count": 5,
@@ -242,6 +244,8 @@ class HistoryStore:
             con.commit()
 
     def add(self, task: "DownloadTask") -> None:
+        if task.advanced.get('incognito'):
+            return
         with self.connect() as con:
             con.execute(
                 """
@@ -324,6 +328,7 @@ class DownloadTask:
     local_path: str = ""
     phase: str = ""
     outputs: list = field(default_factory=list)
+    advanced: dict = field(default_factory=dict)
     pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
 
@@ -362,6 +367,7 @@ class DownloadTask:
             "final_size_human": human_bytes(self.final_size),
             "phase": self.phase,
             "outputs": self.outputs,
+            "incognito": self.advanced.get('incognito', False),
         }
 
 
@@ -389,13 +395,7 @@ class DownloadManager:
         self.condition = threading.Condition(self.lock)
         self.work_queue: queue.Queue[str] = queue.Queue()
         self.active_count = 0
-        for index in range(10):
-            thread = threading.Thread(
-                target=self._worker,
-                name=f"download-worker-{index + 1}",
-                daemon=True,
-            )
-            thread.start()
+        threading.Thread(target=self._worker, name='download-dispatcher', daemon=True).start()
 
     def notify_settings_changed(self) -> None:
         with self.condition:
@@ -420,7 +420,7 @@ class DownloadManager:
             output_format=str(payload["format"]).lower(),
             quality=str(payload["quality"]),
             folder=str(Path(payload["folder"]).expanduser().resolve()),
-            source="Local" if payload.get("local_path") else source_for_url(str(payload["url"])) or "YouTube",
+            source="Local" if payload.get("local_path") else source_for_url(str(payload["url"])) or "Web",
             local_path=str(payload.get("local_path") or ""),
             mode=str(payload.get("mode") or "video_audio"),
             browser=str(payload.get("browser") or ""),
@@ -428,10 +428,9 @@ class DownloadManager:
             overwrite=payload.get("overwrite") is True,
             original_url=str(payload.get("original_url") or payload["url"]).strip(),
             estimated_size=int(payload.get("estimated_size") or 0),
+            advanced=validate_options(payload),
         )
         with self.lock:
-            if self.count_unfinished() >= MAX_QUEUE_ITEMS:
-                raise ValueError("Solo se permiten hasta 10 videos pendientes o activos.")
             if task.save_path and any(
                 existing.save_path == task.save_path
                 and existing.status not in {"Completado", "Error", "Cancelado"}
@@ -506,8 +505,7 @@ class DownloadManager:
                             task.status = "Cancelado"
                             break
                         limit = int(self.settings.load().get("max_concurrent", 3))
-                        limit = max(1, min(10, limit))
-                        if self.active_count < limit:
+                        if limit == 0 or self.active_count < limit:
                             self.active_count += 1
                             slot_acquired = True
                             break
@@ -517,13 +515,25 @@ class DownloadManager:
                     continue
 
                 try:
-                    self._download(task)
-                finally:
+                    threading.Thread(target=self._run_task, args=(task,), daemon=True,
+                                     name=f'download-{task.id}').start()
+                except Exception as exc:
+                    task.status, task.error = 'Error', str(exc)
                     with self.condition:
-                        self.active_count = max(0, self.active_count - 1)
+                        self.active_count -= 1
                         self.condition.notify_all()
             finally:
                 self.work_queue.task_done()
+
+    def _run_task(self, task):
+        try:
+            self._download(task)
+        except Exception as exc:
+            task.status, task.error = 'Error', str(exc)
+        finally:
+            with self.condition:
+                self.active_count = max(0, self.active_count - 1)
+                self.condition.notify_all()
 
     def _wait_if_paused(self, task: DownloadTask) -> None:
         while task.pause_event.is_set():
@@ -587,7 +597,7 @@ class DownloadManager:
                     task.progress = max(task.progress, 98.5)
 
             quality_number = int(task.quality)
-            quality_suffix = (f"{quality_number}kbps" if quality_number else "original") if task.mode == "audio" else f"{quality_number}p"
+            quality_suffix = (f"{quality_number}kbps" if quality_number else "original") if task.mode == "audio" else (f"{quality_number}p" if quality_number else "original")
             output_template = str(
                 folder / f"%(title).160B [%(id)s] [{quality_suffix}] [{task.id}].%(ext)s"
             )
@@ -639,15 +649,11 @@ class DownloadManager:
                     }
                 )
             else:
-                height_filter = f"[height<={quality_number}]" if quality_number else ""
-                selector = (
-                    f"bestvideo{height_filter}/best{height_filter}" if task.mode == "video_only"
-                    else f"bestvideo{height_filter}+bestaudio/best{height_filter}"
-                )
+                selector = video_selector(task)
                 common_opts.update(
                     {
                         "format": selector,
-                        "merge_output_format": task.output_format,
+                        "merge_output_format": 'mkv' if task.output_format in {'mov', 'avi'} else task.output_format,
                         "postprocessors": [
                             {
                                 "key": "FFmpegVideoConvertor",
@@ -658,11 +664,15 @@ class DownloadManager:
                     }
                 )
 
+            apply_options(common_opts, task)
             with yt_dlp.YoutubeDL(common_opts) as ydl:
                 info = ydl.extract_info(task.url, download=True)
                 if info:
                     task.video_id = str(info.get("id") or task.video_id or "video")
                     task.title = str(info.get("title") or task.title)
+                    task.duration = int(task.advanced['end'] - task.advanced['start']) if task.advanced.get('start') is not None else int(info.get('duration') or task.duration)
+                    if task.advanced.get('subtitles', 'none') != 'none' and not info.get('requested_subtitles'):
+                        task.phase = 'Video guardado; el idioma de subtítulos elegido no está disponible.'
 
             self._wait_if_paused(task)
             if task.output_format == "vob":
@@ -689,6 +699,12 @@ class DownloadManager:
                 if target.is_dir():
                     raise IsADirectoryError("La ruta elegida corresponde a una carpeta.")
                 final_file.replace(target)
+                for subtitle in folder.glob('*.srt'):
+                    if f'[{task.id}]' in subtitle.name:
+                        subtitle_target = target.with_suffix('.' + subtitle.name.rsplit('.', 2)[-2] + '.srt')
+                        if subtitle_target.exists():
+                            subtitle_target = subtitle_target.with_stem(f'{subtitle_target.stem} [{task.id}]')
+                        subtitle.rename(subtitle_target)
                 final_file = target
 
             task.final_path = str(final_file.resolve())
@@ -717,7 +733,7 @@ class DownloadManager:
         task.status = "Procesando"
         result = subprocess.run(
             [find_tool("ffmpeg") or "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-             "-i", str(source_file), "-map", "0:v:0", "-an", "-c:v", "copy", str(target_file)],
+             "-i", str(source_file), "-map", "0:v:0", "-map", "0:s?", "-an", "-c:v", "copy", "-c:s", "copy", str(target_file)],
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
@@ -859,6 +875,18 @@ app.config["JSON_AS_ASCII"] = False
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 
+@app.before_request
+def protect_local_api():
+    if request.host.split(':')[0] not in {'127.0.0.1', 'localhost'}:
+        return jsonify(ok=False, error='Host no permitido.'), 403
+    if request.path.startswith('/api/'):
+        origin = request.headers.get('Origin')
+        if request.headers.get('Sec-Fetch-Site') in {'cross-site', 'same-site'} or (origin and origin != request.host_url.rstrip('/')):
+            return jsonify(ok=False, error='Solo se permiten solicitudes desde VideoFlow.'), 403
+        if request.method in {'POST', 'PUT', 'DELETE'} and request.data and not request.is_json:
+            return jsonify(ok=False, error='Se requiere JSON.'), 415
+
+
 @app.after_request
 def add_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -899,7 +927,7 @@ def format_size(item: dict[str, Any]) -> int:
 
 def estimate_video_options(info: dict[str, Any], source: str = "YouTube") -> list[dict[str, Any]]:
     formats = info.get("formats") or []
-    targets = [144, 240, 360, 480, 720, 1080, 1440, 2160]
+    targets = [144, 240, 360, 480, 720, 1080, 1440, 2160, 4320]
     video_formats = [
         f
         for f in formats
@@ -961,7 +989,7 @@ def estimate_video_options(info: dict[str, Any], source: str = "YouTube") -> lis
         options.append(
             {
                 "value": str(target),
-                "label": "2K (1440p)" if target == 1440 else "4K (2160p)" if target == 2160 else f"{target}p",
+                "label": ("8K (4320p)" if target == 4320 else "2K (1440p)" if target == 1440 else "4K (2160p)" if target == 2160 else f"{target}p") + (f" · {selected.get('fps'):g} fps" if selected.get('fps') else '') + (f" · {selected['dynamic_range']}" if selected.get('dynamic_range') not in (None, 'SDR') else ''),
                 "estimated_size": size,
                 "estimated_size_human": human_bytes(size),
                 "actual_height": actual,
@@ -1060,12 +1088,12 @@ def api_add_download():
     if source_for_url(original_url) != source:
         return jsonify({"ok": False, "error": "El enlace original debe pertenecer a la misma plataforma."}), 400
     payload["original_url"] = original_url
-    mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav"} else "video_audio"))
+    mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav", "flac"} else "video_audio"))
     payload["mode"] = mode
     allowed_formats = {
-        "video_audio": {"mp4", "mkv", "webm", "vob"},
-        "video_only": {"mp4", "mkv", "webm"},
-        "audio": {"mp3", "m4a", "wav"},
+        "video_audio": {"mp4", "mkv", "webm", "vob", "mov", "avi"},
+        "video_only": {"mp4", "mkv", "webm", "mov", "avi"},
+        "audio": {"mp3", "m4a", "wav", "flac"},
     }
     if mode not in allowed_formats or payload["format"] not in allowed_formats[mode]:
         return jsonify({"ok": False, "error": "Formato no válido."}), 400
@@ -1077,12 +1105,13 @@ def api_add_download():
         return jsonify({"ok": False, "error": "Calidad de audio no válida."}), 400
     valid_video_quality = (
         quality == 0 or 144 <= quality <= 4320
-        if source == "TikTok" else quality in {144, 240, 360, 480, 720, 1080, 1440, 2160}
+        if source == "TikTok" else quality in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}
     )
     if mode != "audio" and not valid_video_quality:
         return jsonify({"ok": False, "error": "Calidad de video no válida."}), 400
 
     try:
+        payload['advanced'] = validate_options(payload)
         folder = Path(str(payload["folder"])).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
         payload["folder"] = str(folder)
@@ -1189,10 +1218,10 @@ def api_update_settings():
                 folder.mkdir(parents=True, exist_ok=True)
                 folders[source_key] = str(folder)
         allowed["platform_folders"] = folders
-    if payload.get("default_format") in {"mp4", "mkv", "webm", "vob", "mp3", "m4a", "wav"}:
+    if payload.get("default_format") in {"mp4", "mkv", "webm", "vob", "mov", "avi", "mp3", "m4a", "wav", "flac"}:
         allowed["default_format"] = payload["default_format"]
     if str(payload.get("default_video_quality")) in {
-        "144", "240", "360", "480", "720", "1080", "1440", "2160"
+        "0", "144", "240", "360", "480", "720", "1080", "1440", "2160", "4320"
     }:
         allowed["default_video_quality"] = str(payload["default_video_quality"])
     if str(payload.get("default_audio_quality")) in {"128", "192", "320"}:
@@ -1211,7 +1240,16 @@ def api_update_settings():
     if "welcome_seen" in payload:
         allowed["welcome_seen"] = bool(payload["welcome_seen"])
     if "max_concurrent" in payload:
-        allowed["max_concurrent"] = max(1, min(10, int(payload["max_concurrent"])))
+        try:
+            value = int(payload['max_concurrent'])
+            if value < 0:
+                raise ValueError()
+            allowed['max_concurrent'] = value
+        except (TypeError, ValueError, OverflowError):
+            return jsonify(ok=False, error='Usa un número entero: 0 inicia todos los trabajos.'), 400
+    for key in ('background_mode', 'keep_awake'):
+        if key in payload:
+            allowed[key] = payload[key] is True
 
     for key, maximum in (("rate_limit_kbps", 102400), ("retry_count", 20)):
         if key in payload:
@@ -1260,7 +1298,7 @@ def api_save_path():
     if source_key not in PLATFORMS:
         return jsonify({"ok": False, "error": "Plataforma no válida."}), 400
     output_format = str(payload.get("format") or "").lower()
-    if output_format not in {"mp4", "mkv", "webm", "vob", "mp3", "m4a", "wav"}:
+    if output_format not in {"mp4", "mkv", "webm", "vob", "mov", "avi", "mp3", "m4a", "wav", "flac"}:
         return jsonify({"ok": False, "error": "Formato no válido."}), 400
     initial = Path(str(payload.get("initial") or settings_store.folder_for(source_key))).expanduser().resolve()
     if not initial.is_dir():
@@ -1310,6 +1348,16 @@ from audio_separation import register as register_separation
 register_separation(app, settings_store, download_manager, find_tool)
 from video_conversion import register as register_video_conversion
 register_video_conversion(app, settings_store, download_manager, find_tool)
+
+
+from collections_download import register as register_collections
+collection_jobs = register_collections(app, download_manager, settings_store, ydl_environment, source_for_url)
+
+
+from vault import register as register_vault
+private_vault = register_vault(app, DATA_DIR)
+from media_tools import register as register_media_tools
+register_media_tools(app, download_manager, settings_store)
 
 
 if __name__ == "__main__":

@@ -1,18 +1,18 @@
 const videoConvertUI = {busy: false, files: [], targets: new Map()};
 
 function syncVideoConvertConcurrency() {
-  $('#videoConvertConcurrency').textContent = `Hasta ${state.settings?.max_concurrent || 3} conversiones simultáneas. Puedes cambiar este límite en Configuración.`;
+  $('#videoConvertConcurrency').textContent = state.settings?.max_concurrent === 0 ? "Sin límite de conversiones simultáneas. El rendimiento depende del equipo." : `Hasta ${state.settings?.max_concurrent || 3} conversiones simultáneas. Cambia este valor en Configuración.`;
 }
 
 function renderVideoConvertFiles() {
   const container = $('#videoConvertFiles');
   container.replaceChildren();
-  $('#videoConvertCount').textContent = `${videoConvertUI.files.length} de 10 archivos`;
+  $('#videoConvertCount').textContent = `${videoConvertUI.files.length} archivos`;
   $('#videoConvertStart').disabled = videoConvertUI.busy || videoConvertUI.files.length === 0;
   if (!videoConvertUI.files.length) {
     const empty = document.createElement('div');
     empty.className = 'separation-empty';
-    empty.textContent = 'Ningún video seleccionado. Elige hasta 10 archivos en una sola ventana.';
+    empty.textContent = 'Ningún video seleccionado. Elige varios archivos en una sola ventana.';
     container.append(empty);
     return;
   }
@@ -70,6 +70,9 @@ function updateVideoConvertFormat() {
   if (fmt === 'mp4' || fmt === 'mov') {
     title.textContent = fmt === 'mp4' ? 'MP4 compatible para edición' : 'MOV con H.264 y AAC';
     detail.textContent = 'Se genera un archivo nuevo con H.264, color YUV 4:2:0, audio AAC y fotogramas constantes. MP4 a MP4 cambia el contenido interno, no solo el nombre.';
+  } else if (fmt === 'avi') {
+    title.textContent = 'AVI con MPEG-4 y MP3';
+    detail.textContent = 'Conversión a MPEG-4, audio MP3 a 320 kbps y fotogramas constantes.';
   } else {
     title.textContent = fmt === 'webm' ? 'WEBM para reproducción web' : 'MKV con H.264 y AAC';
     detail.textContent = fmt === 'webm' ? 'Usa VP9 y Opus. Para intentar resolver la importación en VEGAS Pro, selecciona MP4.' : 'El contenedor MKV puede no ser aceptado por algunas versiones de VEGAS Pro. Para edición, selecciona MP4.';
@@ -86,7 +89,6 @@ function initVideoConversion() {
       const result = await api('/api/video-file', {method:'POST', body:'{}'});
       if (!result.cancelled) {
         const added = [...new Set([...videoConvertUI.files, ...(result.paths || [result.path]).filter(Boolean)])];
-        if (added.length > 10) return toast('Demasiados videos', 'Puedes seleccionar hasta 10 archivos por lote. Quita alguno antes de añadir más.', 'error');
         videoConvertUI.files = added;
       }
     } catch (error) { toast('No se pudieron seleccionar los videos', error.message, 'error'); }

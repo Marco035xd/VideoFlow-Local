@@ -1,0 +1,48 @@
+{% from 'advanced_options.html' import options %}
+<datalist id="subtitleLanguages"><option value="es">Español</option><option value="en">Inglés</option><option value="pt">Portugués</option><option value="pt-BR">Portugués de Brasil</option><option value="fr">Francés</option><option value="de">Alemán</option><option value="ja">Japonés</option></datalist>
+<section id="page-collections" class="page">
+  <div class="hero-panel separation-hero"><div><span class="eyebrow">TU BIBLIOTECA COMPLETA</span><h1>Listas y canales.</h1><p>Una dirección, todos sus videos accesibles. Importación sin límite de cantidad.</p></div></div>
+  <section class="panel batch-panel">
+    <h3>Descargar una colección de YouTube</h3>
+    <label class="form-field"><span>Enlace de lista o canal</span><input id="collectionUrl" type="url" placeholder="https://www.youtube.com/playlist?list=…"></label>
+    <div class="field-grid three-fields">
+      <label class="form-field"><span>Contenido</span><select id="collectionMode"><option value="video_audio">Video y audio</option><option value="video_only">Solo video</option><option value="audio">Solo audio</option></select></label>
+      <label class="form-field"><span>Formato</span><select id="collectionFormat"></select></label>
+      <label class="form-field"><span>Calidad</span><select id="collectionQuality"></select></label>
+    </div>
+    <div class="form-field"><label for="collectionFolder">Carpeta de destino</label><div class="folder-input"><input id="collectionFolder" readonly><button id="collectionBrowse" class="secondary-button" type="button">Elegir carpeta</button></div></div>
+    {{ options('collection') }}
+    <button id="collectionStart" class="primary-button" type="button">Descargar colección</button>
+    <p class="field-hint">Se omiten duplicados dentro de la colección y entradas privadas no disponibles. El progreso de cada video aparece en Descargas; los errores de un video no detienen los demás.</p>
+    <div id="collectionJobs" class="studio-list" aria-live="polite"></div>
+  </section>
+</section>
+<section id="page-player" class="page">
+  <section class="panel batch-panel">
+    <div class="separation-heading"><div><h3>Reproductor local</h3><p id="playerName">Abre un video o audio de tu computadora.</p></div><button id="playerOpen" class="primary-button" type="button">Abrir archivo</button></div>
+    <div class="studio-video"><video id="localPlayer" controls playsinline preload="metadata"></video></div>
+    <div class="studio-player-controls"><button id="playerFloating" class="secondary-button" type="button" disabled>Ventana flotante</button><button id="playerPip" class="secondary-button" type="button" disabled>Picture-in-Picture</button><label>Velocidad <select id="playerSpeed"><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label><label>Brillo del video <input id="playerBrightness" type="range" min="50" max="150" value="100"></label></div>
+    <p class="field-hint">Desliza verticalmente en la mitad izquierda para ajustar el brillo del video y en la derecha para el volumen. Espacio: reproducir / pausar; flechas: avanzar, retroceder y volumen. El soporte de códecs y PiP depende de WebView2; para AVI o videos incompatibles, convierte a MP4 H.264.</p>
+    <p id="playerMessage" role="status"></p>
+  </section>
+</section>
+<section id="page-browser" class="page">
+  <div class="hero-panel separation-hero"><div><span class="eyebrow">EXPLORA Y GUARDA</span><h1>Navegador privado.</h1><p>Una sesión separada, bloqueo de anuncios por dominio y detección de recursos multimedia.</p></div></div>
+  <section class="panel batch-panel">
+    <label class="form-field"><span>Dirección web</span><div class="folder-input"><input id="browserUrl" type="url" placeholder="https://…"><button id="browserOpen" class="primary-button" type="button">Abrir navegador</button></div></label>
+    <p class="field-hint">La navegación se abre en una ventana privada de VideoFlow. Reproduce el video allí y vuelve aquí para ver los recursos detectados. Algunos sitios usan DRM, enlaces temporales o sesiones que impiden descargarlos. El bloqueo por dominios no elimina todos los anuncios.</p>
+    <div class="field-grid"><label class="form-field"><span>Descargar como</span><select id="browserFormat"><option value="mp4">MP4 · video y audio</option><option value="mkv">MKV · video y audio</option><option value="mp3">MP3 · 320 kbps</option></select></label><div class="form-field"><label for="browserFolder">Destino</label><div class="folder-input"><input id="browserFolder" readonly><button id="browserBrowse" class="secondary-button" type="button">Elegir carpeta</button></div></div></div>
+    <div class="studio-player-controls"><button id="browserRefresh" class="secondary-button" type="button">Actualizar detección</button><button id="browserClear" class="text-button" type="button">Borrar lista</button><span id="browserStatus"></span></div>
+    <p class="field-hint">Estas descargas usan modo incógnito. Las direcciones detectadas solo permanecen en memoria durante esta sesión.</p>
+    <div id="browserDetected" class="studio-list"></div>
+  </section>
+</section>
+<section id="page-vault" class="page">
+  <div class="hero-panel separation-hero"><div><span class="eyebrow">SOLO PARA TI</span><h1>Carpeta privada.</h1><p>Copias cifradas de tus archivos, protegidas con PIN y bloqueo automático.</p></div></div>
+  <section class="panel batch-panel">
+    <p id="vaultStatus" role="status">Introduce tu PIN para abrir la carpeta privada.</p>
+    <form id="vaultForm" class="studio-unlock"><label class="form-field"><span>PIN · mínimo 6 dígitos</span><input id="vaultPin" type="password" inputmode="numeric" autocomplete="off" minlength="6" maxlength="32" required></label><label id="vaultConfirmLabel" class="form-field hidden"><span>Repite tu nuevo PIN</span><input id="vaultConfirm" type="password" inputmode="numeric" autocomplete="off" maxlength="32"></label><button class="primary-button" type="submit">Desbloquear / crear</button></form>
+    <p class="field-hint">Guarda tu PIN: no se puede recuperar. Se bloquea tras 5 minutos sin uso o al ocultar la app. Esta versión usa PIN; no requiere huella ni reconocimiento facial.</p>
+    <div id="vaultUnlocked" class="hidden"><div class="studio-player-controls"><button id="vaultImport" class="primary-button" type="button">Añadir copias cifradas</button><button id="vaultLock" class="secondary-button" type="button">Bloquear ahora</button></div><p class="field-hint">Los originales permanecen en su ubicación. Para conservar solo la copia privada, comprueba que puedas exportarla antes de eliminar el original. Al exportar, el archivo vuelve a ser visible sin PIN.</p><div id="vaultFiles" class="studio-list"></div></div>
+  </section>
+</section>

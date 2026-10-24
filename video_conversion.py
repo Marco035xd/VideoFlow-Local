@@ -10,7 +10,7 @@ from audio_separation import command as run_command
 from desktop_dialogs import choose, save_audio, VIDEO_TYPES
 from local_audio import start_process, _processes, _process_lock
 
-FORMATS = {'mp4', 'mov', 'mkv', 'webm'}
+FORMATS = {'mp4', 'mov', 'mkv', 'webm', 'avi'}
 QUALITIES = {'18', '20', '23'}
 
 
@@ -49,6 +49,8 @@ def transcode(task, history, find_tool):
                        '-fps_mode', 'cfr', '-r', fps_text]
             if task.output_format == 'webm':
                 command += ['-c:v', 'libvpx-vp9', '-deadline', 'good', '-cpu-used', '3', '-crf', str(int(task.quality) + 12), '-b:v', '0', '-pix_fmt', 'yuv420p', '-c:a', 'libopus', '-b:a', '160k']
+            elif task.output_format == 'avi':
+                command += ['-vf', 'scale=ceil(iw/2)*2:ceil(ih/2)*2,setsar=1', '-c:v', 'mpeg4', '-q:v', {'18':'2','20':'3','23':'5'}[task.quality], '-pix_fmt', 'yuv420p', '-c:a', 'libmp3lame', '-b:a', '320k', '-ar', '48000']
             else:
                 command += ['-vf', 'scale=ceil(iw/2)*2:ceil(ih/2)*2,setsar=1', '-c:v', 'libx264', '-preset', 'medium',
                             '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-crf', task.quality,
@@ -83,8 +85,8 @@ def transcode(task, history, find_tool):
         with tempfile.TemporaryDirectory(prefix='videoflow-check-') as temporary:
             output_info = json.loads(run_command(task, [find_tool('ffprobe'), '-v', 'error', '-show_streams', '-of', 'json', str(partial)], Path(temporary)))
         output_video = next((stream for stream in output_info.get('streams', []) if stream.get('codec_type') == 'video'), None)
-        expected_video = 'vp9' if task.output_format == 'webm' else 'h264'
-        expected_audio = 'opus' if task.output_format == 'webm' else 'aac'
+        expected_video = 'vp9' if task.output_format == 'webm' else 'mpeg4' if task.output_format == 'avi' else 'h264'
+        expected_audio = 'opus' if task.output_format == 'webm' else 'mp3' if task.output_format == 'avi' else 'aac'
         output_audio = next((stream for stream in output_info.get('streams', []) if stream.get('codec_type') == 'audio'), None)
         if (not output_video or output_video.get('codec_name') != expected_video or output_video.get('pix_fmt') != 'yuv420p'
                 or (output_audio and output_audio.get('codec_name') != expected_audio)):
@@ -123,8 +125,6 @@ def register(app, settings, manager, find_tool):
     def select_video():
         try:
             paths = list(dict.fromkeys(choose('OPEN', settings.load().get('video_conversion_input_folder', ''), file_types=VIDEO_TYPES, allow_multiple=True)))
-            if len(paths) > 10:
-                raise ValueError('Selecciona hasta 10 videos por lote.')
             if paths:
                 settings.update({'video_conversion_input_folder': str(Path(paths[0]).parent)})
             return jsonify(ok=True, paths=paths, path=paths[0] if paths else '', cancelled=not paths)

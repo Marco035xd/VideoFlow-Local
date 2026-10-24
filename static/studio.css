@@ -1,0 +1,23 @@
+.studio-advanced{margin:20px 0;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.studio-advanced summary{font-weight:650;cursor:pointer;padding:4px 0}
+.studio-advanced[open] summary{margin-bottom:16px}
+.studio-checks,.studio-player-controls{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:18px 0}
+.studio-checks label{display:flex;align-items:center;gap:8px;font-size:13px}
+.studio-checks input{width:17px;height:17px;accent-color:var(--primary)}
+.studio-player-controls label{display:flex;align-items:center;gap:10px;font-size:13px}
+.studio-player-controls select{min-width:80px}
+.studio-list{display:grid;gap:12px;margin-top:20px;max-height:520px;overflow:auto}
+.studio-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.studio-row>div{min-width:0}.studio-row strong,.studio-row small{display:block;overflow-wrap:anywhere}.studio-row small{color:var(--muted);margin-top:6px;font-size:12px}
+.studio-row button{flex-shrink:0}.studio-video{background:#05070c;border-radius:18px;overflow:hidden;margin-top:20px}.studio-video video{display:block;width:100%;max-height:62vh;min-height:220px;touch-action:none}
+.studio-unlock{display:flex;gap:16px;align-items:end;flex-wrap:wrap}.studio-unlock .form-field{max-width:280px;flex:1}.studio-unlock button{margin-bottom:2px}
+.sidebar nav{min-height:0;overflow-y:auto;scrollbar-width:thin;flex:1}.sidebar{overflow:hidden}.studio-input-number{width:100%;max-width:240px}
+.batch-panel input:not([type=checkbox]):not([type=range]),.studio-advanced select{min-width:0}
+@media(max-width:1100px){.studio-row{align-items:flex-start}.studio-row button{max-width:160px}.studio-advanced .three-fields{grid-template-columns:1fr}.studio-player-controls{gap:10px}}
+
+.studio-player-controls select{padding:8px 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--text)}
+
+.sidebar-spacer{flex:0 0 16px}.sidebar nav{align-content:start;grid-auto-rows:min-content}.sidebar .system-card,.sidebar-brand,.sidebar-footer{flex-shrink:0}
+.sidebar nav{overflow-x:hidden;padding-right:4px}
+.form-field input:not([type=checkbox]):not([type=range]):not([type=color]){min-width:0;width:100%;height:45px;border:1px solid var(--line-strong);border-radius:11px;padding:0 13px;background:var(--surface-solid);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+.form-field input:not([type=checkbox]):not([type=range]):focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}

@@ -10,3 +10,6 @@ dist/
 release/
 logs/
 *.log
+
+data/vault/
+data/private-browser/

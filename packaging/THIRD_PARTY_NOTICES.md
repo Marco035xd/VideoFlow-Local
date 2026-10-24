@@ -31,3 +31,5 @@ Los nombres e iconos de YouTube, Facebook y TikTok identifican sus plataformas.
 - Exportaciones ONNX y esquema de inferencia de referencia: MIT, Copyright (c) 2026 StemSplit, https://github.com/StemSplit/demucs-onnx
   VideoFlow implementa un adaptador de procesamiento por fragmentos para estas exportaciones. Licencias completas en `licenses/separation`.
   Los pesos se descargan al utilizarlos desde los repositorios públicos StemSplitio/htdemucs-onnx y StemSplitio/htdemucs-6s-onnx, con revisión y SHA-256 fijados. No se incluyen en el instalador.
+
+- cryptography: Apache-2.0 / BSD-3-Clause; OpenSSL y componentes de Rust incluidos según sus licencias, https://github.com/pyca/cryptography

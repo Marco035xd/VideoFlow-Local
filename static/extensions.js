@@ -11,7 +11,7 @@ function setConversionBusy(busy) {
 function renderConversionFiles() {
   const container = $('#conversionFiles');
   container.replaceChildren();
-  if (!localFiles.length) container.textContent = 'Ningún archivo seleccionado. Elige hasta 10 videos de tu computadora.';
+  if (!localFiles.length) container.textContent = 'Ningún archivo seleccionado. Elige los videos de tu computadora.';
   for (const path of localFiles) {
     const row = document.createElement('div'); row.className = 'conversion-file';
     const info = document.createElement('div'); info.className = 'conversion-file-info';
@@ -38,7 +38,7 @@ function renderConversionFiles() {
 function syncBatchDestination() {
   $('#batchDestination').value = folderForSource();
   $('#batchDestination').title = $('#batchDestination').value;
-  $('#batchConcurrency').textContent = `Hasta ${state.settings?.max_concurrent || 3} trabajos simultáneos. Puedes cambiar este límite en Configuración.`;
+  $('#batchConcurrency').textContent = state.settings?.max_concurrent === 0 ? "Sin límite de trabajos simultáneos. El rendimiento depende del equipo." : `Hasta ${state.settings?.max_concurrent || 3} trabajos simultáneos. Cambia este valor en Configuración.`;
 }
 function resultLine(container, label, message) {
   const line = document.createElement('p');
@@ -47,10 +47,11 @@ function resultLine(container, label, message) {
 }
 async function batchDownload() {
   const urls = [...new Set($('#videoUrl').value.trim().split(/\s+/).filter(Boolean))];
-  if (!urls.length || urls.length > 10) return toast('Revisa los enlaces', 'Pega entre 1 y 10 enlaces, uno por línea.', 'error');
+  if (!urls.length) return toast('Revisa los enlaces', 'Pega uno o varios enlaces, uno por línea.', 'error');
   const source = state.source;
   const folder = $('#batchDestination').value;
   const mode = $('#batchMode').value;
+  const format = $('#batchFormat').value;
   const videoQuality = Number($('#batchVideoQuality').value);
   const audioQuality = $('#batchAudioQuality').value;
   const browser = $('#facebookBrowser').value;
@@ -68,9 +69,9 @@ async function batchDownload() {
         if (!domains[source].some(d => host === d || host.endsWith('.'+d))) throw new Error('El enlace no corresponde a la plataforma seleccionada.');
         resultLine('#batchResults', url, 'Analizando…');
         const {video} = await api('/api/analyze', {method:'POST',body:JSON.stringify({url,browser})});
-        const heights = video.video_options.map(o=>Number(o.value)).filter(v=>v>0 && v<=videoQuality);
+        const heights = video.video_options.map(o=>Number(o.value)).filter(v=>v>0 && (!videoQuality || v<=videoQuality));
         if (mode !== 'audio' && !heights.length) throw new Error('No hay calidad disponible dentro del máximo elegido.');
-        await api('/api/downloads',{method:'POST',body:JSON.stringify({url:video.url, original_url:url, title:video.title, video_id:video.id, thumbnail:video.thumbnail, duration:video.duration, folder, mode, format:mode==='audio'?'mp3':'mp4', quality:mode==='audio'?audioQuality:String(Math.max(...heights)),browser})});
+        await api('/api/downloads',{method:'POST',body:JSON.stringify({url:video.url, original_url:url, title:video.title, video_id:video.id, thumbnail:video.thumbnail, duration:video.duration, folder, mode, format, quality:mode==='audio'?(format==='mp3'?audioQuality:'0'):String(videoQuality ? Math.max(...heights) : 0),browser,advanced:advancedOptions()})});
         resultLine('#batchResults', video.title, 'Añadido a la cola');
       } catch(error) { failed.push(url); resultLine('#batchResults', url, error.message); }
     }
@@ -82,6 +83,8 @@ async function batchDownload() {
 }
 function initExtensions() {
   syncBatchDestination();
+  const batchFormats=()=>{ $('#batchFormat').replaceChildren(...formatChoices[$('#batchMode').value].filter(([v])=>v!=='vob').map(([v,l])=>new Option(l,v))); };
+  $('#batchMode').onchange=batchFormats;batchFormats();
   $('#settingsRate').value = state.settings.rate_limit_kbps || 0;
   $('#settingsRetries').value = state.settings.retry_count ?? 5;
   $('#conversionFolder').value = state.settings.conversion_folder || state.settings.default_folder;
@@ -115,14 +118,13 @@ function initExtensions() {
       const paths = typeof data.paths === 'string' ? [data.paths] : data.paths || [];
       if (!paths.length) return;
       const selected = [...new Set(paths)];
-      if (selected.length > 10) return toast('Demasiados archivos', 'Selecciona hasta 10 videos por lote.', 'error');
       localFiles = selected;
       for (const path of conversionTargets.keys()) if (!localFiles.includes(path)) conversionTargets.delete(path);
     } catch(error) { toast('No se pudo seleccionar',error.message,'error'); }
     finally { setConversionBusy(false); }
   };
   $('#convertStart').onclick = async () => {
-    if (!localFiles.length || localFiles.length>10) return toast('Selecciona videos','Puedes convertir entre 1 y 10 archivos por lote.','error');
+    if (!localFiles.length) return toast('Selecciona videos','Elige los archivos que quieras convertir.','error');
     const paths = [...localFiles];
     const format = $('#conversionFormat').value, quality = $('#conversionQuality').value, folder = $('#conversionFolder').value;
     setConversionBusy(true);
@@ -152,7 +154,10 @@ function initExtensions() {
   };
   $('#cancelAll').onclick = async () => {
     if (!await confirmAction('Cancelar pendientes','¿Quieres detener todos los trabajos pendientes y activos?')) return;
-    try { for(const task of state.downloads.filter(t=>!['Completado','Cancelado','Error'].includes(t.status))) await api(`/api/downloads/${task.id}/cancel`,{method:'POST',body:'{}'}); await loadDownloads(); }
+    try {
+      const {collections}=await api('/api/collections');
+      for(const job of collections.filter(j=>j.status!=='Cancelado')) await api(`/api/collections/${job.id}/cancel`,{method:'POST',body:'{}'});
+      for(const task of state.downloads.filter(t=>!['Completado','Cancelado','Error'].includes(t.status))) await api(`/api/downloads/${task.id}/cancel`,{method:'POST',body:'{}'}); await loadDownloads(); }
     catch(error) { toast('No se pudo cancelar',error.message,'error'); }
   };
   $('#cleanCompleted').onclick = async () => {

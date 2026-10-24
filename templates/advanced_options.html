@@ -1,0 +1,17 @@
+{% macro options(prefix) %}
+<details class="studio-advanced"><summary>Calidad avanzada, recorte y subtítulos</summary>
+  <p class="field-hint">Se aplican a las próximas descargas. La resolución, los FPS, HDR y los idiomas deben estar disponibles en el origen.</p>
+  <div class="field-grid three-fields">
+    <label class="form-field"><span>Fotogramas por segundo</span><select id="{{ prefix }}Fps"><option value="best">Mejor disponible</option><option value="60">50 / 60 fps o superior</option><option value="30">Hasta 30 fps</option></select></label>
+    <label class="form-field"><span>Color</span><select id="{{ prefix }}Range"><option value="auto">Original · SDR o HDR</option><option value="sdr">Solo SDR</option><option value="hdr">Solo HDR · MKV / WebM</option></select></label>
+    <label class="form-field"><span>Subtítulos</span><select id="{{ prefix }}Subs"><option value="none">Sin subtítulos</option><option value="srt">Archivo SRT separado</option><option value="embed">Incrustados · MP4 / MKV / MOV</option></select></label>
+  </div>
+  <div class="field-grid three-fields">
+    <label class="form-field"><span>Idioma de subtítulos</span><input id="{{ prefix }}Language" value="es" list="subtitleLanguages" maxlength="20" placeholder="es, en, pt-BR…"></label>
+    <label class="form-field"><span>Recorte · desde</span><input id="{{ prefix }}Start" placeholder="00:02:00" inputmode="decimal"></label>
+    <label class="form-field"><span>Recorte · hasta</span><input id="{{ prefix }}End" placeholder="00:03:30" inputmode="decimal"></label>
+  </div>
+  <p class="field-hint">Deja los tiempos vacíos para descargar completo. Los recortes requieren un final. Los subtítulos se ofrecen para videos completos para mantener su sincronización.</p>
+  <div class="studio-checks"><label><input id="{{ prefix }}Automatic" type="checkbox"> Incluir subtítulos automáticos</label><label><input id="{{ prefix }}Incognito" type="checkbox"> Incógnito · no guardar en Historial</label></div>
+</details>
+{% endmacro %}

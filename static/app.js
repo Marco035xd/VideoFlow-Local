@@ -23,6 +23,7 @@ const pageTitles = {
   downloads: "Gestión de descargas",
   history: "Historial",
   appearance: "Apariencia",
+  collections: "Listas y canales", player: "Reproductor", browser: "Navegador privado", vault: "Carpeta privada",
   settings: "Configuración",
 };
 
@@ -69,6 +70,8 @@ function formatDate(value) {
 
 function qualityLabel(format, quality, source = "") {
   if (["wav", "flac"].includes(format)) return "Sin pérdida";
+  if (format === "flac") return "Sin pérdida";
+  if (String(quality) === "4320") return "8K (4320p)";
   if (format === "m4a") return source === "Local" ? `${quality} kbps` : "Original";
   if (format === "mp3") return `${quality} kbps`;
   if (String(quality) === "0") return "Mejor disponible";
@@ -79,9 +82,9 @@ function qualityLabel(format, quality, source = "") {
 }
 
 const formatChoices = {
-  video_audio: [["mp4", "MP4"], ["mkv", "MKV"], ["webm", "WEBM"], ["vob", "VOB"]],
-  video_only: [["mp4", "MP4"], ["mkv", "MKV"], ["webm", "WEBM"]],
-  audio: [["mp3", "MP3"], ["m4a", "M4A"], ["wav", "WAV"]],
+  video_audio: [["mp4", "MP4"], ["mkv", "MKV"], ["webm", "WEBM"], ["mov", "MOV"], ["avi", "AVI"], ["vob", "VOB"]],
+  video_only: [["mp4", "MP4"], ["mkv", "MKV"], ["webm", "WEBM"], ["mov", "MOV"], ["avi", "AVI"]],
+  audio: [["mp3", "MP3"], ["m4a", "M4A"], ["wav", "WAV"], ["flac", "FLAC"]],
 };
 
 const platformNames = { youtube: "YouTube", facebook: "Facebook", tiktok: "TikTok" };
@@ -114,7 +117,7 @@ function selectSource(source) {
     ? "https://www.facebook.com/.../videos/..."
     : tiktok ? "https://www.tiktok.com/@usuario/video/..." : "https://www.youtube.com/watch?v=...";
   $("#sourceMark").src = `/static/icons/${facebook ? "facebook" : tiktok ? "tiktok" : "youtube"}.png`;
-  $("#videoUrl").placeholder += "\nPega hasta 10 enlaces, uno por línea";
+  $("#videoUrl").placeholder += "\nPega varios enlaces, uno por línea";
   $("#sourceHelp").textContent = 'Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».';
   $("#facebookNotice").classList.toggle("hidden", !facebook);
   state.destinationFolder = folderForSource(source);
@@ -161,6 +164,9 @@ function navigate(page) {
   $(`#page-${page}`).classList.add("active-page");
   $("#pageTitle").textContent = pageTitles[page];
   if (page === "history") loadHistory();
+  if (page === "collections") refreshCollections().catch(e=>toast('Error',e.message,'error'));
+  if (page === "browser") refreshBrowser().catch(e=>toast('Error',e.message,'error'));
+  if (page === "vault") refreshVault().catch(e=>toast('Error',e.message,'error'));
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -168,6 +174,7 @@ async function loadSettings() {
   const data = await api("/api/settings");
   state.settings = data.settings;
   initAppearance();
+  initStudio();
   state.destinationFolder = folderForSource();
   $("#folderPath").value = state.destinationFolder;
   syncFolderSettings();
@@ -398,6 +405,7 @@ async function addToQueue() {
         save_path: state.savePath,
         overwrite: state.overwrite,
         estimated_size: estimatedSize,
+        advanced: advancedOptions(),
       }),
     });
     rememberFolder(data.download.source, data.download.folder);
@@ -458,7 +466,7 @@ function renderDownloads() {
     const detail = task.status === "Descargando"
       ? `${task.speed_human} · ${task.eta_human} restantes`
       : task.status === "Completado"
-        ? `${task.final_size_human} · Guardado correctamente`
+        ? `${task.final_size_human} · ${task.phase || "Guardado correctamente"}${task.incognito ? " · Incógnito" : ""}`
         : task.status === "Procesando"
           ? task.phase || "FFmpeg está preparando el archivo final"
           : task.status;
@@ -496,7 +504,7 @@ function renderDownloads() {
   const relevant = state.downloads.filter((item) => !["Error", "Cancelado"].includes(item.status));
   const average = relevant.length ? relevant.reduce((sum, item) => sum + Number(item.progress || 0), 0) / relevant.length : 0;
 
-  $("#slotsAvailable").textContent = Math.max(0, 10 - unfinished.length);
+  $("#slotsAvailable").textContent = "∞";
   $("#statQueued").textContent = queued;
   $("#statActive").textContent = active;
   $("#statCompleted").textContent = completed;
@@ -650,6 +658,7 @@ async function saveSettings() {
     default_video_quality: $("#settingsVideoQuality").value,
     default_audio_quality: $("#settingsAudioQuality").value,
     max_concurrent: Number($("#settingsConcurrent").value),
+    background_mode: $("#settingsBackground").checked, keep_awake: $("#settingsAwake").checked,
     rate_limit_kbps: Number($("#settingsRate").value),
     retry_count: Number($("#settingsRetries").value),
     notifications: $("#settingsNotifications").checked,

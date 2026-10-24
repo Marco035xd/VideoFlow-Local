@@ -8,6 +8,7 @@
   <link rel="icon" href="{{ url_for('static', filename='logo.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='appearance.css') }}">
+<link rel="stylesheet" href="/static/studio.css">
 </head>
 <body>
   <div id="welcomeScreen" class="welcome-screen hidden" aria-hidden="true">
@@ -68,6 +69,10 @@
         <button class="nav-item" data-page="history" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/history.ico" alt=""></span><span>Historial</span>
         </button>
+<button class="nav-item" data-page="collections" type="button"><span class="nav-icon"><img src="/static/icons/navigation/collections.svg" alt=""></span><span>Listas y canales</span></button>
+<button class="nav-item" data-page="player" type="button"><span class="nav-icon"><img src="/static/icons/navigation/player.svg" alt=""></span><span>Reproductor</span></button>
+<button class="nav-item" data-page="browser" type="button"><span class="nav-icon"><img src="/static/icons/navigation/browser.svg" alt=""></span><span>Navegador privado</span></button>
+<button class="nav-item" data-page="vault" type="button"><span class="nav-icon"><img src="/static/icons/navigation/vault.svg" alt=""></span><span>Carpeta privada</span></button>
         <button class="nav-item" data-page="appearance" type="button"><span class="nav-icon"><img src="/static/icons/navigation/appearance.svg" alt=""></span><span>Apariencia</span></button>
         <button class="nav-item" data-page="settings" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/settings.ico" alt=""></span><span>Configuración</span>
@@ -106,8 +111,8 @@
               <p>Pega un enlace de YouTube, Facebook o TikTok, revisa la información y agrégalo a tu cola.</p>
             </div>
             <div class="hero-counter">
-              <strong id="slotsAvailable">10</strong>
-              <span>espacios disponibles</span>
+              <strong id="slotsAvailable">∞</strong>
+              <span>sin límite de cantidad</span>
             </div>
           </div>
 
@@ -129,7 +134,7 @@
                 <span class="button-loader" aria-hidden="true"></span>
               </button>
             </div>
-            <div id="sourceHelp" class="input-help"><span>ⓘ</span> Puedes agregar hasta 10 videos a la cola.</div>
+            <div id="sourceHelp" class="input-help"><span>ⓘ</span> Añade los videos que necesites.</div>
             <div id="facebookNotice" class="facebook-options hidden">
               <label class="form-field" for="facebookBrowser"><span>Sesión de Facebook (opcional)</span></label>
               <select id="facebookBrowser">
@@ -217,11 +222,12 @@
             </div>
           </section>
 
+          <section class="panel batch-panel">{% from 'advanced_options.html' import options %}<h3>Opciones de descarga</h3><p>Para el video analizado o para el lote de enlaces de esta página.</p>{{ options('download') }}</section>
           <section class="panel batch-panel">
-            <h3>Descargar varios enlaces</h3><p>Pega hasta 10 enlaces de la plataforma elegida, uno por línea. Se guardarán en su carpeta habitual. Los enlaces repetidos se omiten.</p>
+            <h3>Descargar varios enlaces</h3><p>Pega varios enlaces de la plataforma elegida, uno por línea. Se guardarán en su carpeta habitual. Los enlaces repetidos se omiten.</p>
             <div class="field-grid three-fields">
-              <label class="form-field"><span>Contenido</span><select id="batchMode"><option value="video_audio">MP4 · video y audio</option><option value="video_only">MP4 · solo video</option><option value="audio">MP3 · solo audio</option></select></label>
-              <label class="form-field"><span>Calidad máxima de video</span><select id="batchVideoQuality"><option>360</option><option>480</option><option selected>720</option><option>1080</option><option>1440</option><option>2160</option></select></label>
+              <label class="form-field"><span>Contenido</span><select id="batchMode"><option value="video_audio">Video y audio</option><option value="video_only">Solo video</option><option value="audio">Solo audio</option></select></label><label class="form-field"><span>Formato</span><select id="batchFormat"></select></label>
+              <label class="form-field"><span>Calidad máxima de video</span><select id="batchVideoQuality"><option>360</option><option>480</option><option selected>720</option><option>1080</option><option>1440</option><option>2160</option><option>4320</option><option value="0">Mejor disponible</option></select></label>
               <label class="form-field"><span>Audio (kbps)</span><select id="batchAudioQuality"><option>128</option><option selected>192</option><option>320</option></select></label>
             </div>
             <div class="form-field"><label for="batchDestination">Carpeta de esta plataforma</label><div class="folder-input"><input id="batchDestination" type="text" readonly><button id="batchFolder" class="secondary-button" type="button">Elegir carpeta</button></div></div>
@@ -229,7 +235,7 @@
             <div id="batchResults" class="job-results" aria-live="polite"></div>
           </section>
           <section class="quick-features">
-            <article><span>⚡</span><div><strong>Hasta 10 simultáneas</strong><small>Configura la cantidad de trabajos activos.</small></div></article>
+            <article><span>⚡</span><div><strong>Concurrencia a tu medida</strong><small>Configura la cantidad de trabajos activos.</small></div></article>
             <article><span>◫</span><div><strong>Tamaño estimado</strong><small>Revisa el peso antes de comenzar.</small></div></article>
             <article><span>⌁</span><div><strong>Todo permanece local</strong><small>Tu historial y preferencias se guardan en tu PC.</small></div></article>
           </section>
@@ -258,10 +264,10 @@
           </div>
           <section class="panel batch-panel">
             <div class="separation-heading"><div><h3>Convertir varios videos</h3><p>Para VEGAS Pro, usa MP4: H.264, audio AAC y fotogramas constantes.</p></div><span class="separation-badge">Procesamiento local</span></div>
-            <div class="video-convert-selection"><div><strong>Videos seleccionados</strong><small id="videoConvertCount">0 de 10 archivos</small></div><button id="videoConvertChoose" class="secondary-button" type="button">Seleccionar videos</button></div>
+            <div class="video-convert-selection"><div><strong>Videos seleccionados</strong><small id="videoConvertCount">0 archivos</small></div><button id="videoConvertChoose" class="secondary-button" type="button">Seleccionar videos</button></div>
             <div id="videoConvertFiles" class="conversion-files" aria-live="polite"></div>
             <div class="field-grid">
-              <label class="form-field"><span>Formato de salida</span><select id="videoConvertFormat"><option value="mp4">MP4 · recomendado para VEGAS Pro</option><option value="mov">MOV · H.264 + AAC</option><option value="mkv">MKV · H.264 + AAC</option><option value="webm">WEBM · VP9 + Opus</option></select></label>
+              <label class="form-field"><span>Formato de salida</span><select id="videoConvertFormat"><option value="mp4">MP4 · recomendado para VEGAS Pro</option><option value="mov">MOV · H.264 + AAC</option><option value="mkv">MKV · H.264 + AAC</option><option value="webm">WEBM · VP9 + Opus</option><option value="avi">AVI · MPEG-4 + MP3</option></select></label>
               <label class="form-field"><span>Calidad del video</span><select id="videoConvertQuality"><option value="18">Muy alta · archivo más grande</option><option value="20" selected>Alta · recomendada</option><option value="23">Equilibrada · archivo más pequeño</option></select></label>
             </div>
             <div class="form-field"><label for="videoConvertFolder">Carpeta de destino</label><div class="folder-input"><input id="videoConvertFolder" type="text" readonly><button id="videoConvertBrowse" class="secondary-button" type="button">Elegir carpeta</button></div><small class="destination-hint">Se recuerda por separado de tus descargas y conversiones de audio.</small></div>
@@ -344,6 +350,7 @@
           </section>
         </section>
 
+        {% include 'studio.html' %}
         <section id="page-appearance" class="page">
           <div class="appearance-intro"><span class="eyebrow">A TU GUSTO</span><h1>Hazla a tu manera.</h1><p>Elige cómo se ve VideoFlow. Los cambios se muestran al instante y se guardan en este equipo.</p></div>
           <div class="appearance-layout">
@@ -418,13 +425,13 @@
                 </label>
                 <div class="field-grid three-fields">
                   <label class="form-field"><span>Formato predeterminado</span><select id="settingsFormat"><option value="mp4">MP4 · video</option><option value="mkv">MKV · video</option><option value="webm">WEBM · video</option><option value="vob">VOB · video</option><option value="mp3">MP3 · audio</option><option value="m4a">M4A · audio</option><option value="wav">WAV · audio</option></select></label>
-                  <label class="form-field"><span>Calidad de video</span><select id="settingsVideoQuality"><option value="144">144p</option><option value="240">240p</option><option value="360">360p</option><option value="480">480p</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">2K</option><option value="2160">4K</option></select></label>
+                  <label class="form-field"><span>Calidad de video</span><select id="settingsVideoQuality"><option value="144">144p</option><option value="240">240p</option><option value="360">360p</option><option value="480">480p</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">2K</option><option value="2160">4K</option><option value="4320">8K</option><option value="0">Mejor disponible</option></select></label>
                   <label class="form-field"><span>Calidad de audio</span><select id="settingsAudioQuality"><option value="128">128 kbps</option><option value="192">192 kbps</option><option value="320">320 kbps</option></select></label>
                 </div>
                 <label class="form-field">
                   <span>Descargas simultáneas: <b id="concurrentValue">3</b></span>
-                  <input id="settingsConcurrent" type="range" min="1" max="10" step="1">
-                  <div class="range-labels"><span>1</span><span>10</span></div>
+                  <input id="settingsConcurrent" class="studio-input-number" type="number" min="0" step="1"><p class="field-hint">0 = iniciar todos sin límite de la aplicación. Un valor de 3 a 6 reduce la carga de CPU, memoria y conexión.</p>
+                  <div class="studio-checks"><label><input type="checkbox" id="settingsBackground"> Cerrar a la bandeja y continuar trabajando</label><label><input type="checkbox" id="settingsAwake"> Evitar suspensión automática durante los trabajos</label></div><p class="field-hint">La pantalla puede apagarse. La suspensión manual, hibernación o apagado del equipo detienen la actividad. Usa «Salir» en el icono de VideoFlow junto al reloj para cerrar por completo.</p>
                 </label>
               </div>
 
@@ -480,6 +487,6 @@
 <script src="/static/extensions.js"></script>
 <script src="/static/separation.js"></script>
 <script src="/static/video_conversion.js"></script>
-<script src="/static/appearance.js"></script>
+<script src="/static/appearance.js"></script><script src="/static/studio.js"></script>
 </body>
 </html>

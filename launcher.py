@@ -49,6 +49,7 @@ def focus_existing_window() -> None:
         if handle:
             if user.IsIconic(handle):
                 user.ShowWindow(handle, 9)  # SW_RESTORE
+            user.ShowWindow(handle, 5)
             user.SetForegroundWindow(handle)
             return
         time.sleep(0.1)
@@ -86,7 +87,7 @@ def run() -> None:
             raise RuntimeError("Cierra la versión anterior de VideoFlow antes de abrir la aplicación de escritorio.")
 
         from waitress import create_server
-        from app import app, download_manager
+        from app import app, download_manager, settings_store, collection_jobs, private_vault
 
         manager = download_manager
         server = create_server(app, host="127.0.0.1", port=args.port, threads=16)
@@ -109,12 +110,23 @@ def run() -> None:
         from desktop_dialogs import bind_window
         bind_window(window)
 
+        from desktop_runtime import runtime
+        runtime.bind(window, settings_store, manager, collection_jobs)
+
         def on_closing() -> bool:
+            if not runtime.closing():
+                return False
             if manager.count_unfinished():
-                return window.create_confirmation_dialog(
+                confirmed = window.create_confirmation_dialog(
                     "Cerrar VideoFlow",
                     "Hay descargas pendientes o en curso. ¿Quieres detenerlas y cerrar?",
                 )
+                if not confirmed:
+                    runtime.exiting = False
+                    return False
+            for other_window in list(webview.windows):
+                if other_window is not window:
+                    other_window.destroy()
             return True
 
         window.events.closing += on_closing
@@ -129,7 +141,13 @@ def run() -> None:
             },
         )
     finally:
+        from desktop_runtime import runtime
+        runtime.shutdown()
         if manager is not None:
+            from app import collection_jobs, private_vault
+            private_vault.close()
+            for job in collection_jobs.list():
+                collection_jobs.cancel(job['id'])
             with manager.lock:
                 for task in manager.tasks.values():
                     task.cancel_event.set()
