@@ -4,7 +4,11 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.0-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.1-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Reproductor · versión 1.6.1
+
+Abre un video o audio con **Abrir archivo** o arrástralo sobre el panel del reproductor. Los archivos se leen directamente desde su ubicación, sin copiarlos ni subirlos. Al terminar, **Volver a reproducir** lo inicia desde el principio; **Reiniciar** está disponible en cualquier momento. Al cambiar de sección, se pausa y retoma la misma posición al regresar si estaba reproduciéndose. Si lo pausaste, conserva esa pausa. Los controles de reproducción también están disponibles en la ventana flotante. En el modo navegador, los archivos arrastrados se reproducen localmente, y la ventana flotante de escritorio requiere abrir el archivo desde el selector.
 
 El instalador incluye Python, FFmpeg, FFprobe y Deno. También instala Microsoft Edge WebView2 si no está disponible; este paso requiere Internet. Crea accesos directos y permite desinstalar VideoFlow desde Configuración de Windows. No requiere instalar Python ni preparar el entorno manualmente.
 

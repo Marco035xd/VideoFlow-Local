@@ -109,6 +109,8 @@ def run() -> None:
         )
         from desktop_dialogs import bind_window
         bind_window(window)
+        from media_tools import bind_player_drop
+        bind_player_drop(window)
 
         from desktop_runtime import runtime
         runtime.bind(window, settings_store, manager, collection_jobs)

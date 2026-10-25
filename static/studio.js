@@ -1,4 +1,3 @@
-let playerToken = null;
 let vaultConfigured = true;
 let studioBound = false;
 let vaultBusy = false;
@@ -105,36 +104,7 @@ function initStudio() {
     try{const data=await api('/api/vault/import',{method:'POST',body:'{}'});displayVaultFiles(data.files);toast('Copias cifradas',`${data.added} archivos protegidos.${data.errors.length?' '+data.errors.join(' · '):''}`,data.errors.length?'error':'success');}
     catch(e){toast('No se pudo proteger',e.message,'error');}finally{$('#vaultImport').disabled=false;vaultBusy=false;}
   };
-  const video=$('#localPlayer');video.tabIndex=0;
-  $('#playerOpen').onclick=async()=>{
-    try{const data=await api('/api/player',{method:'POST',body:'{}'});if(data.cancelled)return;
-      playerToken=data.token;video.src=data.url;$('#playerName').textContent=data.name;$('#playerMessage').textContent='';
-      $('#playerFloating').disabled=false;$('#playerPip').disabled=!document.pictureInPictureEnabled;
-      await video.play().catch(()=>{});
-    }catch(e){toast('No se pudo abrir',e.message,'error');}
-  };
-  video.onerror=()=>{$('#playerMessage').textContent='El formato interno no es compatible con este reproductor. Conviértelo a MP4 H.264 desde Convertir video.';};
-  $('#playerFloating').onclick=async()=>{try{await api(`/api/player/${playerToken}/floating`,{method:'POST',body:'{}'});video.pause();}catch(e){toast('No se pudo abrir la ventana',e.message,'error');}};
-  $('#playerPip').onclick=async()=>{try{if(document.pictureInPictureElement)await document.exitPictureInPicture();else await video.requestPictureInPicture();}catch(e){toast('PiP no disponible','Usa el botón Ventana flotante.','info');}};
-  $('#playerSpeed').onchange=()=>{video.playbackRate=Number($('#playerSpeed').value);};
-  $('#playerBrightness').oninput=()=>{video.style.filter=`brightness(${$('#playerBrightness').value}%)`;};
-  let gesture=null;
-  video.addEventListener('pointerdown',event=>{
-    const rect=video.getBoundingClientRect();if(event.clientY>rect.bottom-55)return;
-    gesture={y:event.clientY,brightness:Number($('#playerBrightness').value),volume:video.volume,left:event.clientX<rect.left+rect.width/2,height:rect.height};video.setPointerCapture(event.pointerId);
-  });
-  video.addEventListener('pointermove',event=>{if(!gesture)return;const delta=(gesture.y-event.clientY)/gesture.height;
-    if(gesture.left){$('#playerBrightness').value=Math.max(50,Math.min(150,gesture.brightness+delta*100));$('#playerBrightness').oninput();}
-    else video.volume=Math.max(0,Math.min(1,gesture.volume+delta));
-  });
-  video.addEventListener('pointerup',()=>gesture=null);video.addEventListener('pointercancel',()=>gesture=null);
-  video.addEventListener('keydown',event=>{if(![' ','ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();
-    if(event.key===' ')video.paused?video.play().catch(()=>{}):video.pause();
-    if(event.key==='ArrowRight'&&Number.isFinite(video.duration))video.currentTime=Math.min(video.duration,video.currentTime+10);
-    if(event.key==='ArrowLeft')video.currentTime=Math.max(0,video.currentTime-10);
-    if(event.key==='ArrowUp')video.volume=Math.min(1,video.volume+.05);
-    if(event.key==='ArrowDown')video.volume=Math.max(0,video.volume-.05);
-  });
+  initMainPlayer();
   setInterval(()=>{
     if(state.currentPage==='collections')refreshCollections().catch(()=>{});
     if(state.currentPage==='vault')refreshVault().catch(()=>{});

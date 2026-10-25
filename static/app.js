@@ -163,6 +163,7 @@ function navigate(page) {
   $$(".nav-item").forEach((node) => node.classList.toggle("active", node.dataset.page === page));
   $(`#page-${page}`).classList.add("active-page");
   $("#pageTitle").textContent = pageTitles[page];
+  window.dispatchEvent(new CustomEvent('videoflow:navigate', {detail: {page}}));
   if (page === "history") loadHistory();
   if (page === "collections") refreshCollections().catch(e=>toast('Error',e.message,'error'));
   if (page === "browser") refreshBrowser().catch(e=>toast('Error',e.message,'error'));
