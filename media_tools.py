@@ -2,12 +2,15 @@
 import secrets
 import threading
 import json
+import re
 from pathlib import Path
 
 from desktop_runtime import runtime, public_url
 from download_options import validate_options
+from player_sessions import sessions, normalize_state
 
 _media, _media_lock = {}, threading.RLock()
+_player_palettes = {}
 MEDIA_EXTENSIONS = {'.mp4', '.mkv', '.mov', '.webm', '.avi', '.wmv', '.flv', '.mpeg', '.mpg',
                     '.vob', '.m4v', '.ts', '.mp3', '.m4a', '.wav', '.flac', '.ogg', '.opus', '.aac'}
 
@@ -22,6 +25,7 @@ def register_media(path):
     token = secrets.token_urlsafe(32)
     with _media_lock:
         _media[token] = path
+        sessions.open(token)
     return dict(ok=True, url=f'/api/media/{token}', token=token, name=path.name)
 
 
@@ -84,7 +88,36 @@ def register(app, manager, settings):
         with lock:
             if token not in media:
                 return 'Archivo no abierto', 404
-        return render_template('player.html', token=token)
+        mode = 'pip' if request.args.get('mode') == 'pip' else 'floating'
+        return render_template('player.html', token=token, mode=mode, palette=_player_palettes.get(token, {}))
+
+    @app.route('/api/player/<token>/state', methods=['GET', 'POST'])
+    def player_state(token):
+        if token not in sessions.items:
+            return jsonify(ok=False, error='Vuelve a abrir el archivo.'), 404
+        try:
+            if request.method == 'POST':
+                data = request.get_json() or {}
+                role = data.get('role') if 'report' in data else None
+                if 'report' in data and role not in {'main', 'floating'}:
+                    raise ValueError('Reproductor no válido.')
+                state = sessions.update(token, data.get('report', data.get('changes', {})),
+                                        report_role=role, revision=data.get('revision'))
+            else:
+                state = sessions.snapshot(token)
+            return jsonify(ok=True, state=state)
+        except (ValueError, TypeError) as exc:
+            return jsonify(ok=False, error=str(exc)), 400
+
+    @app.post('/api/player/<token>/close')
+    def close_player(token):
+        with sessions.lock:
+            window = sessions.windows.get(token)
+        if window:
+            window.destroy()
+        if runtime.window and (request.get_json() or {}).get('return_to_main'):
+            runtime.window.show()
+        return jsonify(ok=True)
 
     @app.post('/api/player/<token>/floating')
     def open_floating_player(token):
@@ -94,9 +127,36 @@ def register(app, manager, settings):
         if not runtime.window:
             return jsonify(ok=False, error='Abre la versión de escritorio para la ventana flotante.'), 400
         import webview
-        webview.create_window('VideoFlow · Reproductor', f'{request.host_url}player/{token}',
-                              width=600, height=400, min_size=(320, 240), on_top=True)
-        return jsonify(ok=True)
+        try:
+            data = request.get_json() or {}
+            mode = 'pip' if data.get('mode') == 'pip' else 'floating'
+            changes = normalize_state(data.get('state', {}))
+            allowed_colors={'--surface-solid','--text','--muted','--line','--line-strong','--primary','--on-primary'}
+            _player_palettes[token]={key:value for key,value in data.get('palette',{}).items()
+                if key in allowed_colors and isinstance(value,str) and re.fullmatch(r'(?:#[0-9a-fA-F]{3,8}|rgba?\([0-9.,% /]+\))',value)}
+            # Mark the replacement first: closing its predecessor must not take ownership.
+            marker = object()
+            with sessions.lock:
+                old = sessions.windows.get(token)
+                if old and getattr(old, '_videoflow_mode', '') == mode:
+                    old.show()
+                    return jsonify(ok=True, state=sessions.snapshot(token), mode=mode)
+                sessions.windows[token] = marker
+            if old:
+                old.destroy()
+            state = sessions.update(token, changes, owner='floating')
+            window = webview.create_window('VideoFlow · PiP' if mode == 'pip' else 'VideoFlow · Reproductor',
+                f'{request.host_url}player/{token}?mode={mode}', width=440 if mode == 'pip' else 680,
+                height=310 if mode == 'pip' else 480, min_size=(360, 230), on_top=True,
+                frameless=True, easy_drag=False, resizable=True, background_color='#101827')
+            window._videoflow_mode = mode
+            with sessions.lock:
+                sessions.windows[token] = window
+            window.events.closed += lambda: sessions.release(token, window)
+            return jsonify(ok=True, state=state, mode=mode)
+        except Exception as exc:
+            sessions.update(token, {}, owner='main')
+            return jsonify(ok=False, error=str(exc)), 400
 
     @app.route('/api/browser', methods=['GET', 'POST', 'DELETE'])
     def browser():

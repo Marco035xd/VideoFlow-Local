@@ -76,6 +76,7 @@ function initStudio() {
   $('#settingsAwake').checked=state.settings.keep_awake!==false;
   $('#collectionFolder').value=folderForSource('youtube');$('#browserFolder').value=state.settings.default_folder;
   if(studioBound)return;studioBound=true;
+  initFFmpegUpdates();
   collectionFormats();
   $('#collectionMode').onchange=collectionFormats;$('#collectionFormat').onchange=collectionQuality;
   $('#collectionBrowse').onclick=()=>pickFolder('#collectionFolder');$('#browserBrowse').onclick=()=>pickFolder('#browserFolder');

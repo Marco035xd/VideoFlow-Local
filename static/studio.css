@@ -17,6 +17,7 @@
 
 .studio-player-controls select{padding:8px 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--text)}
 .studio-playback-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.ffmpeg-update-card{padding:18px;margin:16px 0 22px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}.ffmpeg-update-card p{font-size:12px;margin:8px 0}.ffmpeg-update-card small{display:block;font-size:11px;color:var(--muted);line-height:1.6}.ffmpeg-update-card .studio-player-controls{margin:14px 0 0;gap:10px}.ffmpeg-update-card a{text-decoration:none}
 .studio-video video{height:clamp(220px,calc(100vh - 620px),62vh);object-fit:contain}
 .studio-drop-zone{display:flex;align-items:center;justify-content:center;gap:16px;padding:22px;margin-top:20px;border:1px dashed var(--line-strong);border-radius:16px;background:var(--surface-2);cursor:pointer;transition:background .2s,border-color .2s,box-shadow .2s}
 .studio-drop-zone img{width:30px;height:30px;flex-shrink:0}

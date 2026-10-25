@@ -1,12 +1,13 @@
 /* Shared playback controls for the main player and its floating window. */
 class LocalPlayback {
-  constructor(video, {playButton, restartButton, message, speed, visible = () => true} = {}) {
+  constructor(video, {playButton, restartButton, message, speed, visible = () => true, keepPlayingHidden = false} = {}) {
     this.video = video;
     this.playButton = playButton;
     this.restartButton = restartButton;
     this.message = message;
     this.speed = speed;
     this.visible = visible;
+    this.keepPlayingHidden = keepPlayingHidden;
     this.resumeOnReturn = false;
     this.operation = 0;
     this.blobUrl = null;
@@ -29,20 +30,34 @@ class LocalPlayback {
     video.addEventListener('keydown', event => {
       if (![' ', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
       event.preventDefault();
+      if(this.remoteState){
+        const view=this.remoteState;
+        if(event.key===' ')this.toggle();
+        if(event.key==='ArrowRight'||event.key==='ArrowLeft')this.session.command({position:Math.max(0,Math.min(view.duration,view.position+(event.key==='ArrowRight'?10:-10)))});
+        if(event.key==='ArrowUp'||event.key==='ArrowDown')this.session.command({volume:Math.max(0,Math.min(1,view.volume+(event.key==='ArrowUp' ? .05 : -.05))),muted:false});
+        return;
+      }
       if (event.key === ' ') this.toggle();
       if (event.key === 'ArrowRight' && Number.isFinite(video.duration)) video.currentTime = Math.min(video.duration, video.currentTime + 10);
       if (event.key === 'ArrowLeft') video.currentTime = Math.max(0, video.currentTime - 10);
       if (event.key === 'ArrowUp') video.volume = Math.min(1, video.volume + .05);
       if (event.key === 'ArrowDown') video.volume = Math.max(0, video.volume - .05);
       if (event.key === 'ArrowUp' || event.key === 'ArrowDown') video.muted = video.volume === 0;
+      this.session?.command(this.snapshot());
     });
-    speed?.addEventListener('change', () => { video.playbackRate = Number(speed.value); });
+    speed?.addEventListener('change', () => { video.playbackRate = Number(speed.value); this.session?.command({rate:video.playbackRate}); });
     document.addEventListener('visibilitychange', () => this.visibilityChanged());
     this.update();
   }
 
   say(text) { if (this.message) this.message.textContent = text; }
   hasSource() { return Boolean(this.video.getAttribute('src')); }
+  snapshot() {
+    if (this.remoteState) return {...this.remoteState};
+    return {position:this.video.currentTime || 0, duration:Number.isFinite(this.video.duration)?this.video.duration:0,
+      playing:!this.video.paused && !this.video.ended, volume:this.video.volume, muted:Boolean(this.video.muted),
+      rate:this.video.playbackRate || 1, brightness:this.brightness || 100};
+  }
   time(value) {
     const total = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
     const seconds = String(total % 60).padStart(2, '0');
@@ -58,11 +73,13 @@ class LocalPlayback {
     this.lastVolume = this.video.volume || 1;
     const {seek, volume, mute, fullscreen} = this.controls;
     const seekToThumb = () => {
-      if (!Number.isFinite(this.video.duration) || this.video.duration <= 0) return;
-      try { this.video.currentTime = Math.max(0, Math.min(this.video.duration, Number(seek.value))); }
+      const duration=this.remoteState?.duration || this.video.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
+      try { this.video.currentTime = Math.max(0, Math.min(duration, Number(seek.value))); }
       catch { this.say('Espera a que el archivo termine de abrirse para cambiar la posición.'); }
       this.controls.elapsed.textContent = this.time(Number(seek.value));
-      this.fillRange(seek, Number(seek.value), this.video.duration);
+      this.fillRange(seek, Number(seek.value), duration);
+      this.session?.command({position:Number(seek.value)});
     };
     seek.addEventListener('pointerdown', () => { this.scrubbing = true; });
     seek.addEventListener('input', seekToThumb);
@@ -75,9 +92,14 @@ class LocalPlayback {
       this.video.volume = Math.max(0, Math.min(1, Number(volume.value) / 100));
       this.video.muted = this.video.volume === 0;
       if (this.video.volume > 0) this.lastVolume = this.video.volume;
+      this.session?.command({volume:this.video.volume, muted:this.video.muted});
       this.update();
     });
     mute.addEventListener('click', () => {
+      if(this.remoteState){
+        const view=this.remoteState,unmute=view.muted||view.volume===0;
+        this.session.command({muted:!unmute,volume:unmute?(view.volume||this.lastVolume):view.volume});return;
+      }
       if (this.video.muted || this.video.volume === 0) {
         this.video.volume = this.video.volume || this.lastVolume;
         this.video.muted = false;
@@ -85,6 +107,7 @@ class LocalPlayback {
         this.lastVolume = this.video.volume;
         this.video.muted = true;
       }
+      this.session?.command({volume:this.video.volume, muted:this.video.muted});
       this.update();
     });
     fullscreen.addEventListener('click', async () => {
@@ -103,23 +126,27 @@ class LocalPlayback {
   }
 
   update() {
+    const view = this.remoteState;
     if (this.playButton) {
       this.playButton.disabled = !this.hasSource();
-      this.playButton.textContent = this.video.ended ? 'Volver a reproducir' : this.video.paused ? 'Reproducir' : 'Pausar';
+      const ended = view ? view.duration>0 && view.position>=view.duration : this.video.ended;
+      const playing = view ? view.playing : !this.video.paused;
+      this.playButton.textContent = ended ? 'Volver a reproducir' : playing ? 'Pausar' : 'Reproducir';
     }
     if (this.restartButton) this.restartButton.disabled = !this.hasSource();
     if (this.controls) {
       const {seek, elapsed, duration, volume, volumeValue, mute, fullscreen, shell} = this.controls;
-      const length = Number.isFinite(this.video.duration) ? this.video.duration : 0;
+      const length = view ? view.duration : Number.isFinite(this.video.duration) ? this.video.duration : 0;
       seek.disabled = !this.hasSource() || length <= 0;
       seek.max = String(length);
       duration.textContent = this.time(length);
       if (!this.scrubbing) {
-        seek.value = String(this.video.currentTime || 0);
-        elapsed.textContent = this.time(this.video.currentTime);
-        this.fillRange(seek, this.video.currentTime, length);
+        const position = view ? view.position : this.video.currentTime || 0;
+        seek.value = String(position);
+        elapsed.textContent = this.time(position);
+        this.fillRange(seek, position, length);
       }
-      const level = this.video.muted ? 0 : Math.round(this.video.volume * 100);
+      const level = (view ? view.muted : this.video.muted) ? 0 : Math.round((view ? view.volume : this.video.volume) * 100);
       volume.value = String(level); volumeValue.textContent = `${level} %`;
       this.fillRange(volume, level, 100);
       mute.textContent = level ? 'Silenciar' : 'Activar sonido';
@@ -146,6 +173,7 @@ class LocalPlayback {
 
   async play(fromStart = false) {
     if (!this.hasSource()) return;
+    if (this.remoteState) return this.session.command({playing:true, ...(fromStart || this.remoteState.position>=this.remoteState.duration?{position:0}:{})});
     const operation = ++this.operation;
     const video = this.video;
     try {
@@ -159,6 +187,7 @@ class LocalPlayback {
         }, {once: true});
       }
       await video.play();
+      this.session?.command(this.snapshot());
       if (operation === this.operation) this.say('');
     } catch (error) {
       if (operation !== this.operation || error.name === 'AbortError') return;
@@ -171,12 +200,16 @@ class LocalPlayback {
 
   toggle() {
     this.resumeOnReturn = false;
+    if (this.remoteState) return this.session.command({playing:!this.remoteState.playing,
+      ...(this.remoteState.position>=this.remoteState.duration?{position:0}:{})});
     if (this.video.paused || this.video.ended) return this.play();
     ++this.operation;
     this.video.pause();
+    this.session?.command(this.snapshot());
   }
 
   visibilityChanged() {
+    if (this.keepPlayingHidden || this.remoteState || document.pictureInPictureElement === this.video) return;
     if (!this.visible() || document.hidden) {
       if (!this.video.paused && !this.video.ended) this.resumeOnReturn = true;
       ++this.operation;
@@ -187,6 +220,69 @@ class LocalPlayback {
     }
     this.update();
   }
+}
+
+class PlayerSession {
+  constructor(playback, role, token) {
+    this.playback=playback;this.role=role;this.token=token;this.revision=-1;this.owner=null;
+    this.stopped=false;this.busy=false;this.applying=false;this.lastReport=0;
+    playback.session=this;
+    this.timer=setInterval(()=>this.tick(),250);
+    playback.video.addEventListener('loadedmetadata',()=>this.tick());
+  }
+  async request(data) {
+    const response=await fetch(`/api/player/${this.token}/state`,data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{});
+    if(!response.ok)throw new Error('No se pudo sincronizar el reproductor.');
+    return (await response.json()).state;
+  }
+  command(changes) {
+    if(this.stopped)return Promise.resolve();
+    this.pending={...this.pending,...changes};
+    if(this.sending)return this.sending;
+    this.sending=(async()=>{
+      while(this.pending&&!this.stopped){const changes=this.pending;this.pending=null;await this.receive(await this.request({changes}));}
+    })().catch(error=>this.playback.say(error.message)).finally(()=>{this.sending=null;});
+    return this.sending;
+  }
+  async receive(state) {
+    if(this.stopped||!state||state.revision<this.revision)return;
+    const changed=state.revision!==this.revision||state.owner!==this.owner;
+    this.revision=state.revision;this.owner=state.owner;
+    const playback=this.playback,video=playback.video;
+    if(state.owner!==this.role){
+      playback.remoteState=state;playback.resumeOnReturn=false;video.pause();
+    }else{
+      const wasRemote=Boolean(playback.remoteState);playback.remoteState=null;
+      if((changed||wasRemote||this.waitingMetadata)&&!this.applying){
+        if(video.readyState<1){this.waitingMetadata=true;this.revision=-1;return;}
+        this.waitingMetadata=false;this.applying=true;
+        try{
+          if(Math.abs(video.currentTime-state.position)>.25)video.currentTime=state.position;
+          video.volume=state.volume;video.muted=state.muted;video.playbackRate=state.rate;
+          playback.brightness=state.brightness;video.style.filter=`brightness(${state.brightness}%)`;
+          if(playback.speed)playback.speed.value=String(state.rate);
+          if(state.playing&&(this.role==='floating'||(playback.visible()&&!document.hidden)))await video.play().catch(()=>playback.say('Pulsa Reproducir para continuar con el video.'));
+          else video.pause();
+        }finally{this.applying=false;}
+      }
+    }
+    const notice=document.querySelector('#playerRemoteNotice');
+    if(this.role==='main'&&notice)notice.classList.toggle('hidden',state.owner==='main');
+    document.querySelector('#playerShell')?.classList.toggle('media-remote',this.role==='main'&&state.owner!=='main');
+    playback.update();
+  }
+  async tick() {
+    if(this.stopped||this.busy||this.sending)return;
+    this.busy=true;
+    try{
+      await this.receive(await this.request());
+      if(this.owner===this.role&&!this.applying&&!this.waitingMetadata&&performance.now()-this.lastReport>750){
+        this.lastReport=performance.now();
+        await this.receive(await this.request({role:this.role,revision:this.revision,report:this.playback.snapshot()}));
+      }
+    }catch{}finally{this.busy=false;}
+  }
+  stop(){this.stopped=true;clearInterval(this.timer);if(this.playback.session===this)this.playback.session=null;}
 }
 
 function initMainPlayer() {
@@ -204,12 +300,15 @@ function initMainPlayer() {
   video.tabIndex = 0;
   window.openPlayerMedia = async (data, requestId = null) => {
     if (requestId !== null && target.dataset.dropId !== requestId) return;
+    if(token&&token!==data.token&&playback.remoteState)await api(`/api/player/${token}/close`,{method:'POST',body:'{}'});
     token = data.token || null;
+    playback.session?.stop();playback.remoteState=null;
     document.querySelector('#playerName').textContent = data.name;
     document.querySelector('#playerFloating').disabled = !token;
-    document.querySelector('#playerPip').disabled = !document.pictureInPictureEnabled;
+    document.querySelector('#playerPip').disabled = !token && !document.pictureInPictureEnabled;
     target.classList.remove('is-dragging');
     await playback.open(data.url, data.blobUrl || null);
+    if(token){const session=new PlayerSession(playback,'main',token);await session.command(playback.snapshot());}
   };
   window.playerDropError = (message, requestId) => {
     if (target.dataset.dropId === requestId) playback.say(message);
@@ -264,22 +363,31 @@ function initMainPlayer() {
     if (fileDrag(event)) event.preventDefault();
   });
   window.addEventListener('videoflow:navigate', () => { depth = 0; target.classList.remove('is-dragging'); playback.visibilityChanged(); });
-  document.querySelector('#playerFloating').onclick = async () => {
+  const openPopout = async mode => {
     if (!token) return;
     try {
-      await api(`/api/player/${token}/floating`, {method: 'POST', body: '{}'});
+      await playback.session?.sending;
+      const palette=Object.fromEntries(['--surface-solid','--text','--muted','--line','--line-strong','--primary','--on-primary'].map(key=>[key,getComputedStyle(document.documentElement).getPropertyValue(key).trim()]));
+      const data=await api(`/api/player/${token}/floating`, {method:'POST',body:JSON.stringify({mode,state:playback.snapshot(),palette})});
       playback.resumeOnReturn = false;
       video.pause();
+      await playback.session?.receive(data.state);
     } catch (error) { toast('No se pudo abrir la ventana', error.message, 'error'); }
   };
+  document.querySelector('#playerFloating').onclick=()=>openPopout('floating');
+  document.querySelector('#playerReturn')?.addEventListener('click',async()=>{
+    try{await api(`/api/player/${token}/close`,{method:'POST',body:JSON.stringify({return_to_main:true})});await playback.session?.tick();}
+    catch(error){toast('No se pudo volver',error.message,'error');}
+  });
   document.querySelector('#playerPip').onclick = async () => {
+    if(window.pywebview&&token)return openPopout('pip');
     try {
       if (document.pictureInPictureElement) await document.exitPictureInPicture();
       else await video.requestPictureInPicture();
     } catch { toast('PiP no disponible', 'Usa el botón Ventana flotante.', 'info'); }
   };
   const brightness = document.querySelector('#playerBrightness');
-  brightness.oninput = () => { video.style.filter = `brightness(${brightness.value}%)`; };
+  brightness.oninput = () => { playback.brightness=Number(brightness.value);video.style.filter = `brightness(${brightness.value}%)`;playback.session?.command({brightness:playback.brightness}); };
   let gesture = null;
   let suppressClickUntil = 0;
   video.controls = false;
@@ -301,7 +409,7 @@ function initMainPlayer() {
     }
     const delta = moved / gesture.height;
     if (gesture.left) { brightness.value = Math.max(50, Math.min(150, gesture.brightness + delta * 100)); brightness.oninput(); }
-    else { video.volume = Math.max(0, Math.min(1, gesture.volume + delta)); video.muted = video.volume === 0; }
+    else { video.volume = Math.max(0, Math.min(1, gesture.volume + delta)); video.muted = video.volume === 0;playback.session?.command({volume:video.volume,muted:video.muted}); }
   });
   const endGesture = () => {
     if (gesture?.active) suppressClickUntil = performance.now() + 250;

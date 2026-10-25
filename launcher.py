@@ -87,14 +87,20 @@ def run() -> None:
             raise RuntimeError("Cierra la versión anterior de VideoFlow antes de abrir la aplicación de escritorio.")
 
         from waitress import create_server
-        from app import app, download_manager, settings_store, collection_jobs, private_vault
+        from app import app, download_manager, settings_store, collection_jobs, private_vault, ffmpeg_updates
 
         manager = download_manager
         server = create_server(app, host="127.0.0.1", port=args.port, threads=16)
+        ffmpeg_updates.start()
         if args.headless:
             server.run()
             return
 
+        # Local playback is explicitly started by the user in the main window.
+        # Its handoff to a new WebView must retain that playback intent.
+        browser_arguments = os.environ.get('WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS', '')
+        if '--autoplay-policy=' not in browser_arguments:
+            os.environ['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = (browser_arguments + ' --autoplay-policy=no-user-gesture-required').strip()
         import webview
 
         webview.settings["ALLOW_FILE_URLS"] = False

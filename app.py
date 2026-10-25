@@ -1358,6 +1358,8 @@ from vault import register as register_vault
 private_vault = register_vault(app, DATA_DIR)
 from media_tools import register as register_media_tools
 register_media_tools(app, download_manager, settings_store)
+from ffmpeg_updates import register as register_ffmpeg_updates
+ffmpeg_updates = register_ffmpeg_updates(app, find_tool)
 
 
 if __name__ == "__main__":

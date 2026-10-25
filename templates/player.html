@@ -2,12 +2,23 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><title>VideoFlow · Reproductor</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#101827;color:white;font:14px system-ui}
-body,.floating-shell{height:100%;display:flex;flex-direction:column}.floating-shell video{height:0;min-height:0;flex:1}
+:root { {% for key,value in (palette|default({})).items() %}{{ key }}:{{ value }};{% endfor %} }
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101827;color:white;font:14px system-ui;box-sizing:border-box}
+body,.floating-shell{height:100%;display:flex;flex-direction:column;min-height:0}.floating-shell{flex:1;border-radius:0}.floating-shell video{height:0;min-height:0;flex:1}
 button{padding:8px 13px;border:1px solid #40516c;border-radius:9px;color:white;background:#243755;cursor:pointer}button:hover{background:#304b76}button:focus-visible{outline:2px solid #7ea4ff}
-p{margin:0;font-size:12px;color:#c4cee0;flex:1;min-width:180px}
+.primary-button{background:var(--primary,#77a1ff);color:var(--on-primary,#101827);border-color:var(--primary,#77a1ff)}.secondary-button{background:var(--surface-solid,#243755);color:var(--text,#f6f8ff);border-color:var(--line-strong,#40516c)}
+p{margin:0;font-size:12px;color:#c4cee0;flex:none;padding:8px 12px}p:empty{display:none}
 </style><link rel="stylesheet" href="/static/player.css"></head><body>
-<div id="floatingShell" class="floating-shell media-shell"><video id="floatingVideo" autoplay playsinline preload="metadata" tabindex="0" aria-label="Video local" src="/api/media/{{ token }}"></video>{{ controls('floating') }}<p id="floatingMessage" role="status"></p></div>
+<div id="floatingShell" class="floating-shell media-shell {{ 'pip-shell' if mode == 'pip' else '' }}"><header class="player-window-header"><span class="pywebview-drag-region">VideoFlow · {{ 'Picture-in-Picture' if mode == 'pip' else 'Reproductor' }} <small>Arrastra para mover</small></span><button id="floatingReturn" type="button" aria-label="Volver al reproductor principal">↗</button><button id="floatingClose" type="button" aria-label="Cerrar ventana">×</button></header><video id="floatingVideo" class="{{ 'pywebview-drag-region' if mode == 'pip' else '' }}" playsinline preload="metadata" tabindex="0" aria-label="Video local" src="/api/media/{{ token }}"></video>{{ controls('floating') }}<p id="floatingMessage" role="status"></p></div>
 <script src="/static/player.js"></script><script>
-new LocalPlayback(document.querySelector('#floatingVideo'), {playButton:document.querySelector('#floatingPlay'),restartButton:document.querySelector('#floatingRestart'),message:document.querySelector('#floatingMessage')}).bindControls('floating',document.querySelector('#floatingShell'));
+const floatingPlayback=new LocalPlayback(document.querySelector('#floatingVideo'), {playButton:document.querySelector('#floatingPlay'),restartButton:document.querySelector('#floatingRestart'),message:document.querySelector('#floatingMessage'),keepPlayingHidden:true}).bindControls('floating',document.querySelector('#floatingShell'));
+const floatingSession=new PlayerSession(floatingPlayback,'floating',{{ token|tojson }});floatingSession.tick();
+const closeFloating=async returnToMain=>{
+  await floatingSession.sending;
+  await floatingSession.command(floatingPlayback.snapshot());
+  await fetch('/api/player/{{ token }}/close',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({return_to_main:returnToMain})});
+};
+document.querySelector('#floatingClose').onclick=()=>closeFloating(false);
+document.querySelector('#floatingReturn').onclick=()=>closeFloating(true);
+window.addEventListener('pagehide',()=>floatingSession.stop());
 </script></body></html>

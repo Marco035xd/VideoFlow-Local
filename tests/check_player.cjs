@@ -1,7 +1,7 @@
 /* Regression checks for replay, page visibility, interrupted play and file drops. */
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 class Node extends EventTarget {
-  constructor() { super(); this.disabled = false; this.textContent = ''; this.value = '1'; this.dataset = {}; this.classList = {add(){},remove(){}}; this.style = {setProperty(){}}; this.attributes = {}; }
+  constructor() { super(); this.disabled = false; this.textContent = ''; this.value = '1'; this.dataset = {}; this.classList = {add(){},remove(){},toggle(){}}; this.style = {setProperty(){}}; this.attributes = {}; }
   setAttribute(name,value) { this.attributes[name] = value; }
   click() { this.dispatchEvent(new Event('click')); }
 }
@@ -22,7 +22,7 @@ const nodes = new Map(), node = id => {
 };
 const document = Object.assign(new EventTarget(), {hidden:false, querySelector:node, pictureInPictureEnabled:true});
 const window = new EventTarget(), state = {currentPage:'player'}, revoked = [], blobs = [];
-const context = vm.createContext({document,window,state,Event,performance,URL:{revokeObjectURL:url=>revoked.push(url),createObjectURL:file=>{blobs.push(file);return 'blob:test';}},api:async()=>({}),toast(){},console});
+const context = vm.createContext({document,window,state,Event,performance,setInterval:()=>0,clearInterval(){},fetch:async()=>({ok:true,json:async()=>({state:null})}),URL:{revokeObjectURL:url=>revoked.push(url),createObjectURL:file=>{blobs.push(file);return 'blob:test';}},api:async()=>({}),toast(){},console});
 vm.runInContext(fs.readFileSync('static/player.js','utf8'), context);
 const fire = (target, name, properties = {}) => {
   const event = new Event(name, {cancelable:true});
@@ -91,5 +91,17 @@ const flush = () => new Promise(resolve=>setImmediate(resolve));
   assert.equal(video.src,'/api/media/drop'); assert.equal(node('#playerFloating').disabled,false);
   await window.openPlayerMedia({url:'/api/media/stale',name:'stale.mp4'},'old-request');
   assert.equal(video.src,'/api/media/drop');
+  // A popout is allowed to keep playing when its window loses visibility/focus.
+  vm.runInContext('globalThis.popout=new LocalPlayback(document.querySelector("#localPlayer"),{keepPlayingHidden:true});',context);
+  video.paused=false; document.hidden=true; context.popout.visibilityChanged(); assert.equal(video.paused,false); document.hidden=false;
+  // The main controls mirror a popout without starting a second audio stream.
+  const link=video===playback.video?playback.session:null;
+  await link.receive({owner:'floating',revision:10,position:2,duration:4,playing:true,volume:.25,muted:false,rate:1,brightness:100});
+  assert.equal(video.paused,true);assert.equal(node('#playerPlay').textContent,'Pausar');assert.equal(node('#playerVolume').value,'25');
+  const commands=[];link.command=async data=>commands.push(data);
+  await playback.toggle();assert.equal(commands.at(-1).playing,false);
+  node('#playerMute').click();assert.equal(commands.at(-1).muted,true);
+  await link.receive({owner:'main',revision:11,position:1.7,duration:4,playing:true,volume:.4,muted:false,rate:1.5,brightness:120});
+  assert.equal(video.paused,false);assert.equal(video.currentTime,1.7);assert.equal(video.playbackRate,1.5);assert.equal(video.volume,.4);
   console.log('PASS: seek dragging while playing/paused, independent volume/mute, fullscreen, replay, tab resume, gestures and file drops.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

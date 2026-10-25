@@ -4,7 +4,15 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.2-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.3-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Ventana flotante, PiP y FFmpeg · versión 1.6.3
+
+La ventana flotante distribuye toda su altura entre video y controles. Conserva la posición, reproducción/pausa, volumen, velocidad y brillo al abrirse y al volver al reproductor principal. La barra de tiempo del reproductor principal también controla la ventana pequeña; solo una de las ventanas reproduce audio.
+
+En escritorio, **Picture-in-Picture** abre una miniventana propia siempre encima, con controles compactos. Arrastra su barra superior o el video para moverla en vivo. Este movimiento usa la región de arrastre de la app y conserva la reproducción. Usa ↗ para volver al reproductor principal o × para cerrar. En el modo navegador se utiliza PiP nativo cuando está disponible.
+
+Cada inicio comprueba la versión estable de FFmpeg en segundo plano mediante la API de versiones de Gyan. Configuración muestra la versión instalada, la última publicada y la hora de comprobación; si hay una nueva, aparece un aviso y un enlace a la página del proveedor. **Comprobar ahora** repite la consulta. La comprobación avisa de las actualizaciones y la descarga se abre al pulsar el enlace. Sin conexión, la app conserva sus funciones locales y permite reintentar la búsqueda.
 
 ### Reproductor y secreto retro · versión 1.6.2
 
