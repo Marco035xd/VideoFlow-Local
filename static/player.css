@@ -7,7 +7,6 @@
 .player-window-header>span{display:flex;align-items:center;gap:12px;flex:1;min-width:0;height:100%;padding:0 12px;font-size:12px;cursor:move}.player-window-header small{color:var(--muted,#b7c3dc);font-size:10px}.player-window-header button{border:0;border-radius:0;background:transparent;color:inherit;font-size:20px;padding:0;width:34px;height:34px;cursor:pointer}
 .player-window-header button:hover{background:#40516c}.player-window-header button:last-child:hover{background:#b5384d}
 .floating-shell .media-controls{flex:none;box-sizing:border-box}.floating-shell video{min-width:0}.floating-shell:fullscreen .player-window-header{display:none}
-.pip-shell .media-controls{padding:8px 10px}.pip-shell .media-timeline{margin-bottom:4px;gap:8px}.pip-shell .media-toolbar{gap:6px}.pip-shell .media-toolbar button{min-height:28px;padding:5px 8px;font-size:11px}.pip-shell .media-volume{margin-left:auto;gap:6px}.pip-shell .media-volume .media-range{width:65px}.pip-shell .media-volume-value{min-width:34px;font-size:11px}.pip-shell #floatingRestart,.pip-shell #floatingFullscreen,.pip-shell .player-window-header small{display:none}
 .media-controls{position:relative;z-index:1;padding:14px 16px;background:var(--surface-solid,#141e30);border-top:1px solid var(--line,#344057);color:var(--text,#f6f8ff);user-select:none}
 .media-timeline{display:flex;align-items:center;gap:12px;min-width:0;margin-bottom:13px}
 .media-time{flex-shrink:0;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted,#b7c3dc);min-width:34px;text-align:center}
@@ -30,3 +29,21 @@
 .media-shell:fullscreen .media-frame{display:flex;flex-direction:column;min-height:0;flex:1}
 .media-shell:fullscreen .media-controls{flex-shrink:0}
 @media(max-width:650px){.media-controls{padding:12px}.media-toolbar{gap:8px}.media-volume{margin-left:0;flex:1}.media-volume .media-range{width:80px}.media-fullscreen{margin-left:auto}}
+/* PiP keeps the entire window for the video; controls are only an overlay. */
+.pip-shell{position:relative;background:#000}
+.pip-shell video{position:absolute;inset:0;width:100%;height:100%;flex:none;background:#000}
+.pip-shell .player-window-header{position:absolute;inset:0 0 auto;height:44px;z-index:2;justify-content:flex-end;gap:4px;padding:4px 6px;box-sizing:border-box;border:0;background:linear-gradient(#0008,transparent)}
+.pip-shell .player-window-header>span,.pip-shell .media-timeline,.pip-shell .media-volume,.pip-shell #floatingRestart,.pip-shell #floatingFullscreen{display:none}
+.pip-shell .media-controls{position:absolute;inset:auto 0 0;height:64px;padding:0;border:0;background:linear-gradient(transparent,#0008)}
+.pip-shell .media-toolbar{height:100%;justify-content:center;align-items:flex-end;padding-bottom:10px;box-sizing:border-box}
+.pip-shell .player-window-header,.pip-shell .media-controls{opacity:0;pointer-events:none;transition:opacity .15s ease}
+.pip-shell.pip-ui-visible .player-window-header,.pip-shell.pip-ui-visible .media-controls,.pip-shell:has(button:focus-visible) .player-window-header,.pip-shell:has(button:focus-visible) .media-controls{opacity:1}
+.pip-shell .player-window-header button,.pip-shell #floatingPlay{pointer-events:none;color:#fff;background:transparent;border:0;border-radius:6px;box-shadow:none;text-shadow:0 1px 3px #000;cursor:pointer}
+.pip-shell.pip-ui-visible button,.pip-shell:has(button:focus-visible) button{pointer-events:auto}
+.pip-shell .player-window-header button{width:30px;height:30px;font-size:24px;padding:0}
+.pip-shell .player-window-header button:hover,.pip-shell #floatingPlay:hover{background:#ffffff26}
+.pip-shell #floatingPlay{display:grid;place-items:center;width:38px;height:36px;min-height:0;padding:0;font-size:0}
+.pip-shell #floatingPlay::before{content:"";display:block;width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:14px solid #fff;margin-left:3px;filter:drop-shadow(0 1px 2px #0008)}
+.pip-shell #floatingPlay[data-playing="true"]::before{width:6px;height:18px;border:0;border-left:5px solid #fff;border-right:5px solid #fff;margin-left:0}
+.pip-shell #floatingMessage{position:absolute;inset:auto 8px 62px;pointer-events:none;background:#000b;border-radius:6px;z-index:2}
+@media(prefers-reduced-motion:reduce){.pip-shell .player-window-header,.pip-shell .media-controls{transition:none}}

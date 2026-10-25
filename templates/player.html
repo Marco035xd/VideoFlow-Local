@@ -20,5 +20,19 @@ const closeFloating=async returnToMain=>{
 };
 document.querySelector('#floatingClose').onclick=()=>closeFloating(false);
 document.querySelector('#floatingReturn').onclick=()=>closeFloating(true);
+const pipShell=document.querySelector('.pip-shell');
+if(pipShell){
+  let hideControls;
+  const hide=()=>pipShell.classList.remove('pip-ui-visible');
+  const reveal=()=>{
+    clearTimeout(hideControls);
+    pipShell.classList.add('pip-ui-visible');
+    hideControls=setTimeout(hide,1800);
+  };
+  for(const event of ['pointermove','pointerdown','keydown'])pipShell.addEventListener(event,reveal);
+  pipShell.addEventListener('pointerleave',()=>{clearTimeout(hideControls);hide();});
+  window.addEventListener('pagehide',()=>clearTimeout(hideControls));
+  reveal();
+}
 window.addEventListener('pagehide',()=>floatingSession.stop());
 </script></body></html>

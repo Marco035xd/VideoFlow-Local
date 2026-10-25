@@ -132,6 +132,9 @@ class LocalPlayback {
       const ended = view ? view.duration>0 && view.position>=view.duration : this.video.ended;
       const playing = view ? view.playing : !this.video.paused;
       this.playButton.textContent = ended ? 'Volver a reproducir' : playing ? 'Pausar' : 'Reproducir';
+      this.playButton.dataset.playing = String(playing && !ended);
+      this.playButton.setAttribute('aria-label', this.playButton.textContent);
+      this.playButton.title = this.playButton.textContent;
     }
     if (this.restartButton) this.restartButton.disabled = !this.hasSource();
     if (this.controls) {

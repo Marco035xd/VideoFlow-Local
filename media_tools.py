@@ -147,8 +147,9 @@ def register(app, manager, settings):
             state = sessions.update(token, changes, owner='floating')
             window = webview.create_window('VideoFlow · PiP' if mode == 'pip' else 'VideoFlow · Reproductor',
                 f'{request.host_url}player/{token}?mode={mode}', width=440 if mode == 'pip' else 680,
-                height=310 if mode == 'pip' else 480, min_size=(360, 230), on_top=True,
-                frameless=True, easy_drag=False, resizable=True, background_color='#101827')
+                height=248 if mode == 'pip' else 480, min_size=(240, 135) if mode == 'pip' else (360, 230), on_top=True,
+                frameless=True, easy_drag=False, resizable=True,
+                background_color='#000000' if mode == 'pip' else '#101827')
             window._videoflow_mode = mode
             with sessions.lock:
                 sessions.windows[token] = window
