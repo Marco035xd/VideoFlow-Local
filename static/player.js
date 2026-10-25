@@ -65,6 +65,36 @@ class LocalPlayback {
     return minutes >= 60 ? `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}:${seconds}` : `${minutes}:${seconds}`;
   }
 
+  bindSurfaceClick({draggable = false} = {}) {
+    const video = this.video;
+    if (!draggable) {
+      video.addEventListener('click', () => this.toggle());
+      return this;
+    }
+    let press = null;
+    const moved = event => Math.hypot(event.screenX - press.x, event.screenY - press.y) >= 6;
+    video.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || event.isPrimary === false) return;
+      press = {id:event.pointerId, x:event.screenX, y:event.screenY, dragged:false};
+    });
+    // Screen coordinates remain reliable while the native window moves under
+    // the pointer. Client coordinates can stay unchanged throughout a drag.
+    window.addEventListener('pointermove', event => {
+      if (press && event.pointerId === press.id && moved(event)) press.dragged = true;
+    });
+    window.addEventListener('pointerup', event => {
+      if (!press || event.pointerId !== press.id) return;
+      const activate = !press.dragged && !moved(event) && event.target === video && event.button === 0;
+      press = null;
+      if (activate) this.toggle();
+    });
+    const cancel = () => { press = null; };
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('blur', cancel);
+    window.addEventListener('pagehide', cancel);
+    return this;
+  }
+
   bindControls(prefix, shell) {
     const get = name => document.querySelector(`#${prefix}${name}`);
     this.controls = {seek:get('Seek'), elapsed:get('Elapsed'), duration:get('Duration'),
