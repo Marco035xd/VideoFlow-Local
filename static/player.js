@@ -12,7 +12,7 @@ class LocalPlayback {
     this.blobUrl = null;
     playButton?.addEventListener('click', () => this.toggle());
     restartButton?.addEventListener('click', () => this.play(true));
-    for (const name of ['play', 'pause', 'ended', 'loadedmetadata', 'emptied']) {
+    for (const name of ['play', 'pause', 'ended', 'loadedmetadata', 'emptied', 'durationchange', 'timeupdate', 'volumechange']) {
       video.addEventListener(name, () => this.update());
     }
     video.addEventListener('loadedmetadata', () => {
@@ -34,6 +34,7 @@ class LocalPlayback {
       if (event.key === 'ArrowLeft') video.currentTime = Math.max(0, video.currentTime - 10);
       if (event.key === 'ArrowUp') video.volume = Math.min(1, video.volume + .05);
       if (event.key === 'ArrowDown') video.volume = Math.max(0, video.volume - .05);
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') video.muted = video.volume === 0;
     });
     speed?.addEventListener('change', () => { video.playbackRate = Number(speed.value); });
     document.addEventListener('visibilitychange', () => this.visibilityChanged());
@@ -42,12 +43,91 @@ class LocalPlayback {
 
   say(text) { if (this.message) this.message.textContent = text; }
   hasSource() { return Boolean(this.video.getAttribute('src')); }
+  time(value) {
+    const total = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
+    const seconds = String(total % 60).padStart(2, '0');
+    const minutes = Math.floor(total / 60);
+    return minutes >= 60 ? `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}:${seconds}` : `${minutes}:${seconds}`;
+  }
+
+  bindControls(prefix, shell) {
+    const get = name => document.querySelector(`#${prefix}${name}`);
+    this.controls = {seek:get('Seek'), elapsed:get('Elapsed'), duration:get('Duration'),
+      volume:get('Volume'), volumeValue:get('VolumeValue'), mute:get('Mute'), fullscreen:get('Fullscreen'), shell};
+    this.scrubbing = false;
+    this.lastVolume = this.video.volume || 1;
+    const {seek, volume, mute, fullscreen} = this.controls;
+    const seekToThumb = () => {
+      if (!Number.isFinite(this.video.duration) || this.video.duration <= 0) return;
+      try { this.video.currentTime = Math.max(0, Math.min(this.video.duration, Number(seek.value))); }
+      catch { this.say('Espera a que el archivo termine de abrirse para cambiar la posición.'); }
+      this.controls.elapsed.textContent = this.time(Number(seek.value));
+      this.fillRange(seek, Number(seek.value), this.video.duration);
+    };
+    seek.addEventListener('pointerdown', () => { this.scrubbing = true; });
+    seek.addEventListener('input', seekToThumb);
+    const finishSeek = () => { seekToThumb(); this.scrubbing = false; this.update(); };
+    seek.addEventListener('change', finishSeek);
+    seek.addEventListener('pointerup', finishSeek);
+    seek.addEventListener('pointercancel', () => { this.scrubbing = false; this.update(); });
+    seek.addEventListener('blur', () => { this.scrubbing = false; this.update(); });
+    volume.addEventListener('input', () => {
+      this.video.volume = Math.max(0, Math.min(1, Number(volume.value) / 100));
+      this.video.muted = this.video.volume === 0;
+      if (this.video.volume > 0) this.lastVolume = this.video.volume;
+      this.update();
+    });
+    mute.addEventListener('click', () => {
+      if (this.video.muted || this.video.volume === 0) {
+        this.video.volume = this.video.volume || this.lastVolume;
+        this.video.muted = false;
+      } else {
+        this.lastVolume = this.video.volume;
+        this.video.muted = true;
+      }
+      this.update();
+    });
+    fullscreen.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement === shell) await document.exitFullscreen();
+        else await shell.requestFullscreen();
+      } catch { this.say('No se pudo abrir la pantalla completa. Puedes usar Ventana flotante.'); }
+    });
+    document.addEventListener('fullscreenchange', () => this.update());
+    this.update();
+    return this;
+  }
+
+  fillRange(range, value, maximum) {
+    range.style.setProperty('--range-fill', `${maximum > 0 ? Math.max(0, Math.min(100, value / maximum * 100)) : 0}%`);
+  }
+
   update() {
     if (this.playButton) {
       this.playButton.disabled = !this.hasSource();
       this.playButton.textContent = this.video.ended ? 'Volver a reproducir' : this.video.paused ? 'Reproducir' : 'Pausar';
     }
     if (this.restartButton) this.restartButton.disabled = !this.hasSource();
+    if (this.controls) {
+      const {seek, elapsed, duration, volume, volumeValue, mute, fullscreen, shell} = this.controls;
+      const length = Number.isFinite(this.video.duration) ? this.video.duration : 0;
+      seek.disabled = !this.hasSource() || length <= 0;
+      seek.max = String(length);
+      duration.textContent = this.time(length);
+      if (!this.scrubbing) {
+        seek.value = String(this.video.currentTime || 0);
+        elapsed.textContent = this.time(this.video.currentTime);
+        this.fillRange(seek, this.video.currentTime, length);
+      }
+      const level = this.video.muted ? 0 : Math.round(this.video.volume * 100);
+      volume.value = String(level); volumeValue.textContent = `${level} %`;
+      this.fillRange(volume, level, 100);
+      mute.textContent = level ? 'Silenciar' : 'Activar sonido';
+      mute.setAttribute('aria-label', mute.textContent);
+      mute.setAttribute('aria-pressed', String(!level));
+      fullscreen.disabled = !this.hasSource() || !shell.requestFullscreen;
+      fullscreen.textContent = document.fullscreenElement === shell ? 'Salir de pantalla completa' : 'Pantalla completa';
+    }
   }
 
   async open(url, blobUrl = null) {
@@ -118,6 +198,7 @@ function initMainPlayer() {
     message: document.querySelector('#playerMessage'), speed: document.querySelector('#playerSpeed'),
     visible: () => state.currentPage === 'player',
   });
+  playback.bindControls('player', document.querySelector('#playerShell'));
   let token = null;
   let selection = 0;
   video.tabIndex = 0;
@@ -200,11 +281,13 @@ function initMainPlayer() {
   const brightness = document.querySelector('#playerBrightness');
   brightness.oninput = () => { video.style.filter = `brightness(${brightness.value}%)`; };
   let gesture = null;
+  let suppressClickUntil = 0;
+  video.controls = false;
+  video.addEventListener('click', () => { if (performance.now() >= suppressClickUntil) playback.toggle(); });
   video.addEventListener('pointerdown', event => {
     const rect = video.getBoundingClientRect();
-    if (event.button !== 0 || event.clientY > rect.bottom - 64) return;
-    // Capture only after a deliberate vertical gesture, leaving ordinary clicks
-    // and WebView2's native play/replay controls untouched.
+    if (event.button !== 0) return;
+    // Only the video surface receives gestures; controls are separate siblings.
     gesture = {id: event.pointerId, x: event.clientX, y: event.clientY, active: false,
       brightness: Number(brightness.value), volume: video.volume,
       left: event.clientX < rect.left + rect.width / 2, height: rect.height};
@@ -218,9 +301,10 @@ function initMainPlayer() {
     }
     const delta = moved / gesture.height;
     if (gesture.left) { brightness.value = Math.max(50, Math.min(150, gesture.brightness + delta * 100)); brightness.oninput(); }
-    else video.volume = Math.max(0, Math.min(1, gesture.volume + delta));
+    else { video.volume = Math.max(0, Math.min(1, gesture.volume + delta)); video.muted = video.volume === 0; }
   });
   const endGesture = () => {
+    if (gesture?.active) suppressClickUntil = performance.now() + 250;
     if (gesture && video.hasPointerCapture(gesture.id)) video.releasePointerCapture(gesture.id);
     gesture = null;
   };

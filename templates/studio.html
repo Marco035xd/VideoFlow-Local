@@ -1,4 +1,5 @@
 {% from 'advanced_options.html' import options %}
+{% from 'player_controls.html' import controls %}
 <datalist id="subtitleLanguages"><option value="es">Español</option><option value="en">Inglés</option><option value="pt">Portugués</option><option value="pt-BR">Portugués de Brasil</option><option value="fr">Francés</option><option value="de">Alemán</option><option value="ja">Japonés</option></datalist>
 <section id="page-collections" class="page">
   <div class="hero-panel separation-hero"><div><span class="eyebrow">TU BIBLIOTECA COMPLETA</span><h1>Listas y canales.</h1><p>Una dirección, todos sus videos accesibles. Importación sin límite de cantidad.</p></div></div>
@@ -21,10 +22,9 @@
   <section id="playerDropTarget" class="panel batch-panel">
     <div class="separation-heading"><div><h3>Reproductor local</h3><p id="playerName">Abre un video o audio de tu computadora.</p></div><button id="playerOpen" class="primary-button" type="button">Abrir archivo</button></div>
     <div id="playerDropZone" class="studio-drop-zone" role="button" tabindex="0" aria-label="Abrir o arrastrar un video o audio"><img src="/static/icons/navigation/player.svg" alt=""><div><strong>Arrastra aquí tu video o audio</strong><span>También puedes hacer clic para elegir un archivo de tu computadora.</span></div></div>
-    <div class="studio-video"><video id="localPlayer" controls playsinline preload="metadata"></video></div>
-    <div class="studio-playback-actions"><button id="playerPlay" class="primary-button" type="button" disabled>Reproducir</button><button id="playerRestart" class="secondary-button" type="button" disabled>Reiniciar</button></div>
+    <div id="playerShell" class="studio-video media-shell"><video id="localPlayer" playsinline preload="metadata" aria-label="Video local"></video>{{ controls('player') }}</div>
     <div class="studio-player-controls"><button id="playerFloating" class="secondary-button" type="button" disabled>Ventana flotante</button><button id="playerPip" class="secondary-button" type="button" disabled>Picture-in-Picture</button><label>Velocidad <select id="playerSpeed"><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label><label>Brillo del video <input id="playerBrightness" type="range" min="50" max="150" value="100"></label></div>
-    <p class="field-hint">Desliza verticalmente en la mitad izquierda para ajustar el brillo del video y en la derecha para el volumen. Espacio: reproducir / pausar; flechas: avanzar, retroceder y volumen. El soporte de códecs y PiP depende de WebView2; para AVI o videos incompatibles, convierte a MP4 H.264.</p>
+    <p class="field-hint">Arrastra la barra de tiempo para avanzar o retroceder y usa Volumen para ajustar el sonido. Sobre el video: espacio para reproducir / pausar; flechas para avanzar, retroceder y volumen. También puedes deslizar verticalmente a la izquierda para el brillo y a la derecha para el volumen. Para videos incompatibles, convierte a MP4 H.264.</p>
     <p id="playerMessage" role="status"></p>
   </section>
 </section>

@@ -17,7 +17,7 @@
 
 .studio-player-controls select{padding:8px 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--text)}
 .studio-playback-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
-.studio-video video{height:clamp(220px,calc(100vh - 545px),62vh);object-fit:contain}
+.studio-video video{height:clamp(220px,calc(100vh - 620px),62vh);object-fit:contain}
 .studio-drop-zone{display:flex;align-items:center;justify-content:center;gap:16px;padding:22px;margin-top:20px;border:1px dashed var(--line-strong);border-radius:16px;background:var(--surface-2);cursor:pointer;transition:background .2s,border-color .2s,box-shadow .2s}
 .studio-drop-zone img{width:30px;height:30px;flex-shrink:0}
 .studio-drop-zone strong,.studio-drop-zone span{display:block}.studio-drop-zone strong{font-size:14px;color:var(--text)}.studio-drop-zone span{margin-top:6px;font-size:12px;color:var(--muted);line-height:1.5}

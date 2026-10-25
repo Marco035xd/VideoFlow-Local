@@ -4,7 +4,13 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.1-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.2-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Reproductor y secreto retro · versión 1.6.2
+
+El reproductor principal y la ventana flotante tienen controles propios siempre visibles: barra de tiempo arrastrable, volumen, silencio, reproducción, reinicio y pantalla completa con los controles incluidos. Las barras están separadas del área de gestos del video. Se conserva el soporte para abrir o arrastrar archivos y retomar el video al cambiar de sección.
+
+Introduce **↑ ↑ ↓ ↓ ← → ← → B A** fuera de un campo de escritura para descubrir **VideoFlow Arcade**, un juego local de atrapar notas durante 30 segundos. Usa las flechas, A/D o el mouse. Se cierra con Esc o Cerrar; pausa el video mientras juegas y lo reanuda al cerrar si antes estaba reproduciéndose. Las descargas siguen su curso y el juego no cambia tus preferencias.
 
 ### Reproductor · versión 1.6.1
 

@@ -1,0 +1,8 @@
+.arcade-dialog{width:min(740px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;padding:26px;border:1px solid var(--line-strong);border-radius:22px;background:var(--surface-solid);color:var(--text);box-shadow:0 24px 100px #0008}
+.arcade-dialog::backdrop{background:#030713bd;backdrop-filter:blur(8px)}
+.arcade-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.arcade-heading h2{margin:8px 0 0;font-size:28px;letter-spacing:-.7px}.arcade-heading .eyebrow{font-size:9px;color:var(--primary)}
+.arcade-dialog>p{color:var(--muted);line-height:1.6;font-size:13px;margin:18px 0}
+.arcade-scoreboard{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;font:12px ui-monospace,Consolas,monospace;color:var(--muted)}.arcade-scoreboard strong{color:var(--text);margin-left:5px}
+#arcadeCanvas{display:block;width:100%;height:auto;aspect-ratio:2/1;border:1px solid var(--line-strong);border-radius:14px;background:#070c19;touch-action:none;outline:none}#arcadeCanvas:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
+.arcade-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:18px}.arcade-actions p{flex:1;min-width:180px;font-size:12px;line-height:1.5;color:var(--muted)}.arcade-steering{display:flex;gap:8px}.arcade-steering button{min-width:45px;touch-action:none;font-size:18px}
+@media(max-width:600px){.arcade-dialog{padding:18px}.arcade-heading h2{font-size:23px}.arcade-scoreboard>span:last-child{display:none}.arcade-actions p{order:3;flex-basis:100%;margin:0}.arcade-actions>#arcadeStart{margin-left:auto}}

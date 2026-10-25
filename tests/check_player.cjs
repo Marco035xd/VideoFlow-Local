@@ -1,7 +1,8 @@
 /* Regression checks for replay, page visibility, interrupted play and file drops. */
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 class Node extends EventTarget {
-  constructor() { super(); this.disabled = false; this.textContent = ''; this.value = '1'; this.dataset = {}; this.classList = {add(){},remove(){}}; this.style = {}; }
+  constructor() { super(); this.disabled = false; this.textContent = ''; this.value = '1'; this.dataset = {}; this.classList = {add(){},remove(){}}; this.style = {setProperty(){}}; this.attributes = {}; }
+  setAttribute(name,value) { this.attributes[name] = value; }
   click() { this.dispatchEvent(new Event('click')); }
 }
 class Video extends Node {
@@ -21,7 +22,7 @@ const nodes = new Map(), node = id => {
 };
 const document = Object.assign(new EventTarget(), {hidden:false, querySelector:node, pictureInPictureEnabled:true});
 const window = new EventTarget(), state = {currentPage:'player'}, revoked = [], blobs = [];
-const context = vm.createContext({document,window,state,Event,URL:{revokeObjectURL:url=>revoked.push(url),createObjectURL:file=>{blobs.push(file);return 'blob:test';}},api:async()=>({}),toast(){},console});
+const context = vm.createContext({document,window,state,Event,performance,URL:{revokeObjectURL:url=>revoked.push(url),createObjectURL:file=>{blobs.push(file);return 'blob:test';}},api:async()=>({}),toast(){},console});
 vm.runInContext(fs.readFileSync('static/player.js','utf8'), context);
 const fire = (target, name, properties = {}) => {
   const event = new Event(name, {cancelable:true});
@@ -32,6 +33,23 @@ const flush = () => new Promise(resolve=>setImmediate(resolve));
   const playback = vm.runInContext('initMainPlayer()',context), video = node('#localPlayer');
   await window.openPlayerMedia({name:'fixture.mp4',url:'/api/media/test',token:'test'});
   assert.equal(video.paused,false); assert.equal(node('#playerFloating').disabled,false);
+  const seek=node('#playerSeek'), volume=node('#playerVolume');
+  assert.equal(seek.disabled,false); assert.equal(seek.max,'4');
+  fire(seek,'pointerdown'); seek.value='2.5'; fire(seek,'input');
+  assert.equal(video.currentTime,2.5); assert.equal(video.paused,false);
+  video.currentTime=2.6; fire(video,'timeupdate');
+  assert.equal(seek.value,'2.5','Playback updates must not fight a thumb being dragged');
+  fire(seek,'pointerup'); assert.equal(video.currentTime,2.5);
+  volume.value='37'; fire(volume,'input'); assert.equal(video.volume,.37); assert.equal(video.muted,false);
+  node('#playerMute').click(); assert.equal(video.muted,true); assert.equal(volume.value,'0');
+  node('#playerMute').click(); assert.equal(video.muted,false); assert.equal(volume.value,'37');
+  volume.value='0'; fire(volume,'input'); node('#playerMute').click(); assert.equal(video.volume,.37);
+  video.pause(); seek.value='1'; fire(seek,'input'); fire(seek,'change'); assert.equal(video.currentTime,1); assert.equal(video.paused,true);
+  const shell=node('#playerShell');
+  shell.requestFullscreen=async()=>{document.fullscreenElement=shell;fire(document,'fullscreenchange');};
+  document.exitFullscreen=async()=>{document.fullscreenElement=null;fire(document,'fullscreenchange');};
+  playback.update(); node('#playerFullscreen').click(); await flush(); assert.equal(document.fullscreenElement,shell);
+  node('#playerFullscreen').click(); await flush(); assert.equal(document.fullscreenElement,null);
   video.currentTime = 4; video.ended = true; video.pause(); fire(video,'ended');
   assert.equal(node('#playerPlay').textContent,'Volver a reproducir');
   node('#playerPlay').click(); await flush();
@@ -73,5 +91,5 @@ const flush = () => new Promise(resolve=>setImmediate(resolve));
   assert.equal(video.src,'/api/media/drop'); assert.equal(node('#playerFloating').disabled,false);
   await window.openPlayerMedia({url:'/api/media/stale',name:'stale.mp4'},'old-request');
   assert.equal(video.src,'/api/media/drop');
-  console.log('PASS: replay after end, tab return and user pause, restart, visibility, pointer gestures and local/native file drops.');
+  console.log('PASS: seek dragging while playing/paused, independent volume/mute, fullscreen, replay, tab resume, gestures and file drops.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

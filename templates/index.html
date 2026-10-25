@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='appearance.css') }}">
 <link rel="stylesheet" href="/static/studio.css">
+<link rel="stylesheet" href="/static/player.css">
+<link rel="stylesheet" href="/static/arcade.css">
 </head>
 <body>
   <div id="welcomeScreen" class="welcome-screen hidden" aria-hidden="true">
@@ -488,5 +490,7 @@
 <script src="/static/separation.js"></script>
 <script src="/static/video_conversion.js"></script>
 <script src="/static/appearance.js"></script><script src="/static/player.js"></script><script src="/static/studio.js"></script>
+{% include 'arcade.html' %}
+<script src="/static/arcade.js"></script>
 </body>
 </html>
