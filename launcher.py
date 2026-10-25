@@ -125,9 +125,11 @@ def run() -> None:
             if not runtime.closing():
                 return False
             if manager.count_unfinished():
+                from localization import translate
+                language = settings_store.load()['language']
                 confirmed = window.create_confirmation_dialog(
-                    "Cerrar VideoFlow",
-                    "Hay descargas pendientes o en curso. ¿Quieres detenerlas y cerrar?",
+                    translate("Cerrar VideoFlow", language),
+                    translate("Hay descargas pendientes o en curso. ¿Quieres detenerlas y cerrar?", language),
                 )
                 if not confirmed:
                     runtime.exiting = False
@@ -139,14 +141,11 @@ def run() -> None:
 
         window.events.closing += on_closing
         threading.Thread(target=server.run, daemon=True, name="videoflow-server").start()
+        from localization import native_labels
         webview.start(
             gui="edgechromium", debug=False, private_mode=False,
             storage_path=str(profile_dir), icon=str(APP_DIR / "static" / "app.ico"),
-            localization={
-                "global.ok": "Aceptar", "global.cancel": "Cancelar",
-                "global.quit": "Cerrar", "global.saveFile": "Guardar archivo",
-                "windows.fileFilter.allFiles": "Todos los archivos",
-            },
+            localization=native_labels(settings_store.load()['language']),
         )
     finally:
         from desktop_runtime import runtime

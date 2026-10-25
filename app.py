@@ -22,6 +22,7 @@ import yt_dlp
 from flask import Flask, jsonify, render_template, request
 from app_paths import APP_DIR, APP_VERSION, DATA_DIR, IS_FROZEN
 from appearance import DEFAULT_APPEARANCE, normalize_appearance
+from localization import LANGUAGES, normalize_language
 from download_options import validate_options, video_selector, apply_options
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
@@ -32,6 +33,7 @@ PLATFORMS = {"youtube": "YouTube", "facebook": "Facebook", "tiktok": "TikTok"}
 
 DEFAULT_FOLDER = str((Path.home() / "Downloads").resolve())
 DEFAULT_SETTINGS = {
+    "language": "es",
     "default_folder": DEFAULT_FOLDER,
     "platform_folders": {},
     "default_format": "mp4",
@@ -160,6 +162,7 @@ class SettingsStore:
     @staticmethod
     def _merge(data: dict[str, Any]) -> dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **data}
+        merged['language'] = normalize_language(data.get('language'))
         merged['theme'] = data.get('theme') if data.get('theme') in ('light', 'dark', 'system') else 'dark'
         merged['appearance'] = normalize_appearance(data.get('appearance'))
         folders = data.get("platform_folders")
@@ -871,6 +874,13 @@ settings_store = SettingsStore(SETTINGS_FILE)
 history_store = HistoryStore(DB_FILE)
 download_manager = DownloadManager(settings_store, history_store)
 app = Flask(__name__)
+
+
+@app.context_processor
+def interface_language():
+    return {'ui_language': settings_store.load()['language']}
+
+
 app.config["JSON_AS_ASCII"] = False
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
@@ -1186,6 +1196,10 @@ def api_get_settings():
 def api_update_settings():
     payload = request.get_json(silent=True) or {}
     allowed: dict[str, Any] = {}
+    if 'language' in payload:
+        if not isinstance(payload['language'], str) or payload['language'] not in LANGUAGES:
+            return jsonify(ok=False, error='Selecciona un idioma disponible.'), 400
+        allowed['language'] = payload['language']
     if 'video_conversion_folder' in payload:
         folder = Path(str(payload['video_conversion_folder'])).expanduser().resolve()
         if not folder.is_dir():
@@ -1262,6 +1276,9 @@ def api_update_settings():
                 return jsonify(ok=False, error="Valor de configuración fuera de rango."), 400
     updated = settings_store.update(allowed)
     download_manager.notify_settings_changed()
+    if 'language' in allowed:
+        from desktop_runtime import runtime
+        runtime.refresh_language()
     return jsonify({"ok": True, "settings": updated})
 
 

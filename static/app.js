@@ -55,14 +55,14 @@ function escapeHtml(value = "") {
 }
 
 function formatNumber(value) {
-  return Number(value || 0).toLocaleString("es-PE");
+  return Number(value || 0).toLocaleString(window.VideoFlowI18n.locale);
 }
 
 function formatDate(value) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("es-PE", {
+  return date.toLocaleString(window.VideoFlowI18n.locale, {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -128,7 +128,7 @@ function selectSource(source) {
   $("#destinationHint").textContent = `Se guardará en la carpeta de ${platformNames[source]}. Usa «Guardar como» para cambiar nombre y ubicación.`;
 }
 
-function toast(title, message, type = "info", timeout = 4300) {
+function toast(title, message, type = "info", timeout = 4300, userContent = false) {
   const item = document.createElement("div");
   item.className = `toast ${type}`;
   const icon = type === "success" ? "✓" : type === "error" ? "!" : "i";
@@ -137,6 +137,7 @@ function toast(title, message, type = "info", timeout = 4300) {
     <div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(message)}</p></div>
     <button class="toast-close" type="button" aria-label="Cerrar">×</button>
   `;
+  if (userContent) item.querySelector('p').setAttribute('translate', 'no');
   item.querySelector(".toast-close").addEventListener("click", () => item.remove());
   $("#toastStack").appendChild(item);
   window.setTimeout(() => item.remove(), timeout);
@@ -174,6 +175,8 @@ function navigate(page) {
 async function loadSettings() {
   const data = await api("/api/settings");
   state.settings = data.settings;
+  await window.VideoFlowI18n.setLanguage(state.settings.language, false);
+  $('#settingsLanguage').value = state.settings.language;
   initAppearance();
   initStudio();
   state.destinationFolder = folderForSource();
@@ -410,7 +413,7 @@ async function addToQueue() {
       }),
     });
     rememberFolder(data.download.source, data.download.folder);
-    toast("Añadido a la cola", `${state.video.title} comenzará según el límite configurado.`, "success");
+    toast("Añadido a la cola", `${state.video.title} ${window.VideoFlowI18n.t('comenzará según el límite configurado.')}`, "success", 4300, true);
     $("#videoResult").classList.add("hidden");
     $("#videoUrl").value = "";
     state.video = null;
@@ -476,7 +479,7 @@ function renderDownloads() {
         <img class="download-thumb" src="${escapeHtml(task.thumbnail || "/static/logo.svg")}" alt="">
         <div class="download-info">
           <div class="download-title-row">
-            <h4 title="${escapeHtml(task.title)}">${escapeHtml(task.title)}</h4>
+            <h4 translate="no" title="${escapeHtml(task.title)}">${escapeHtml(task.title)}</h4>
             <span class="status-chip ${statusClass(task.status)}">${escapeHtml(task.status)}</span>
           </div>
           <div class="download-submeta">
@@ -521,12 +524,12 @@ function handleDownloadNotifications(downloads) {
     if (previous && previous !== task.status) {
       if (task.status === "Completado") {
         const label = task.mode.startsWith('separate_') ? 'Separación completada' : task.mode === 'video_convert' ? 'Video convertido' : 'Descarga completada';
-        toast(label, task.title, "success");
+        toast(label, task.title, "success", 4300, true);
         browserNotification(label, task.title);
         loadHistory();
       } else if (task.status === "Error") {
         const label = task.mode.startsWith('separate_') ? 'Error en la separación' : task.mode === 'video_convert' ? 'Error al convertir video' : 'Error en la descarga';
-        toast(label, task.error || task.title, "error", 6500);
+        toast(label, task.error || task.title, "error", 6500, !task.error);
         browserNotification(label, task.title);
       }
     }
@@ -536,7 +539,7 @@ function handleDownloadNotifications(downloads) {
 
 function browserNotification(title, body) {
   if (!state.settings?.notifications || !("Notification" in window)) return;
-  if (Notification.permission === "granted") new Notification(title, { body });
+  if (Notification.permission === "granted") new Notification(window.VideoFlowI18n.t(title), { body });
 }
 
 async function loadDownloads() {
@@ -683,7 +686,26 @@ async function saveSettings() {
   }
 }
 
+async function saveInterfaceLanguage() {
+  const selector = $('#settingsLanguage'), previous = state.settings.language;
+  selector.disabled = true;
+  $('#languageStatus').textContent = 'Guardando idioma…';
+  try {
+    const data = await api('/api/settings', {method:'PUT', body:JSON.stringify({language:selector.value})});
+    state.settings.language = data.settings.language;
+    await window.VideoFlowI18n.setLanguage(data.settings.language);
+    $('#languageStatus').textContent = 'Idioma guardado. Se usará también la próxima vez que abras la aplicación.';
+    renderHistory();
+  } catch (error) {
+    selector.value = previous;
+    $('#languageStatus').textContent = 'No se pudo guardar el idioma. Vuelve a intentarlo.';
+    toast('No se pudo guardar', error.message, 'error');
+  } finally { selector.disabled = false; }
+}
+
 function bindEvents() {
+  $('#settingsLanguage').addEventListener('change', saveInterfaceLanguage);
+  document.addEventListener('videoflow:language', event => { if (state.settings) state.settings.language = event.detail.language; });
   $$(".nav-item").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.page)));
   $$(".source-tab").forEach((button) => button.addEventListener("click", () => {
     platformDrafts[state.source] = $("#videoUrl").value;

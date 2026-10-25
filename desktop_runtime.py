@@ -1,6 +1,7 @@
 """Windows background execution and a private WebView2 window without an app bridge."""
 import ipaddress
 import threading
+from localization import translate
 from urllib.parse import urlparse
 
 AD_HOSTS = {'doubleclick.net', 'googlesyndication.com', 'googleadservices.com',
@@ -59,9 +60,11 @@ class DesktopRuntime:
                 tray.Icon = Icon(str(APP_DIR / 'static' / 'app.ico'))
                 tray.Text = 'VideoFlow Local'
                 menu = ContextMenuStrip()
-                show = menu.Items.Add('Abrir VideoFlow')
+                language = settings.load()['language']
+                show = menu.Items.Add(translate('Abrir VideoFlow', language))
                 show.Click += lambda *_: window.show()
-                exit_item = menu.Items.Add('Salir y detener los trabajos')
+                exit_item = menu.Items.Add(translate('Salir y detener los trabajos', language))
+                self.tray_labels = (show, exit_item)
                 def leave(*_):
                     self.exiting = True
                     window.destroy()
@@ -87,6 +90,31 @@ class DesktopRuntime:
             finally:
                 kernel.SetThreadExecutionState(0x80000000)
         threading.Thread(target=power, daemon=True).start()
+
+    def refresh_language(self):
+        if not self.window:
+            return
+        from System import Action
+        def update():
+            language = self.settings.load()['language']
+            from localization import native_labels
+            import webview
+            from webview.localization import original_localization
+            labels = native_labels(language)
+            original_localization.update(labels)
+            for window in list(webview.windows):
+                if hasattr(window, 'localization'):
+                    window.localization.update(labels)
+            for item, text in zip(getattr(self, 'tray_labels', ()), ('Abrir VideoFlow', 'Salir y detener los trabajos')):
+                item.Text = translate(text, language)
+            if self.browser and not self.browser.IsDisposed:
+                self.browser.Text = translate('VideoFlow · Navegador privado', language)
+                self.browser_go.Text = translate('Ir', language)
+                self.browser_label.Text = translate('Privado · AdBlock', language)
+        try:
+            self.window.native.BeginInvoke(Action(update))
+        except Exception:
+            pass  # Preferences remain saved if the desktop is shutting down.
 
     def closing(self):
         if not self.exiting and self.settings.load().get('background_mode', True):
@@ -125,7 +153,8 @@ class DesktopRuntime:
                 self.browser_view.CoreWebView2.Navigate(url)
                 return
             form, view = Form(), WebView2()
-            form.Text, form.Width, form.Height = 'VideoFlow · Navegador privado', 1150, 780
+            language = self.settings.load()['language']
+            form.Text, form.Width, form.Height = translate('VideoFlow · Navegador privado', language), 1150, 780
             form.MinimumSize = Size(800, 500)
             form.StartPosition = FormStartPosition.CenterParent
             form.Font = Font('Segoe UI', 10)
@@ -142,9 +171,10 @@ class DesktopRuntime:
             address.Width, address.Text = 730, url
             address.BackColor, address.ForeColor = form.BackColor, form.ForeColor
             back, go, label = Button(), Button(), Label()
-            back.Text, go.Text = '←', 'Ir'
+            back.Text, go.Text = '←', translate('Ir', language)
+            self.browser_go, self.browser_label = go, label
             back.Width, go.Width = 42, 45
-            label.Text, label.Width = 'Privado · AdBlock', 150
+            label.Text, label.Width = translate('Privado · AdBlock', language), 150
             label.TextAlign = ContentAlignment.MiddleCenter
             for control in (back, address, go, label):
                 control.Dock = DockStyle.Fill

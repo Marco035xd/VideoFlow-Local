@@ -1,0 +1,2514 @@
+{
+  "Calidad avanzada, recorte y subtítulos": [
+    "Advanced quality, trimming and subtitles",
+    "Qualidade avançada, corte e legendas"
+  ],
+  "Se aplican a las próximas descargas. La resolución, los FPS, HDR y los idiomas deben estar disponibles en el origen.": [
+    "Applies to new downloads. Resolution, FPS, HDR and languages must be available in the source.",
+    "Aplica-se aos novos downloads. A resolução, os FPS, o HDR e os idiomas devem estar disponíveis na origem."
+  ],
+  "Fotogramas por segundo": [
+    "Frames per second",
+    "Quadros por segundo"
+  ],
+  "Mejor disponible": [
+    "Best available",
+    "Melhor disponível"
+  ],
+  "50 / 60 fps o superior": [
+    "50 / 60 fps or higher",
+    "50 / 60 fps ou superior"
+  ],
+  "Hasta 30 fps": [
+    "Up to 30 fps",
+    "Até 30 fps"
+  ],
+  "Original · SDR o HDR": [
+    "Original · SDR or HDR",
+    "Original · SDR ou HDR"
+  ],
+  "Solo SDR": [
+    "SDR only",
+    "Somente SDR"
+  ],
+  "Solo HDR · MKV / WebM": [
+    "HDR only · MKV / WebM",
+    "Somente HDR · MKV / WebM"
+  ],
+  "Subtítulos": [
+    "Subtitles",
+    "Legendas"
+  ],
+  "Sin subtítulos": [
+    "No subtitles",
+    "Sem legendas"
+  ],
+  "Archivo SRT separado": [
+    "Separate SRT file",
+    "Arquivo SRT separado"
+  ],
+  "Incrustados · MP4 / MKV / MOV": [
+    "Embedded · MP4 / MKV / MOV",
+    "Incorporadas · MP4 / MKV / MOV"
+  ],
+  "Idioma de subtítulos": [
+    "Subtitle language",
+    "Idioma das legendas"
+  ],
+  "Recorte · desde": [
+    "Trim · start",
+    "Corte · início"
+  ],
+  "Recorte · hasta": [
+    "Trim · end",
+    "Corte · fim"
+  ],
+  "Deja los tiempos vacíos para descargar completo. Los recortes requieren un final. Los subtítulos se ofrecen para videos completos para mantener su sincronización.": [
+    "Leave the times empty to download the full video. Trimming requires an end time. Subtitles are offered for full videos to keep them synchronized.",
+    "Deixe os tempos vazios para baixar o vídeo completo. Os cortes exigem um tempo final. As legendas estão disponíveis para vídeos completos para manter a sincronização."
+  ],
+  "Incluir subtítulos automáticos": [
+    "Include automatic subtitles",
+    "Incluir legendas automáticas"
+  ],
+  "Incógnito · no guardar en Historial": [
+    "Incognito · do not save in History",
+    "Anônimo · não salvar no Histórico"
+  ],
+  "SECRETO DESBLOQUEADO · ↑ ↑ ↓ ↓ ← → ← → B A": [
+    "SECRET UNLOCKED · ↑ ↑ ↓ ↓ ← → ← → B A",
+    "SEGREDO DESBLOQUEADO · ↑ ↑ ↓ ↓ ← → ← → B A"
+  ],
+  "Cerrar arcade": [
+    "Close arcade",
+    "Fechar arcade"
+  ],
+  "Cerrar": [
+    "Close",
+    "Fechar"
+  ],
+  "Atrapa las notas con tu nave durante 30 segundos. Muévete con ← →, A / D, el mouse o los botones de abajo.": [
+    "Catch notes with your ship for 30 seconds. Move with ← →, A / D, the mouse or the buttons below.",
+    "Capture as notas com sua nave durante 30 segundos. Mova-se com ← →, A / D, o mouse ou os botões abaixo."
+  ],
+  "Notas": [
+    "Notes",
+    "Notas"
+  ],
+  "Tiempo": [
+    "Time",
+    "Tempo"
+  ],
+  "Ronda de": [
+    "Round of",
+    "Rodada de"
+  ],
+  "30 segundos": [
+    "30 seconds",
+    "30 segundos"
+  ],
+  "Juego de atrapar notas. Usa las flechas izquierda y derecha para mover la nave.": [
+    "Note-catching game. Use the left and right arrows to move the ship.",
+    "Jogo de capturar notas. Use as setas para a esquerda e para a direita para mover a nave."
+  ],
+  "Mover nave a la izquierda": [
+    "Move ship left",
+    "Mover a nave para a esquerda"
+  ],
+  "Mover nave a la derecha": [
+    "Move ship right",
+    "Mover a nave para a direita"
+  ],
+  "Un pequeño secreto para acompañar tus descargas.": [
+    "A little secret to enjoy while you download.",
+    "Um pequeno segredo para acompanhar seus downloads."
+  ],
+  "Jugar": [
+    "Play",
+    "Jogar"
+  ],
+  "TU CENTRO MULTIMEDIA PERSONAL": [
+    "YOUR PERSONAL MEDIA CENTER",
+    "SEU CENTRO MULTIMÍDIA PESSOAL"
+  ],
+  "Guarda tus videos y audios en un solo lugar.": [
+    "Keep your videos and audio in one place.",
+    "Guarde seus vídeos e áudios em um só lugar."
+  ],
+  "Analiza enlaces de YouTube, Facebook o TikTok, elige cómo guardarlos y organiza hasta diez descargas en tu PC.": [
+    "Analyze YouTube, Facebook or TikTok links, choose how to save them and manage downloads on your PC.",
+    "Analise links do YouTube, Facebook ou TikTok, escolha como salvá-los e organize os downloads no seu PC."
+  ],
+  "Comenzar": [
+    "Get started",
+    "Começar"
+  ],
+  "Úsalo únicamente con contenido propio, de dominio público o con autorización.": [
+    "Use only with your own content, public domain material or content you have permission to download.",
+    "Use apenas com conteúdo próprio, de domínio público ou com autorização."
+  ],
+  "Navegación principal": [
+    "Main navigation",
+    "Navegação principal"
+  ],
+  "Inicio": [
+    "Home",
+    "Início"
+  ],
+  "Descargas": [
+    "Downloads",
+    "Downloads"
+  ],
+  "Video a audio": [
+    "Video to audio",
+    "Vídeo para áudio"
+  ],
+  "Convertir video": [
+    "Convert video",
+    "Converter vídeo"
+  ],
+  "Voz e instrumentos": [
+    "Vocals and instruments",
+    "Voz e instrumentos"
+  ],
+  "Historial": [
+    "History",
+    "Histórico"
+  ],
+  "Listas y canales": [
+    "Playlists and channels",
+    "Playlists e canais"
+  ],
+  "Reproductor": [
+    "Player",
+    "Reprodutor"
+  ],
+  "Navegador privado": [
+    "Private browser",
+    "Navegador privado"
+  ],
+  "Carpeta privada": [
+    "Private folder",
+    "Pasta privada"
+  ],
+  "Apariencia": [
+    "Appearance",
+    "Aparência"
+  ],
+  "Configuración": [
+    "Settings",
+    "Configurações"
+  ],
+  "Comprobando sistema": [
+    "Checking system",
+    "Verificando o sistema"
+  ],
+  "Verificando FFmpeg y el motor de descarga.": [
+    "Checking FFmpeg and the download engine.",
+    "Verificando o FFmpeg e o mecanismo de download."
+  ],
+  "Solo se ejecuta en tu computadora": [
+    "Runs only on your computer",
+    "Executado somente no seu computador"
+  ],
+  "Nueva descarga": [
+    "New download",
+    "Novo download"
+  ],
+  "Lista para descargar": [
+    "Ready to download",
+    "Pronto para baixar"
+  ],
+  "Cambiar modo de apariencia": [
+    "Change appearance mode",
+    "Alterar modo de aparência"
+  ],
+  "DESCARGA INTELIGENTE": [
+    "SMART DOWNLOADING",
+    "DOWNLOAD INTELIGENTE"
+  ],
+  "¿Qué quieres guardar hoy?": [
+    "What would you like to save today?",
+    "O que você quer salvar hoje?"
+  ],
+  "Pega un enlace de YouTube, Facebook o TikTok, revisa la información y agrégalo a tu cola.": [
+    "Paste a YouTube, Facebook or TikTok link, review its details and add it to your queue.",
+    "Cole um link do YouTube, Facebook ou TikTok, confira as informações e adicione à fila."
+  ],
+  "sin límite de cantidad": [
+    "no item limit",
+    "sem limite de quantidade"
+  ],
+  "Plataforma": [
+    "Platform",
+    "Plataforma"
+  ],
+  "Enlace de YouTube": [
+    "YouTube link",
+    "Link do YouTube"
+  ],
+  "Pega uno o varios enlaces, uno por línea": [
+    "Paste one or more links, one per line",
+    "Cole um ou mais links, um por linha"
+  ],
+  "Pegar": [
+    "Paste",
+    "Colar"
+  ],
+  "Analizar video": [
+    "Analyze video",
+    "Analisar vídeo"
+  ],
+  "Añade los videos que necesites.": [
+    "Add as many videos as you need.",
+    "Adicione os vídeos que precisar."
+  ],
+  "Sesión de Facebook (opcional)": [
+    "Facebook session (optional)",
+    "Sessão do Facebook (opcional)"
+  ],
+  "Sin sesión · videos públicos": [
+    "No session · public videos",
+    "Sem sessão · vídeos públicos"
+  ],
+  "Usar sesión de Chrome": [
+    "Use Chrome session",
+    "Usar sessão do Chrome"
+  ],
+  "Usar sesión de Edge": [
+    "Use Edge session",
+    "Usar sessão do Edge"
+  ],
+  "Usar sesión de Firefox": [
+    "Use Firefox session",
+    "Usar sessão do Firefox"
+  ],
+  "Para videos restringidos, inicia sesión en Facebook en el navegador elegido. Algunas publicaciones pueden seguir sin estar disponibles.": [
+    "For restricted videos, sign in to Facebook in the selected browser. Some posts may still be unavailable.",
+    "Para vídeos restritos, entre no Facebook no navegador escolhido. Algumas publicações ainda podem estar indisponíveis."
+  ],
+  "VIDEO DETECTADO": [
+    "VIDEO FOUND",
+    "VÍDEO ENCONTRADO"
+  ],
+  "Información y opciones": [
+    "Details and options",
+    "Informações e opções"
+  ],
+  "Miniatura del video": [
+    "Video thumbnail",
+    "Miniatura do vídeo"
+  ],
+  "¿Qué quieres guardar?": [
+    "What would you like to save?",
+    "O que você quer salvar?"
+  ],
+  "Video con audio": [
+    "Video with audio",
+    "Vídeo com áudio"
+  ],
+  "Solo video, sin audio": [
+    "Video only, no audio",
+    "Somente vídeo, sem áudio"
+  ],
+  "Solo audio": [
+    "Audio only",
+    "Somente áudio"
+  ],
+  "Formato": [
+    "Format",
+    "Formato"
+  ],
+  "Calidad": [
+    "Quality",
+    "Qualidade"
+  ],
+  "Guardar como…": [
+    "Save as…",
+    "Salvar como…"
+  ],
+  "Peso estimado": [
+    "Estimated size",
+    "Tamanho estimado"
+  ],
+  "Archivo final": [
+    "Output file",
+    "Arquivo final"
+  ],
+  "Estado": [
+    "Status",
+    "Status"
+  ],
+  "Listo para agregar": [
+    "Ready to add",
+    "Pronto para adicionar"
+  ],
+  "VOB se prepara en calidad compatible de hasta 480p mediante FFmpeg.": [
+    "FFmpeg prepares VOB at a compatible resolution of up to 480p.",
+    "O FFmpeg prepara o VOB em uma resolução compatível de até 480p."
+  ],
+  "Agregar a la cola": [
+    "Add to queue",
+    "Adicionar à fila"
+  ],
+  "Opciones de descarga": [
+    "Download options",
+    "Opções de download"
+  ],
+  "Para el video analizado o para el lote de enlaces de esta página.": [
+    "For the analyzed video or the batch of links on this page.",
+    "Para o vídeo analisado ou para o lote de links desta página."
+  ],
+  "Descargar varios enlaces": [
+    "Download multiple links",
+    "Baixar vários links"
+  ],
+  "Pega varios enlaces de la plataforma elegida, uno por línea. Se guardarán en su carpeta habitual. Los enlaces repetidos se omiten.": [
+    "Paste links from the selected platform, one per line. Files are saved in its usual folder. Duplicate links are skipped.",
+    "Cole links da plataforma escolhida, um por linha. Os arquivos serão salvos na pasta habitual. Links repetidos são ignorados."
+  ],
+  "Contenido": [
+    "Content",
+    "Conteúdo"
+  ],
+  "Video y audio": [
+    "Video and audio",
+    "Vídeo e áudio"
+  ],
+  "Solo video": [
+    "Video only",
+    "Somente vídeo"
+  ],
+  "Calidad máxima de video": [
+    "Maximum video quality",
+    "Qualidade máxima do vídeo"
+  ],
+  "Carpeta de esta plataforma": [
+    "Folder for this platform",
+    "Pasta desta plataforma"
+  ],
+  "Elegir carpeta": [
+    "Choose folder",
+    "Escolher pasta"
+  ],
+  "Añadir enlaces a la cola": [
+    "Add links to queue",
+    "Adicionar links à fila"
+  ],
+  "Concurrencia a tu medida": [
+    "Concurrency your way",
+    "Downloads simultâneos do seu jeito"
+  ],
+  "Configura la cantidad de trabajos activos.": [
+    "Set the number of active jobs.",
+    "Defina a quantidade de tarefas ativas."
+  ],
+  "Tamaño estimado": [
+    "Estimated size",
+    "Tamanho estimado"
+  ],
+  "Revisa el peso antes de comenzar.": [
+    "Check the file size before starting.",
+    "Confira o tamanho antes de começar."
+  ],
+  "Todo permanece local": [
+    "Everything stays local",
+    "Tudo permanece local"
+  ],
+  "Tu historial y preferencias se guardan en tu PC.": [
+    "Your history and preferences are saved on your PC.",
+    "Seu histórico e suas preferências são salvos no seu PC."
+  ],
+  "Convierte tus videos en audio": [
+    "Convert your videos to audio",
+    "Converta seus vídeos em áudio"
+  ],
+  "Selecciona videos de tu computadora. Se crean archivos nuevos y se conserva el video original.": [
+    "Select videos from your computer. New files are created and the original videos are kept.",
+    "Selecione vídeos do seu computador. Novos arquivos são criados e os vídeos originais são preservados."
+  ],
+  "Seleccionar videos": [
+    "Select videos",
+    "Selecionar vídeos"
+  ],
+  "Ningún archivo seleccionado.": [
+    "No file selected.",
+    "Nenhum arquivo selecionado."
+  ],
+  "WAV · sin compresión": [
+    "WAV · uncompressed",
+    "WAV · sem compressão"
+  ],
+  "FLAC · sin pérdida": [
+    "FLAC · lossless",
+    "FLAC · sem perdas"
+  ],
+  "Calidad MP3 / M4A": [
+    "MP3 / M4A quality",
+    "Qualidade MP3 / M4A"
+  ],
+  "Carpeta para nombres automáticos": [
+    "Folder for automatic filenames",
+    "Pasta para nomes automáticos"
+  ],
+  "Usa «Guardar como» junto a cada video para elegir el nombre y la ubicación exacta de su audio. Los demás se guardarán en esta carpeta con un nombre automático.": [
+    "Use “Save as” next to each video to choose the name and exact location of its audio. Other files are saved here with automatic names.",
+    "Use “Salvar como” ao lado de cada vídeo para escolher o nome e o local exato do áudio. Os demais serão salvos nesta pasta com nomes automáticos."
+  ],
+  "Convertir archivos": [
+    "Convert files",
+    "Converter arquivos"
+  ],
+  "El progreso y la cancelación están en Descargas. Las conversiones terminadas también aparecen en Historial.": [
+    "Progress and cancellation are available in Downloads. Finished conversions also appear in History.",
+    "O progresso e o cancelamento estão em Downloads. As conversões concluídas também aparecem no Histórico."
+  ],
+  "CONVERSIÓN DE VIDEO": [
+    "VIDEO CONVERSION",
+    "CONVERSÃO DE VÍDEO"
+  ],
+  "Tus videos, listos para editar.": [
+    "Your videos, ready to edit.",
+    "Seus vídeos, prontos para editar."
+  ],
+  "Vuelve a codificar varios MP4 o cambia su formato de salida. Los originales permanecen intactos.": [
+    "Re-encode multiple MP4 files or change their output format. The originals remain intact.",
+    "Recodifique vários MP4 ou altere seu formato de saída. Os originais permanecem intactos."
+  ],
+  "Convertir varios videos": [
+    "Convert multiple videos",
+    "Converter vários vídeos"
+  ],
+  "Para VEGAS Pro, usa MP4: H.264, audio AAC y fotogramas constantes.": [
+    "For VEGAS Pro, use MP4: H.264, AAC audio and a constant frame rate.",
+    "Para o VEGAS Pro, use MP4: H.264, áudio AAC e taxa de quadros constante."
+  ],
+  "Procesamiento local": [
+    "Local processing",
+    "Processamento local"
+  ],
+  "Videos seleccionados": [
+    "Selected videos",
+    "Vídeos selecionados"
+  ],
+  "Formato de salida": [
+    "Output format",
+    "Formato de saída"
+  ],
+  "Calidad del video": [
+    "Video quality",
+    "Qualidade do vídeo"
+  ],
+  "Muy alta · archivo más grande": [
+    "Very high · larger file",
+    "Muito alta · arquivo maior"
+  ],
+  "Alta · recomendada": [
+    "High · recommended",
+    "Alta · recomendada"
+  ],
+  "Equilibrada · archivo más pequeño": [
+    "Balanced · smaller file",
+    "Equilibrada · arquivo menor"
+  ],
+  "Carpeta de destino": [
+    "Destination folder",
+    "Pasta de destino"
+  ],
+  "Se recuerda por separado de tus descargas y conversiones de audio.": [
+    "Saved separately from your download and audio conversion folders.",
+    "Salva separadamente das pastas de downloads e conversões de áudio."
+  ],
+  "Usa «Guardar como…» junto a un video para elegir su nombre y destino. Los demás se guardarán en la carpeta indicada arriba.": [
+    "Use “Save as…” next to a video to choose its name and destination. Other files are saved in the folder above.",
+    "Use “Salvar como…” ao lado de um vídeo para escolher o nome e o destino. Os demais serão salvos na pasta indicada acima."
+  ],
+  "Convertir archivos →": [
+    "Convert files →",
+    "Converter arquivos →"
+  ],
+  "MP4 compatible para edición": [
+    "MP4 for editing",
+    "MP4 para edição"
+  ],
+  "Se genera un archivo nuevo con H.264, color YUV 4:2:0 y audio AAC. Convertir MP4 a MP4 cambia el contenido interno del archivo, no solo su nombre.": [
+    "Creates a new file with H.264, YUV 4:2:0 color and AAC audio. Converting MP4 to MP4 changes the internal content, not just the filename.",
+    "Cria um novo arquivo com H.264, cor YUV 4:2:0 e áudio AAC. Converter MP4 para MP4 altera o conteúdo interno, não apenas o nome."
+  ],
+  "El progreso aparece en Descargas y el archivo terminado en Historial. La compatibilidad depende también de la versión y configuración de VEGAS Pro.": [
+    "Progress appears in Downloads and the finished file in History. Compatibility also depends on your VEGAS Pro version and settings.",
+    "O progresso aparece em Downloads e o arquivo final no Histórico. A compatibilidade também depende da versão e das configurações do VEGAS Pro."
+  ],
+  "TU ESTUDIO DE AUDIO": [
+    "YOUR AUDIO STUDIO",
+    "SEU ESTÚDIO DE ÁUDIO"
+  ],
+  "Escucha cada parte.": [
+    "Listen to each part.",
+    "Ouça cada parte."
+  ],
+  "Extrae la voz, crea una pista instrumental o separa los instrumentos de tu canción.": [
+    "Extract vocals, create an instrumental track or separate the instruments in your song.",
+    "Extraia a voz, crie uma faixa instrumental ou separe os instrumentos da sua música."
+  ],
+  "Separar voz y música": [
+    "Separate vocals and music",
+    "Separar voz e música"
+  ],
+  "Selecciona un audio o video de tu computadora. El archivo original se conserva.": [
+    "Select audio or video from your computer. The original file is kept.",
+    "Selecione um áudio ou vídeo do seu computador. O arquivo original é preservado."
+  ],
+  "Archivo de origen": [
+    "Source file",
+    "Arquivo de origem"
+  ],
+  "MP3, WAV, FLAC, M4A, MP4 y más…": [
+    "MP3, WAV, FLAC, M4A, MP4 and more…",
+    "MP3, WAV, FLAC, M4A, MP4 e mais…"
+  ],
+  "Seleccionar archivo": [
+    "Select file",
+    "Selecionar arquivo"
+  ],
+  "¿Qué quieres obtener?": [
+    "What would you like to get?",
+    "O que você quer obter?"
+  ],
+  "Voz y música": [
+    "Vocals and music",
+    "Voz e música"
+  ],
+  "2 pistas · Voz aislada e instrumental sin voz.": [
+    "2 tracks · Isolated vocals and instrumental without vocals.",
+    "2 faixas · Voz isolada e instrumental sem voz."
+  ],
+  "4 pistas": [
+    "4 tracks",
+    "4 faixas"
+  ],
+  "Voz, batería, bajo y otros instrumentos.": [
+    "Vocals, drums, bass and other instruments.",
+    "Voz, bateria, baixo e outros instrumentos."
+  ],
+  "6 pistas": [
+    "6 tracks",
+    "6 faixas"
+  ],
+  "Añade guitarra y piano a las cuatro pistas.": [
+    "Adds guitar and piano to the four tracks.",
+    "Adiciona guitarra e piano às quatro faixas."
+  ],
+  "Formato de las pistas": [
+    "Track format",
+    "Formato das faixas"
+  ],
+  "WAV · sin pérdida, 24 bits": [
+    "WAV · lossless, 24-bit",
+    "WAV · sem perdas, 24 bits"
+  ],
+  "FLAC · sin pérdida, comprimido": [
+    "FLAC · lossless, compressed",
+    "FLAC · sem perdas, comprimido"
+  ],
+  "MP3 · archivo más pequeño": [
+    "MP3 · smaller file",
+    "MP3 · arquivo menor"
+  ],
+  "Calidad MP3": [
+    "MP3 quality",
+    "Qualidade MP3"
+  ],
+  "Destino de las pistas": [
+    "Track destination",
+    "Destino das faixas"
+  ],
+  "Modelo de separación": [
+    "Separation model",
+    "Modelo de separação"
+  ],
+  "La primera separación descarga el modelo. Después podrás usarlo sin Internet.": [
+    "The first separation downloads the model. You can then use it offline.",
+    "A primeira separação baixa o modelo. Depois, você poderá usá-lo sem Internet."
+  ],
+  "La calidad depende de la mezcla original; pueden quedar restos de voz o instrumentos. Guitarra y piano son experimentales. Se procesa una separación a la vez; recomendamos 8 GB de RAM.": [
+    "Quality depends on the original mix; some vocals or instruments may remain. Guitar and piano are experimental. One separation runs at a time; 8 GB of RAM is recommended.",
+    "A qualidade depende da mixagem original; podem restar sons de voz ou instrumentos. Guitarra e piano são experimentais. Uma separação é processada por vez; recomendamos 8 GB de RAM."
+  ],
+  "Separar audio": [
+    "Separate audio",
+    "Separar áudio"
+  ],
+  "Tus separaciones": [
+    "Your separations",
+    "Suas separações"
+  ],
+  "Escucha las pistas terminadas o abre su carpeta. También se guardan en Historial.": [
+    "Listen to finished tracks or open their folder. They are also saved in History.",
+    "Ouça as faixas concluídas ou abra sua pasta. Elas também são salvas no Histórico."
+  ],
+  "Ver cola →": [
+    "View queue →",
+    "Ver fila →"
+  ],
+  "Aquí aparecerán tus pistas al iniciar una separación.": [
+    "Your tracks will appear here when you start a separation.",
+    "Suas faixas aparecerão aqui ao iniciar uma separação."
+  ],
+  "Cancelar pendientes": [
+    "Cancel pending jobs",
+    "Cancelar pendentes"
+  ],
+  "Quitar completadas de la cola": [
+    "Remove completed jobs from queue",
+    "Remover concluídos da fila"
+  ],
+  "En cola": [
+    "Queued",
+    "Na fila"
+  ],
+  "Pendientes": [
+    "Pending",
+    "Pendentes"
+  ],
+  "Activas": [
+    "Active",
+    "Ativos"
+  ],
+  "Descargando": [
+    "Downloading",
+    "Baixando"
+  ],
+  "Completadas": [
+    "Completed",
+    "Concluídos"
+  ],
+  "En esta sesión": [
+    "In this session",
+    "Nesta sessão"
+  ],
+  "Progreso general": [
+    "Overall progress",
+    "Progresso geral"
+  ],
+  "COLA DE TRABAJO": [
+    "JOB QUEUE",
+    "FILA DE TAREFAS"
+  ],
+  "＋ Nueva descarga": [
+    "＋ New download",
+    "＋ Novo download"
+  ],
+  "Todavía no hay descargas": [
+    "No downloads yet",
+    "Ainda não há downloads"
+  ],
+  "Agrega un video desde la pantalla de inicio.": [
+    "Add a video from the home screen.",
+    "Adicione um vídeo pela tela inicial."
+  ],
+  "Buscar en el historial": [
+    "Search history",
+    "Pesquisar no histórico"
+  ],
+  "Buscar por título, enlace o plataforma": [
+    "Search by title, link or platform",
+    "Pesquisar por título, link ou plataforma"
+  ],
+  "Exportar historial CSV": [
+    "Export history as CSV",
+    "Exportar histórico em CSV"
+  ],
+  "ARCHIVOS Y ENLACES GUARDADOS": [
+    "SAVED FILES AND LINKS",
+    "ARQUIVOS E LINKS SALVOS"
+  ],
+  "Historial de descargas": [
+    "Download history",
+    "Histórico de downloads"
+  ],
+  "Limpiar historial": [
+    "Clear history",
+    "Limpar histórico"
+  ],
+  "Fecha": [
+    "Date",
+    "Data"
+  ],
+  "Peso": [
+    "Size",
+    "Tamanho"
+  ],
+  "URL del video": [
+    "Video URL",
+    "URL do vídeo"
+  ],
+  "Ubicación": [
+    "Location",
+    "Localização"
+  ],
+  "Tu historial está vacío": [
+    "Your history is empty",
+    "Seu histórico está vazio"
+  ],
+  "Las descargas completadas y sus enlaces aparecerán aquí.": [
+    "Completed downloads and their links will appear here.",
+    "Os downloads concluídos e seus links aparecerão aqui."
+  ],
+  "A TU GUSTO": [
+    "MAKE IT YOURS",
+    "DO SEU JEITO"
+  ],
+  "Hazla a tu manera.": [
+    "Make it your own.",
+    "Deixe do seu jeito."
+  ],
+  "Elige cómo se ve VideoFlow. Los cambios se muestran al instante y se guardan en este equipo.": [
+    "Choose how VideoFlow looks. Changes appear instantly and are saved on this computer.",
+    "Escolha a aparência do VideoFlow. As alterações aparecem na hora e são salvas neste computador."
+  ],
+  "Modo": [
+    "Mode",
+    "Modo"
+  ],
+  "Automático": [
+    "Automatic",
+    "Automático"
+  ],
+  "Según Windows": [
+    "Follow Windows",
+    "Seguir o Windows"
+  ],
+  "Claro": [
+    "Light",
+    "Claro"
+  ],
+  "Más luminoso": [
+    "Brighter",
+    "Mais luminoso"
+  ],
+  "Oscuro": [
+    "Dark",
+    "Escuro"
+  ],
+  "Menos brillo": [
+    "Less brightness",
+    "Menos brilho"
+  ],
+  "Tema visual": [
+    "Visual theme",
+    "Tema visual"
+  ],
+  "Seis estilos para todas las secciones de la aplicación.": [
+    "Six styles for every section of the app.",
+    "Seis estilos para todas as seções do aplicativo."
+  ],
+  "Color de acento": [
+    "Accent color",
+    "Cor de destaque"
+  ],
+  "Tu color": [
+    "Your color",
+    "Sua cor"
+  ],
+  "Elegir color de acento": [
+    "Choose accent color",
+    "Escolher cor de destaque"
+  ],
+  "Código hexadecimal del acento": [
+    "Accent hex code",
+    "Código hexadecimal do destaque"
+  ],
+  "Fuente": [
+    "Font",
+    "Fonte"
+  ],
+  "Disponible sin descargar archivos.": [
+    "Available without downloading files.",
+    "Disponível sem baixar arquivos."
+  ],
+  "Sistema · Segoe UI": [
+    "System · Segoe UI",
+    "Sistema · Segoe UI"
+  ],
+  "Personalización avanzada": [
+    "Advanced customization",
+    "Personalização avançada"
+  ],
+  "Colores personalizados": [
+    "Custom colors",
+    "Cores personalizadas"
+  ],
+  "Usar tus propios colores de fondo y texto.": [
+    "Use your own background and text colors.",
+    "Use suas próprias cores de fundo e texto."
+  ],
+  "Usar colores personalizados": [
+    "Use custom colors",
+    "Usar cores personalizadas"
+  ],
+  "Fondo": [
+    "Background",
+    "Fundo"
+  ],
+  "Elegir color de fondo": [
+    "Choose background color",
+    "Escolher cor de fundo"
+  ],
+  "Código hexadecimal del fondo": [
+    "Background hex code",
+    "Código hexadecimal do fundo"
+  ],
+  "Texto": [
+    "Text",
+    "Texto"
+  ],
+  "Elegir color del texto": [
+    "Choose text color",
+    "Escolher cor do texto"
+  ],
+  "Código hexadecimal del texto": [
+    "Text hex code",
+    "Código hexadecimal do texto"
+  ],
+  "Espaciado": [
+    "Spacing",
+    "Espaçamento"
+  ],
+  "Elige cuánto espacio ocupan los controles.": [
+    "Choose how much space the controls use.",
+    "Escolha quanto espaço os controles ocupam."
+  ],
+  "Cómodo": [
+    "Comfortable",
+    "Confortável"
+  ],
+  "Compacto": [
+    "Compact",
+    "Compacto"
+  ],
+  "Reducir movimiento": [
+    "Reduce motion",
+    "Reduzir movimento"
+  ],
+  "Desactiva animaciones y transiciones.": [
+    "Disable animations and transitions.",
+    "Desativa animações e transições."
+  ],
+  "VISTA PREVIA": [
+    "PREVIEW",
+    "PRÉVIA"
+  ],
+  "Tu VideoFlow": [
+    "Your VideoFlow",
+    "Seu VideoFlow"
+  ],
+  "Tu próximo video": [
+    "Your next video",
+    "Seu próximo vídeo"
+  ],
+  "Guarda lo que te inspira.": [
+    "Save what inspires you.",
+    "Salve o que inspira você."
+  ],
+  "Pega un enlace…": [
+    "Paste a link…",
+    "Cole um link…"
+  ],
+  "Descargar video ↓": [
+    "Download video ↓",
+    "Baixar vídeo ↓"
+  ],
+  "Mi video.mp4": [
+    "My video.mp4",
+    "Meu vídeo.mp4"
+  ],
+  "Preparando tu archivo": [
+    "Preparing your file",
+    "Preparando seu arquivo"
+  ],
+  "Apariencia guardada en este equipo.": [
+    "Appearance saved on this computer.",
+    "Aparência salva neste computador."
+  ],
+  "Reintentar guardado": [
+    "Retry saving",
+    "Tentar salvar novamente"
+  ],
+  "Restablecer apariencia": [
+    "Reset appearance",
+    "Redefinir aparência"
+  ],
+  "Los colores de los logos de las plataformas conservan su identidad.": [
+    "Platform logos keep their original colors.",
+    "Os logotipos das plataformas mantêm as cores originais."
+  ],
+  "PREFERENCIAS": [
+    "PREFERENCES",
+    "PREFERÊNCIAS"
+  ],
+  "Configuración general": [
+    "General settings",
+    "Configurações gerais"
+  ],
+  "Destino de YouTube": [
+    "YouTube destination",
+    "Destino do YouTube"
+  ],
+  "Cambiar": [
+    "Change",
+    "Alterar"
+  ],
+  "Destino de Facebook": [
+    "Facebook destination",
+    "Destino do Facebook"
+  ],
+  "Destino de TikTok": [
+    "TikTok destination",
+    "Destino do TikTok"
+  ],
+  "Formato predeterminado": [
+    "Default format",
+    "Formato padrão"
+  ],
+  "Calidad de video": [
+    "Video quality",
+    "Qualidade de vídeo"
+  ],
+  "Calidad de audio": [
+    "Audio quality",
+    "Qualidade de áudio"
+  ],
+  "Descargas simultáneas:": [
+    "Simultaneous downloads:",
+    "Downloads simultâneos:"
+  ],
+  "0 = iniciar todos sin límite de la aplicación. Un valor de 3 a 6 reduce la carga de CPU, memoria y conexión.": [
+    "0 = start all jobs with no app limit. A value of 3 to 6 reduces CPU, memory and network usage.",
+    "0 = iniciar todas as tarefas sem limite do aplicativo. Um valor de 3 a 6 reduz o uso de CPU, memória e conexão."
+  ],
+  "Cerrar a la bandeja y continuar trabajando": [
+    "Close to tray and keep working",
+    "Fechar para a bandeja e continuar trabalhando"
+  ],
+  "Evitar suspensión automática durante los trabajos": [
+    "Prevent automatic sleep while jobs are running",
+    "Evitar suspensão automática durante as tarefas"
+  ],
+  "La pantalla puede apagarse. La suspensión manual, hibernación o apagado del equipo detienen la actividad. Usa «Salir» en el icono de VideoFlow junto al reloj para cerrar por completo.": [
+    "The display may turn off. Manual sleep, hibernation or shutting down stops activity. Use “Exit” on the VideoFlow tray icon to quit completely.",
+    "A tela pode desligar. Suspensão manual, hibernação ou desligamento interrompem a atividade. Use “Sair” no ícone do VideoFlow ao lado do relógio para fechar por completo."
+  ],
+  "Conexión y recuperación": [
+    "Connection and recovery",
+    "Conexão e recuperação"
+  ],
+  "Se comprobará FFmpeg al iniciar la aplicación.": [
+    "FFmpeg will be checked when the app starts.",
+    "O FFmpeg será verificado ao iniciar o aplicativo."
+  ],
+  "Buscando información de versiones…": [
+    "Checking version information…",
+    "Buscando informações de versões…"
+  ],
+  "La búsqueda se realiza en segundo plano en cada inicio. Las versiones nuevas se descargan desde el proveedor de FFmpeg para Windows.": [
+    "The check runs in the background on each start. New versions are downloaded from the FFmpeg provider for Windows.",
+    "A verificação ocorre em segundo plano a cada início. As novas versões são baixadas do fornecedor do FFmpeg para Windows."
+  ],
+  "Comprobar ahora": [
+    "Check now",
+    "Verificar agora"
+  ],
+  "Abrir descarga oficial": [
+    "Open official download",
+    "Abrir download oficial"
+  ],
+  "Límite por descarga (KB/s, 0 = sin límite)": [
+    "Limit per download (KB/s, 0 = unlimited)",
+    "Limite por download (KB/s, 0 = sem limite)"
+  ],
+  "Reintentos ante errores de red": [
+    "Retries on network errors",
+    "Tentativas após erros de rede"
+  ],
+  "Estos valores se aplican a las nuevas descargas. Las conversiones comparten el límite de trabajos simultáneos.": [
+    "These values apply to new downloads. Conversions share the simultaneous job limit.",
+    "Estes valores se aplicam aos novos downloads. As conversões compartilham o limite de tarefas simultâneas."
+  ],
+  "Personalización y avisos": [
+    "Customization and notifications",
+    "Personalização e avisos"
+  ],
+  "Modo, temas, colores y fuente.": [
+    "Mode, themes, colors and font.",
+    "Modo, temas, cores e fonte."
+  ],
+  "Personalizar": [
+    "Customize",
+    "Personalizar"
+  ],
+  "Notificaciones": [
+    "Notifications",
+    "Notificações"
+  ],
+  "Avisa cuando una descarga finaliza o falla.": [
+    "Notify when a download finishes or fails.",
+    "Avisa quando um download termina ou falha."
+  ],
+  "Guardar configuración": [
+    "Save settings",
+    "Salvar configurações"
+  ],
+  "Aplicación privada para administrar tus descargas multimedia desde Windows.": [
+    "A private app for managing media downloads on Windows.",
+    "Aplicativo privado para gerenciar seus downloads multimídia no Windows."
+  ],
+  "Aplicación de escritorio": [
+    "Desktop app",
+    "Aplicativo de desktop"
+  ],
+  "Base de datos local": [
+    "Local database",
+    "Banco de dados local"
+  ],
+  "YouTube, Facebook y TikTok": [
+    "YouTube, Facebook and TikTok",
+    "YouTube, Facebook e TikTok"
+  ],
+  "Descarga solamente material que tengas derecho a guardar. Algunos contenidos o servicios pueden imponer restricciones adicionales.": [
+    "Only download material you have the right to save. Some content or services may impose additional restrictions.",
+    "Baixe apenas material que você tenha direito de salvar. Alguns conteúdos ou serviços podem impor restrições adicionais."
+  ],
+  "Confirmar acción": [
+    "Confirm action",
+    "Confirmar ação"
+  ],
+  "¿Deseas continuar?": [
+    "Would you like to continue?",
+    "Deseja continuar?"
+  ],
+  "Cancelar": [
+    "Cancel",
+    "Cancelar"
+  ],
+  "Confirmar": [
+    "Confirm",
+    "Confirmar"
+  ],
+  "VideoFlow · Reproductor": [
+    "VideoFlow · Player",
+    "VideoFlow · Reprodutor"
+  ],
+  "Arrastra para mover": [
+    "Drag to move",
+    "Arraste para mover"
+  ],
+  "Volver al reproductor principal": [
+    "Return to main player",
+    "Voltar ao reprodutor principal"
+  ],
+  "Cerrar ventana": [
+    "Close window",
+    "Fechar janela"
+  ],
+  "Video local": [
+    "Local video",
+    "Vídeo local"
+  ],
+  "Controles del reproductor": [
+    "Player controls",
+    "Controles do reprodutor"
+  ],
+  "Posición del video": [
+    "Video position",
+    "Posição do vídeo"
+  ],
+  "Reproducir": [
+    "Play",
+    "Reproduzir"
+  ],
+  "Reiniciar": [
+    "Restart",
+    "Reiniciar"
+  ],
+  "Silenciar": [
+    "Mute",
+    "Silenciar"
+  ],
+  "Volumen": [
+    "Volume",
+    "Volume"
+  ],
+  "Pantalla completa": [
+    "Fullscreen",
+    "Tela cheia"
+  ],
+  "Español": [
+    "Spanish",
+    "Espanhol"
+  ],
+  "Inglés": [
+    "English",
+    "Inglês"
+  ],
+  "Portugués": [
+    "Portuguese",
+    "Português"
+  ],
+  "Portugués de Brasil": [
+    "Brazilian Portuguese",
+    "Português do Brasil"
+  ],
+  "Francés": [
+    "French",
+    "Francês"
+  ],
+  "Alemán": [
+    "German",
+    "Alemão"
+  ],
+  "Japonés": [
+    "Japanese",
+    "Japonês"
+  ],
+  "TU BIBLIOTECA COMPLETA": [
+    "YOUR COMPLETE LIBRARY",
+    "SUA BIBLIOTECA COMPLETA"
+  ],
+  "Listas y canales.": [
+    "Playlists and channels.",
+    "Playlists e canais."
+  ],
+  "Una dirección, todos sus videos accesibles. Importación sin límite de cantidad.": [
+    "One address, all its accessible videos. No app limit on imported items.",
+    "Um endereço, todos os vídeos acessíveis. Importação sem limite de quantidade."
+  ],
+  "Descargar una colección de YouTube": [
+    "Download a YouTube collection",
+    "Baixar uma coleção do YouTube"
+  ],
+  "Enlace de lista o canal": [
+    "Playlist or channel link",
+    "Link da playlist ou do canal"
+  ],
+  "Descargar colección": [
+    "Download collection",
+    "Baixar coleção"
+  ],
+  "Se omiten duplicados dentro de la colección y entradas privadas no disponibles. El progreso de cada video aparece en Descargas; los errores de un video no detienen los demás.": [
+    "Duplicates and unavailable private entries are skipped. Each video's progress appears in Downloads; errors in one video do not stop the others.",
+    "Duplicados e entradas privadas indisponíveis são ignorados. O progresso de cada vídeo aparece em Downloads; erros em um vídeo não interrompem os demais."
+  ],
+  "Reproductor local": [
+    "Local player",
+    "Reprodutor local"
+  ],
+  "Abre un video o audio de tu computadora.": [
+    "Open a video or audio file from your computer.",
+    "Abra um vídeo ou áudio do seu computador."
+  ],
+  "Abrir archivo": [
+    "Open file",
+    "Abrir arquivo"
+  ],
+  "Abrir o arrastrar un video o audio": [
+    "Open or drop a video or audio file",
+    "Abrir ou arrastar um vídeo ou áudio"
+  ],
+  "Arrastra aquí tu video o audio": [
+    "Drop your video or audio here",
+    "Arraste seu vídeo ou áudio aqui"
+  ],
+  "También puedes hacer clic para elegir un archivo de tu computadora.": [
+    "You can also click to choose a file from your computer.",
+    "Você também pode clicar para escolher um arquivo do seu computador."
+  ],
+  "Reproduciendo en la ventana pequeña": [
+    "Playing in the small window",
+    "Reproduzindo na janela pequena"
+  ],
+  "Puedes seguir usando la barra de tiempo y el volumen desde aquí.": [
+    "You can still use the timeline and volume controls here.",
+    "Você pode continuar usando a linha do tempo e o volume por aqui."
+  ],
+  "Volver al reproductor": [
+    "Return to player",
+    "Voltar ao reprodutor"
+  ],
+  "Ventana flotante": [
+    "Floating window",
+    "Janela flutuante"
+  ],
+  "Velocidad": [
+    "Speed",
+    "Velocidade"
+  ],
+  "Brillo del video": [
+    "Video brightness",
+    "Brilho do vídeo"
+  ],
+  "Arrastra la barra de tiempo para avanzar o retroceder y usa Volumen para ajustar el sonido. Sobre el video: espacio para reproducir / pausar; flechas para avanzar, retroceder y volumen. También puedes deslizar verticalmente a la izquierda para el brillo y a la derecha para el volumen. Para videos incompatibles, convierte a MP4 H.264.": [
+    "Drag the timeline to seek and use Volume to adjust the sound. On the video: Space to play / pause; arrow keys to seek and change volume. You can also swipe vertically on the left for brightness and on the right for volume. Convert incompatible videos to MP4 H.264.",
+    "Arraste a linha do tempo para avançar ou retroceder e use Volume para ajustar o som. Sobre o vídeo: espaço para reproduzir / pausar; setas para avançar, retroceder e alterar o volume. Deslize verticalmente à esquerda para o brilho e à direita para o volume. Converta vídeos incompatíveis para MP4 H.264."
+  ],
+  "EXPLORA Y GUARDA": [
+    "BROWSE AND SAVE",
+    "EXPLORE E SALVE"
+  ],
+  "Navegador privado.": [
+    "Private browser.",
+    "Navegador privado."
+  ],
+  "Una sesión separada, bloqueo de anuncios por dominio y detección de recursos multimedia.": [
+    "A separate session, domain-based ad blocking and media resource detection.",
+    "Uma sessão separada, bloqueio de anúncios por domínio e detecção de recursos multimídia."
+  ],
+  "Dirección web": [
+    "Web address",
+    "Endereço da web"
+  ],
+  "Abrir navegador": [
+    "Open browser",
+    "Abrir navegador"
+  ],
+  "La navegación se abre en una ventana privada de VideoFlow. Reproduce el video allí y vuelve aquí para ver los recursos detectados. Algunos sitios usan DRM, enlaces temporales o sesiones que impiden descargarlos. El bloqueo por dominios no elimina todos los anuncios.": [
+    "Browsing opens in a private VideoFlow window. Play the video there and return here to see detected resources. Some sites use DRM, temporary links or sessions that prevent downloading. Domain blocking does not remove every ad.",
+    "A navegação abre em uma janela privada do VideoFlow. Reproduza o vídeo lá e volte aqui para ver os recursos detectados. Alguns sites usam DRM, links temporários ou sessões que impedem o download. O bloqueio por domínio não remove todos os anúncios."
+  ],
+  "Descargar como": [
+    "Download as",
+    "Baixar como"
+  ],
+  "MP4 · video y audio": [
+    "MP4 · video and audio",
+    "MP4 · vídeo e áudio"
+  ],
+  "MKV · video y audio": [
+    "MKV · video and audio",
+    "MKV · vídeo e áudio"
+  ],
+  "Destino": [
+    "Destination",
+    "Destino"
+  ],
+  "Actualizar detección": [
+    "Refresh detection",
+    "Atualizar detecção"
+  ],
+  "Borrar lista": [
+    "Clear list",
+    "Limpar lista"
+  ],
+  "Estas descargas usan modo incógnito. Las direcciones detectadas solo permanecen en memoria durante esta sesión.": [
+    "These downloads use incognito mode. Detected addresses remain in memory only during this session.",
+    "Estes downloads usam o modo anônimo. Os endereços detectados ficam apenas na memória durante esta sessão."
+  ],
+  "SOLO PARA TI": [
+    "JUST FOR YOU",
+    "SÓ PARA VOCÊ"
+  ],
+  "Carpeta privada.": [
+    "Private folder.",
+    "Pasta privada."
+  ],
+  "Copias cifradas de tus archivos, protegidas con PIN y bloqueo automático.": [
+    "Encrypted copies of your files, protected by a PIN and automatic locking.",
+    "Cópias criptografadas dos seus arquivos, protegidas por PIN e bloqueio automático."
+  ],
+  "Introduce tu PIN para abrir la carpeta privada.": [
+    "Enter your PIN to open the private folder.",
+    "Digite seu PIN para abrir a pasta privada."
+  ],
+  "PIN · mínimo 6 dígitos": [
+    "PIN · at least 6 digits",
+    "PIN · mínimo de 6 dígitos"
+  ],
+  "Repite tu nuevo PIN": [
+    "Repeat your new PIN",
+    "Repita seu novo PIN"
+  ],
+  "Desbloquear / crear": [
+    "Unlock / create",
+    "Desbloquear / criar"
+  ],
+  "Guarda tu PIN: no se puede recuperar. Se bloquea tras 5 minutos sin uso o al ocultar la app. Esta versión usa PIN; no requiere huella ni reconocimiento facial.": [
+    "Keep your PIN safe: it cannot be recovered. Locks after 5 minutes of inactivity or when the app is hidden. This version uses a PIN; no fingerprint or facial recognition is required.",
+    "Guarde seu PIN: ele não pode ser recuperado. A pasta é bloqueada após 5 minutos sem uso ou ao ocultar o aplicativo. Esta versão usa PIN; não exige impressão digital nem reconhecimento facial."
+  ],
+  "Añadir copias cifradas": [
+    "Add encrypted copies",
+    "Adicionar cópias criptografadas"
+  ],
+  "Bloquear ahora": [
+    "Lock now",
+    "Bloquear agora"
+  ],
+  "Los originales permanecen en su ubicación. Para conservar solo la copia privada, comprueba que puedas exportarla antes de eliminar el original. Al exportar, el archivo vuelve a ser visible sin PIN.": [
+    "Originals stay in their location. Before deleting an original to keep only the private copy, make sure you can export it. Exported files are visible without a PIN.",
+    "Os originais permanecem no local de origem. Antes de excluir um original para manter apenas a cópia privada, verifique se consegue exportá-la. Os arquivos exportados ficam visíveis sem PIN."
+  ],
+  "Idioma de la aplicación": [
+    "App language",
+    "Idioma do aplicativo"
+  ],
+  "Idioma de la interfaz": [
+    "Interface language",
+    "Idioma da interface"
+  ],
+  "El idioma se guarda automáticamente y se aplica al instante.": [
+    "The language is saved automatically and applied instantly.",
+    "O idioma é salvo automaticamente e aplicado na hora."
+  ],
+  "Los nombres de archivos y enlaces se conservan. Los diálogos de Windows usan el idioma del sistema.": [
+    "Filenames and links are kept as they are. Windows dialogs use the system language.",
+    "Os nomes dos arquivos e os links são preservados. Os diálogos do Windows usam o idioma do sistema."
+  ],
+  "Guardando idioma…": [
+    "Saving language…",
+    "Salvando idioma…"
+  ],
+  "Idioma guardado. Se usará también la próxima vez que abras la aplicación.": [
+    "Language saved. It will also be used the next time you open the app.",
+    "Idioma salvo. Ele também será usado na próxima vez que você abrir o aplicativo."
+  ],
+  "No se pudo guardar el idioma. Vuelve a intentarlo.": [
+    "Could not save the language. Please try again.",
+    "Não foi possível salvar o idioma. Tente novamente."
+  ],
+  "Selecciona un idioma disponible.": [
+    "Select an available language.",
+    "Selecione um idioma disponível."
+  ],
+  "Enlaces de {0}": [
+    "{0} links",
+    "Links do {0}"
+  ],
+  "Destino de la descarga · {0}": [
+    "Download destination · {0}",
+    "Destino do download · {0}"
+  ],
+  "Se guardará en la carpeta de {0}. Usa «Guardar como» para cambiar nombre y ubicación.": [
+    "Saved in the {0} folder. Use “Save as” to change the name and location.",
+    "Será salvo na pasta do {0}. Use “Salvar como” para alterar o nome e o local."
+  ],
+  "Pega varios enlaces, uno por línea": [
+    "Paste multiple links, one per line",
+    "Cole vários links, um por linha"
+  ],
+  "Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».": [
+    "One link: Analyze video. Multiple links: choose the options below and click “Add links to queue”.",
+    "Um link: Analisar vídeo. Vários links: escolha as opções abaixo e clique em “Adicionar links à fila”."
+  ],
+  "Sistema listo": [
+    "System ready",
+    "Sistema pronto"
+  ],
+  "Falta FFmpeg": [
+    "FFmpeg missing",
+    "FFmpeg ausente"
+  ],
+  "Deno disponible": [
+    "Deno available",
+    "Deno disponível"
+  ],
+  "Deno no detectado": [
+    "Deno not detected",
+    "Deno não detectado"
+  ],
+  "Ejecuta INSTALAR.bat para habilitar conversiones.": [
+    "Run INSTALAR.bat to enable conversions.",
+    "Execute INSTALAR.bat para habilitar as conversões."
+  ],
+  "Dependencia pendiente": [
+    "Missing dependency",
+    "Dependência pendente"
+  ],
+  "FFmpeg no está disponible. Ejecuta INSTALAR.bat.": [
+    "FFmpeg is unavailable. Run INSTALAR.bat.",
+    "O FFmpeg não está disponível. Execute INSTALAR.bat."
+  ],
+  "Sin conexión": [
+    "Offline",
+    "Sem conexão"
+  ],
+  "No se pudo conectar": [
+    "Could not connect",
+    "Não foi possível conectar"
+  ],
+  "No se pudo guardar": [
+    "Could not save",
+    "Não foi possível salvar"
+  ],
+  "No se pudo limpiar": [
+    "Could not clear",
+    "Não foi possível limpar"
+  ],
+  "No se pudo cancelar": [
+    "Could not cancel",
+    "Não foi possível cancelar"
+  ],
+  "No se pudo seleccionar": [
+    "Could not select",
+    "Não foi possível selecionar"
+  ],
+  "No se pudo abrir": [
+    "Could not open",
+    "Não foi possível abrir"
+  ],
+  "No se pudo completar": [
+    "Could not complete",
+    "Não foi possível concluir"
+  ],
+  "No se pudo iniciar": [
+    "Could not start",
+    "Não foi possível iniciar"
+  ],
+  "No se pudo actualizar la cola": [
+    "Could not update the queue",
+    "Não foi possível atualizar a fila"
+  ],
+  "No se pudo elegir el destino": [
+    "Could not choose the destination",
+    "Não foi possível escolher o destino"
+  ],
+  "No se pudo elegir el archivo": [
+    "Could not choose the file",
+    "Não foi possível escolher o arquivo"
+  ],
+  "No se pudo elegir el archivo de salida": [
+    "Could not choose the output file",
+    "Não foi possível escolher o arquivo de saída"
+  ],
+  "No se pudo elegir la carpeta": [
+    "Could not choose the folder",
+    "Não foi possível escolher a pasta"
+  ],
+  "No se pudo guardar la carpeta": [
+    "Could not save the folder",
+    "Não foi possível salvar a pasta"
+  ],
+  "No se pudieron seleccionar los videos": [
+    "Could not select the videos",
+    "Não foi possível selecionar os vídeos"
+  ],
+  "No se pudo seleccionar el archivo": [
+    "Could not select the file",
+    "Não foi possível selecionar o arquivo"
+  ],
+  "No se pudo iniciar la separación": [
+    "Could not start separation",
+    "Não foi possível iniciar a separação"
+  ],
+  "No se pudo abrir el navegador": [
+    "Could not open the browser",
+    "Não foi possível abrir o navegador"
+  ],
+  "No se pudo desbloquear": [
+    "Could not unlock",
+    "Não foi possível desbloquear"
+  ],
+  "No se pudo proteger": [
+    "Could not protect",
+    "Não foi possível proteger"
+  ],
+  "No se pudo abrir la ventana": [
+    "Could not open the window",
+    "Não foi possível abrir a janela"
+  ],
+  "No se pudo volver": [
+    "Could not return",
+    "Não foi possível voltar"
+  ],
+  "Respuesta no válida del servidor.": [
+    "Invalid server response.",
+    "Resposta inválida do servidor."
+  ],
+  "Error de inicio": [
+    "Startup error",
+    "Erro ao iniciar"
+  ],
+  "Gestión de descargas": [
+    "Download manager",
+    "Gerenciamento de downloads"
+  ],
+  "Cambió el formato. Elige «Guardar como» otra vez para fijar nombre y ubicación.": [
+    "The format changed. Choose “Save as” again to set the name and location.",
+    "O formato mudou. Escolha “Salvar como” novamente para definir o nome e o local."
+  ],
+  "Carpeta recuperada del historial. Se usará un nombre automático para esta nueva descarga.": [
+    "Folder restored from History. This new download will use an automatic filename.",
+    "Pasta recuperada do Histórico. Este novo download usará um nome automático."
+  ],
+  "El archivo existente se reemplazará al terminar la descarga.": [
+    "The existing file will be replaced when the download finishes.",
+    "O arquivo existente será substituído ao terminar o download."
+  ],
+  "El archivo se guardará exactamente con este nombre y en esta ubicación.": [
+    "The file will be saved with this exact name and location.",
+    "O arquivo será salvo exatamente com este nome e neste local."
+  ],
+  "Varios enlaces": [
+    "Multiple links",
+    "Vários links"
+  ],
+  "Elige las opciones de Descargar varios enlaces y pulsa Añadir enlaces a la cola.": [
+    "Choose the options in Download multiple links and click Add links to queue.",
+    "Escolha as opções em Baixar vários links e clique em Adicionar links à fila."
+  ],
+  "Falta el enlace": [
+    "Missing link",
+    "Link ausente"
+  ],
+  "Pega una URL de YouTube, Facebook o TikTok para continuar.": [
+    "Paste a YouTube, Facebook or TikTok URL to continue.",
+    "Cole uma URL do YouTube, Facebook ou TikTok para continuar."
+  ],
+  "Analizando…": [
+    "Analyzing…",
+    "Analisando…"
+  ],
+  "Añadido a la cola": [
+    "Added to queue",
+    "Adicionado à fila"
+  ],
+  "Guardado correctamente": [
+    "Saved successfully",
+    "Salvo com sucesso"
+  ],
+  "Incógnito": [
+    "Incognito",
+    "Anônimo"
+  ],
+  "FFmpeg está preparando el archivo final": [
+    "FFmpeg is preparing the output file",
+    "O FFmpeg está preparando o arquivo final"
+  ],
+  "Separación de audio": [
+    "Audio separation",
+    "Separação de áudio"
+  ],
+  "Video convertido": [
+    "Converted video",
+    "Vídeo convertido"
+  ],
+  "Video + audio": [
+    "Video + audio",
+    "Vídeo + áudio"
+  ],
+  "Calidad muy alta": [
+    "Very high quality",
+    "Qualidade muito alta"
+  ],
+  "Calidad alta": [
+    "High quality",
+    "Qualidade alta"
+  ],
+  "Calidad equilibrada": [
+    "Balanced quality",
+    "Qualidade equilibrada"
+  ],
+  "Pendiente": [
+    "Pending",
+    "Pendente"
+  ],
+  "Completado": [
+    "Completed",
+    "Concluído"
+  ],
+  "Procesando": [
+    "Processing",
+    "Processando"
+  ],
+  "Pausado": [
+    "Paused",
+    "Pausado"
+  ],
+  "Cancelado": [
+    "Cancelled",
+    "Cancelado"
+  ],
+  "Preparando": [
+    "Preparing",
+    "Preparando"
+  ],
+  "Leyendo": [
+    "Reading",
+    "Lendo"
+  ],
+  "Pausar": [
+    "Pause",
+    "Pausar"
+  ],
+  "Reanudar": [
+    "Resume",
+    "Retomar"
+  ],
+  "Eliminar": [
+    "Remove",
+    "Remover"
+  ],
+  "Mostrar archivo": [
+    "Show file",
+    "Mostrar arquivo"
+  ],
+  "Abrir ubicación": [
+    "Open location",
+    "Abrir localização"
+  ],
+  "Descarga completada": [
+    "Download completed",
+    "Download concluído"
+  ],
+  "Descarga fallida": [
+    "Download failed",
+    "Falha no download"
+  ],
+  "Configuración guardada": [
+    "Settings saved",
+    "Configurações salvas"
+  ],
+  "Los cambios se aplicaron correctamente.": [
+    "Changes applied successfully.",
+    "As alterações foram aplicadas corretamente."
+  ],
+  "Portapapeles bloqueado": [
+    "Clipboard blocked",
+    "Área de transferência bloqueada"
+  ],
+  "Pega el enlace manualmente con Ctrl + V.": [
+    "Paste the link manually with Ctrl + V.",
+    "Cole o link manualmente com Ctrl + V."
+  ],
+  "Se borrarán los registros y enlaces del historial. Los archivos descargados permanecerán en tu computadora.": [
+    "History records and links will be removed. Downloaded files will remain on your computer.",
+    "Os registros e links do histórico serão removidos. Os arquivos baixados permanecerão no seu computador."
+  ],
+  "Historial limpio": [
+    "History cleared",
+    "Histórico limpo"
+  ],
+  "Los archivos guardados permanecen intactos.": [
+    "Saved files remain intact.",
+    "Os arquivos salvos permanecem intactos."
+  ],
+  "Ningún archivo seleccionado. Elige los videos de tu computadora.": [
+    "No file selected. Choose videos from your computer.",
+    "Nenhum arquivo selecionado. Escolha os vídeos do seu computador."
+  ],
+  "Guardar en: {0}": [
+    "Save to: {0}",
+    "Salvar em: {0}"
+  ],
+  "Nombre automático": [
+    "Automatic filename",
+    "Nome automático"
+  ],
+  "Quitar": [
+    "Remove",
+    "Remover"
+  ],
+  "Quitar {0}": [
+    "Remove {0}",
+    "Remover {0}"
+  ],
+  "Guardar como {0}": [
+    "Save as {0}",
+    "Salvar como {0}"
+  ],
+  "Sin límite de trabajos simultáneos. El rendimiento depende del equipo.": [
+    "No simultaneous job limit. Performance depends on your computer.",
+    "Sem limite de tarefas simultâneas. O desempenho depende do computador."
+  ],
+  "Hasta {0} trabajos simultáneos. Cambia este valor en Configuración.": [
+    "Up to {0} simultaneous jobs. Change this in Settings.",
+    "Até {0} tarefas simultâneas. Altere este valor em Configurações."
+  ],
+  "Sin límite de conversiones simultáneas. El rendimiento depende del equipo.": [
+    "No simultaneous conversion limit. Performance depends on your computer.",
+    "Sem limite de conversões simultâneas. O desempenho depende do computador."
+  ],
+  "Hasta {0} conversiones simultáneas. Cambia este valor en Configuración.": [
+    "Up to {0} simultaneous conversions. Change this in Settings.",
+    "Até {0} conversões simultâneas. Altere este valor em Configurações."
+  ],
+  "Revisa los enlaces": [
+    "Check the links",
+    "Confira os links"
+  ],
+  "Pega uno o varios enlaces, uno por línea.": [
+    "Paste one or more links, one per line.",
+    "Cole um ou mais links, um por linha."
+  ],
+  "El enlace no corresponde a la plataforma seleccionada.": [
+    "The link does not belong to the selected platform.",
+    "O link não pertence à plataforma selecionada."
+  ],
+  "No hay calidad disponible dentro del máximo elegido.": [
+    "No quality is available within the selected maximum.",
+    "Não há qualidade disponível dentro do máximo escolhido."
+  ],
+  "Lote procesado": [
+    "Batch processed",
+    "Lote processado"
+  ],
+  "{0} añadidos; {1} pendientes de revisar.": [
+    "{0} added; {1} need review.",
+    "{0} adicionados; {1} precisam de revisão."
+  ],
+  "Formato actualizado": [
+    "Format updated",
+    "Formato atualizado"
+  ],
+  "Elige «Guardar como» otra vez para usar nombres personalizados con la nueva extensión.": [
+    "Choose “Save as” again to use custom names with the new extension.",
+    "Escolha “Salvar como” novamente para usar nomes personalizados com a nova extensão."
+  ],
+  "Selecciona videos": [
+    "Select videos",
+    "Selecione vídeos"
+  ],
+  "Elige los archivos que quieras convertir.": [
+    "Choose the files you want to convert.",
+    "Escolha os arquivos que deseja converter."
+  ],
+  "¿Quieres detener todos los trabajos pendientes y activos?": [
+    "Stop all pending and active jobs?",
+    "Deseja interromper todas as tarefas pendentes e ativas?"
+  ],
+  "Ningún video seleccionado. Elige varios archivos en una sola ventana.": [
+    "No video selected. Choose multiple files in one window.",
+    "Nenhum vídeo selecionado. Escolha vários arquivos em uma só janela."
+  ],
+  "{0} archivos": [
+    "{0} files",
+    "{0} arquivos"
+  ],
+  "MOV con H.264 y AAC": [
+    "MOV with H.264 and AAC",
+    "MOV com H.264 e AAC"
+  ],
+  "MKV con H.264 y AAC": [
+    "MKV with H.264 and AAC",
+    "MKV com H.264 e AAC"
+  ],
+  "AVI con MPEG-4 y MP3": [
+    "AVI with MPEG-4 and MP3",
+    "AVI com MPEG-4 e MP3"
+  ],
+  "WEBM para reproducción web": [
+    "WEBM for web playback",
+    "WEBM para reprodução na web"
+  ],
+  "Se genera un archivo nuevo con H.264, color YUV 4:2:0, audio AAC y fotogramas constantes. MP4 a MP4 cambia el contenido interno, no solo el nombre.": [
+    "Creates a new file with H.264, YUV 4:2:0, AAC audio and a constant frame rate. MP4 to MP4 changes the internal content, not just the name.",
+    "Cria um novo arquivo com H.264, YUV 4:2:0, áudio AAC e taxa de quadros constante. MP4 para MP4 altera o conteúdo interno, não apenas o nome."
+  ],
+  "Conversión a MPEG-4, audio MP3 a 320 kbps y fotogramas constantes.": [
+    "Converts to MPEG-4, MP3 audio at 320 kbps and a constant frame rate.",
+    "Converte para MPEG-4, áudio MP3 a 320 kbps e taxa de quadros constante."
+  ],
+  "Usa VP9 y Opus. Para intentar resolver la importación en VEGAS Pro, selecciona MP4.": [
+    "Uses VP9 and Opus. To try to resolve import issues in VEGAS Pro, select MP4.",
+    "Usa VP9 e Opus. Para tentar resolver problemas de importação no VEGAS Pro, selecione MP4."
+  ],
+  "El contenedor MKV puede no ser aceptado por algunas versiones de VEGAS Pro. Para edición, selecciona MP4.": [
+    "Some VEGAS Pro versions may not accept MKV. For editing, select MP4.",
+    "Algumas versões do VEGAS Pro podem não aceitar MKV. Para edição, selecione MP4."
+  ],
+  "Elige uno o varios videos para convertir.": [
+    "Choose one or more videos to convert.",
+    "Escolha um ou mais vídeos para converter."
+  ],
+  "Lote de conversión": [
+    "Conversion batch",
+    "Lote de conversão"
+  ],
+  "{0} añadidos a la cola; {1} pendientes de revisar.": [
+    "{0} added to the queue; {1} need review.",
+    "{0} adicionados à fila; {1} precisam de revisão."
+  ],
+  "Voz": [
+    "Vocals",
+    "Voz"
+  ],
+  "Música": [
+    "Music",
+    "Música"
+  ],
+  "Batería": [
+    "Drums",
+    "Bateria"
+  ],
+  "Bajo": [
+    "Bass",
+    "Baixo"
+  ],
+  "Otros": [
+    "Other",
+    "Outros"
+  ],
+  "Guitarra": [
+    "Guitar",
+    "Guitarra"
+  ],
+  "Modelo disponible en este equipo": [
+    "Model available on this computer",
+    "Modelo disponível neste computador"
+  ],
+  "Preparación inicial del modelo": [
+    "Initial model setup",
+    "Preparação inicial do modelo"
+  ],
+  "Puedes separar sin Internet. El audio se procesa en tu computadora.": [
+    "You can separate audio offline. Processing runs on your computer.",
+    "Você pode separar sem Internet. O áudio é processado no seu computador."
+  ],
+  "Al iniciar se descargarán aproximadamente {0} MB. El modelo se guarda para las siguientes separaciones. Tu audio no se sube a ningún servidor.": [
+    "About {0} MB will be downloaded when you start. The model is saved for future separations. Your audio is not uploaded to any server.",
+    "Ao iniciar, serão baixados aproximadamente {0} MB. O modelo é salvo para as próximas separações. Seu áudio não é enviado a nenhum servidor."
+  ],
+  "Separación añadida": [
+    "Separation added",
+    "Separação adicionada"
+  ],
+  "Puedes seguir el progreso aquí o en Descargas.": [
+    "Follow the progress here or in Downloads.",
+    "Acompanhe o progresso aqui ou em Downloads."
+  ],
+  "Aquí aparecerán tus separaciones de esta sesión. Las pistas anteriores están en Historial.": [
+    "Separations from this session appear here. Earlier tracks are in History.",
+    "As separações desta sessão aparecerão aqui. As faixas anteriores estão no Histórico."
+  ],
+  "Cancelar separación": [
+    "Cancel separation",
+    "Cancelar separação"
+  ],
+  "Abrir carpeta de pistas": [
+    "Open tracks folder",
+    "Abrir pasta das faixas"
+  ],
+  "Abrir ubicación · vista previa no disponible": [
+    "Open location · preview unavailable",
+    "Abrir localização · prévia indisponível"
+  ],
+  "Progreso de separación": [
+    "Separation progress",
+    "Progresso da separação"
+  ],
+  "Leyendo el video": [
+    "Reading video",
+    "Lendo o vídeo"
+  ],
+  "Convirtiendo a {0}": [
+    "Converting to {0}",
+    "Convertendo para {0}"
+  ],
+  "Comprobando el video convertido": [
+    "Checking converted video",
+    "Verificando o vídeo convertido"
+  ],
+  "Video guardado": [
+    "Video saved",
+    "Vídeo salvo"
+  ],
+  "Esperando turno del separador": [
+    "Waiting for the separator",
+    "Aguardando o separador"
+  ],
+  "Leyendo la pista de audio": [
+    "Reading audio track",
+    "Lendo a faixa de áudio"
+  ],
+  "Preparando el audio del archivo": [
+    "Preparing the file's audio",
+    "Preparando o áudio do arquivo"
+  ],
+  "Guardando {0}": [
+    "Saving {0}",
+    "Salvando {0}"
+  ],
+  "Pistas guardadas": [
+    "Tracks saved",
+    "Faixas salvas"
+  ],
+  "Separación cancelada": [
+    "Separation cancelled",
+    "Separação cancelada"
+  ],
+  "No se pudo completar la separación": [
+    "Could not complete separation",
+    "Não foi possível concluir a separação"
+  ],
+  "¡Conseguiste {0} notas! Tus descargas siguen trabajando.": [
+    "You caught {0} notes! Your downloads are still running.",
+    "Você capturou {0} notas! Seus downloads continuam em andamento."
+  ],
+  "Jugar otra vez": [
+    "Play again",
+    "Jogar novamente"
+  ],
+  "Reiniciar ronda": [
+    "Restart round",
+    "Reiniciar rodada"
+  ],
+  "¡Atrapa tantas notas como puedas!": [
+    "Catch as many notes as you can!",
+    "Capture o máximo de notas que puder!"
+  ],
+  "Grafito": [
+    "Graphite",
+    "Grafite"
+  ],
+  "Océano": [
+    "Ocean",
+    "Oceano"
+  ],
+  "Bosque": [
+    "Forest",
+    "Floresta"
+  ],
+  "Ciruela": [
+    "Plum",
+    "Ameixa"
+  ],
+  "Arena": [
+    "Sand",
+    "Areia"
+  ],
+  "El azul de siempre": [
+    "The classic blue",
+    "O azul de sempre"
+  ],
+  "Simple y neutral": [
+    "Simple and neutral",
+    "Simples e neutro"
+  ],
+  "Azules profundos": [
+    "Deep blues",
+    "Azuis profundos"
+  ],
+  "Verde natural": [
+    "Natural green",
+    "Verde natural"
+  ],
+  "Un toque violeta": [
+    "A touch of violet",
+    "Um toque violeta"
+  ],
+  "Tonos cálidos": [
+    "Warm tones",
+    "Tons quentes"
+  ],
+  "Del tema": [
+    "Theme default",
+    "Do tema"
+  ],
+  "Azul": [
+    "Blue",
+    "Azul"
+  ],
+  "Verde": [
+    "Green",
+    "Verde"
+  ],
+  "Amarillo": [
+    "Yellow",
+    "Amarelo"
+  ],
+  "Rosa": [
+    "Pink",
+    "Rosa"
+  ],
+  "Naranja": [
+    "Orange",
+    "Laranja"
+  ],
+  "Morado": [
+    "Purple",
+    "Roxo"
+  ],
+  "Blanco": [
+    "White",
+    "Branco"
+  ],
+  "Personalizado": [
+    "Custom",
+    "Personalizado"
+  ],
+  "Colores propios": [
+    "Custom colors",
+    "Cores próprias"
+  ],
+  "Escribe un color válido, por ejemplo #181818.": [
+    "Enter a valid color, for example #181818.",
+    "Digite uma cor válida, por exemplo #181818."
+  ],
+  "Elige un fondo y un texto con más contraste para poder leer la aplicación.": [
+    "Choose background and text colors with more contrast for readability.",
+    "Escolha cores de fundo e texto com mais contraste para facilitar a leitura."
+  ],
+  "El fondo y el texto personalizados sustituyen a los del tema.": [
+    "Custom background and text colors replace the theme colors.",
+    "As cores personalizadas de fundo e texto substituem as cores do tema."
+  ],
+  "Activa los colores personalizados para modificar el fondo y el texto.": [
+    "Enable custom colors to change the background and text.",
+    "Ative as cores personalizadas para alterar o fundo e o texto."
+  ],
+  "Guardando apariencia…": [
+    "Saving appearance…",
+    "Salvando aparência…"
+  ],
+  "✓ Apariencia guardada en este equipo.": [
+    "✓ Appearance saved on this computer.",
+    "✓ Aparência salva neste computador."
+  ],
+  "No se pudo guardar: {0}": [
+    "Could not save: {0}",
+    "Não foi possível salvar: {0}"
+  ],
+  "Modo {0}. Cambiar a {1}": [
+    "{0} mode. Switch to {1}",
+    "Modo {0}. Alterar para {1}"
+  ],
+  "automático": [
+    "automatic",
+    "automático"
+  ],
+  "claro": [
+    "light",
+    "claro"
+  ],
+  "oscuro": [
+    "dark",
+    "escuro"
+  ],
+  "Activar sonido": [
+    "Unmute",
+    "Ativar som"
+  ],
+  "Volver a reproducir": [
+    "Replay",
+    "Reproduzir novamente"
+  ],
+  "Salir de pantalla completa": [
+    "Exit fullscreen",
+    "Sair da tela cheia"
+  ],
+  "Video local. Haz clic para reproducir o pausar.": [
+    "Local video. Click to play or pause.",
+    "Vídeo local. Clique para reproduzir ou pausar."
+  ],
+  "Video terminado. Puedes volver a reproducirlo.": [
+    "Video ended. You can play it again.",
+    "O vídeo terminou. Você pode reproduzi-lo novamente."
+  ],
+  "No se pudo reproducir este archivo. Si el códec no es compatible, conviértelo a MP4 H.264 en Convertir video.": [
+    "Could not play this file. If the codec is unsupported, convert it to MP4 H.264 in Convert video.",
+    "Não foi possível reproduzir este arquivo. Se o codec não for compatível, converta para MP4 H.264 em Converter vídeo."
+  ],
+  "Espera a que el archivo termine de abrirse para cambiar la posición.": [
+    "Wait for the file to finish loading before seeking.",
+    "Espere o arquivo terminar de abrir para alterar a posição."
+  ],
+  "No se pudo abrir la pantalla completa. Puedes usar Ventana flotante.": [
+    "Could not enter fullscreen. You can use Floating window.",
+    "Não foi possível abrir a tela cheia. Você pode usar Janela flutuante."
+  ],
+  "Pulsa Reproducir para continuar con el video.": [
+    "Click Play to continue the video.",
+    "Clique em Reproduzir para continuar o vídeo."
+  ],
+  "No se pudo iniciar el video. Pulsa Reiniciar o vuelve a abrir el archivo.": [
+    "Could not start the video. Click Restart or open the file again.",
+    "Não foi possível iniciar o vídeo. Clique em Reiniciar ou abra o arquivo novamente."
+  ],
+  "No se pudo sincronizar el reproductor.": [
+    "Could not synchronize the player.",
+    "Não foi possível sincronizar o reprodutor."
+  ],
+  "Arrastra un solo video o audio para reproducirlo.": [
+    "Drop a single video or audio file to play it.",
+    "Arraste apenas um vídeo ou áudio para reproduzi-lo."
+  ],
+  "Elige un archivo de video o audio.": [
+    "Choose a video or audio file.",
+    "Escolha um arquivo de vídeo ou áudio."
+  ],
+  "Abriendo archivo…": [
+    "Opening file…",
+    "Abrindo arquivo…"
+  ],
+  "PiP no disponible": [
+    "PiP unavailable",
+    "PiP indisponível"
+  ],
+  "Usa el botón Ventana flotante.": [
+    "Use the Floating window button.",
+    "Use o botão Janela flutuante."
+  ],
+  "VideoFlow · Picture-in-Picture": [
+    "VideoFlow · Picture-in-Picture",
+    "VideoFlow · Picture-in-Picture"
+  ],
+  "Buscando actualizaciones de FFmpeg…": [
+    "Checking for FFmpeg updates…",
+    "Buscando atualizações do FFmpeg…"
+  ],
+  "No se pudo comprobar. Puedes volver a intentarlo.": [
+    "Could not check. You can try again.",
+    "Não foi possível verificar. Você pode tentar novamente."
+  ],
+  "Se comprobará al iniciar la aplicación.": [
+    "Will be checked when the app starts.",
+    "Será verificado ao iniciar o aplicativo."
+  ],
+  "Hay una nueva versión de FFmpeg disponible.": [
+    "A new FFmpeg version is available.",
+    "Há uma nova versão do FFmpeg disponível."
+  ],
+  "FFmpeg está actualizado.": [
+    "FFmpeg is up to date.",
+    "O FFmpeg está atualizado."
+  ],
+  "Instalada: {0}": [
+    "Installed: {0}",
+    "Instalada: {0}"
+  ],
+  "Última versión: {0}": [
+    "Latest version: {0}",
+    "Última versão: {0}"
+  ],
+  "Revisado: {0}": [
+    "Checked: {0}",
+    "Verificado: {0}"
+  ],
+  "no identificada": [
+    "unidentified",
+    "não identificada"
+  ],
+  "por comprobar": [
+    "not checked yet",
+    "a verificar"
+  ],
+  "Actualización de FFmpeg": [
+    "FFmpeg update",
+    "Atualização do FFmpeg"
+  ],
+  "Versión {0} disponible. Revisa Configuración.": [
+    "Version {0} available. Check Settings.",
+    "Versão {0} disponível. Confira Configurações."
+  ],
+  "No se pudo comprobar": [
+    "Could not check",
+    "Não foi possível verificar"
+  ],
+  "Cancelar colección": [
+    "Cancel collection",
+    "Cancelar coleção"
+  ],
+  "{0} solicitudes bloqueadas · {1} direcciones": [
+    "{0} blocked requests · {1} addresses",
+    "{0} solicitações bloqueadas · {1} endereços"
+  ],
+  "{0} añadidos": [
+    "{0} added",
+    "{0} adicionados"
+  ],
+  "{0} omitidos": [
+    "{0} skipped",
+    "{0} ignorados"
+  ],
+  "{0} MB · cifrado": [
+    "{0} MB · encrypted",
+    "{0} MB · criptografado"
+  ],
+  "Carpeta privada desbloqueada": [
+    "Private folder unlocked",
+    "Pasta privada desbloqueada"
+  ],
+  "Carpeta privada bloqueada": [
+    "Private folder locked",
+    "Pasta privada bloqueada"
+  ],
+  "Crea un PIN para comenzar a proteger tus archivos.": [
+    "Create a PIN to start protecting your files.",
+    "Crie um PIN para começar a proteger seus arquivos."
+  ],
+  "Todavía no hay archivos privados.": [
+    "No private files yet.",
+    "Ainda não há arquivos privados."
+  ],
+  "Archivo exportado": [
+    "File exported",
+    "Arquivo exportado"
+  ],
+  "La copia exportada se abre sin PIN.": [
+    "The exported copy opens without a PIN.",
+    "A cópia exportada abre sem PIN."
+  ],
+  "Exportar": [
+    "Export",
+    "Exportar"
+  ],
+  "Descargar": [
+    "Download",
+    "Baixar"
+  ],
+  "Descarga añadida": [
+    "Download added",
+    "Download adicionado"
+  ],
+  "Puedes seguir el progreso en Descargas.": [
+    "You can follow progress in Downloads.",
+    "Você pode acompanhar o progresso em Downloads."
+  ],
+  "Colección iniciada": [
+    "Collection started",
+    "Coleção iniciada"
+  ],
+  "Los videos se añadirán conforme se lea la lista.": [
+    "Videos will be added as the playlist is read.",
+    "Os vídeos serão adicionados à medida que a lista for lida."
+  ],
+  "Revisa el PIN": [
+    "Check the PIN",
+    "Confira o PIN"
+  ],
+  "Los dos PIN deben coincidir.": [
+    "The two PINs must match.",
+    "Os dois PINs devem ser iguais."
+  ],
+  "Copias cifradas": [
+    "Encrypted copies",
+    "Cópias criptografadas"
+  ],
+  "{0} archivos protegidos.": [
+    "{0} protected files.",
+    "{0} arquivos protegidos."
+  ],
+  "↻ Volver a descargar": [
+    "↻ Download again",
+    "↻ Baixar novamente"
+  ],
+  "Este registro no tiene un enlace guardado": [
+    "This entry has no saved link",
+    "Este registro não tem um link salvo"
+  ],
+  "Enlace no registrado": [
+    "Link not recorded",
+    "Link não registrado"
+  ],
+  "Abrir enlace": [
+    "Open link",
+    "Abrir link"
+  ],
+  "Copiar enlace": [
+    "Copy link",
+    "Copiar link"
+  ],
+  "Enlace copiado": [
+    "Link copied",
+    "Link copiado"
+  ],
+  "No se pudo copiar": [
+    "Could not copy",
+    "Não foi possível copiar"
+  ],
+  "El enlace está en el portapapeles.": [
+    "The link is on the clipboard.",
+    "O link está na área de transferência."
+  ],
+  "Hasta {0}": [
+    "Up to {0}",
+    "Até {0}"
+  ],
+  "{0} px de alto": [
+    "{0} px high",
+    "{0} px de altura"
+  ],
+  "{0} restantes": [
+    "{0} remaining",
+    "{0} restantes"
+  ],
+  "{0} visualizaciones": [
+    "{0} views",
+    "{0} visualizações"
+  ],
+  "Abrir VideoFlow": [
+    "Open VideoFlow",
+    "Abrir VideoFlow"
+  ],
+  "Salir y detener los trabajos": [
+    "Exit and stop jobs",
+    "Sair e interromper as tarefas"
+  ],
+  "Cerrar VideoFlow": [
+    "Close VideoFlow",
+    "Fechar VideoFlow"
+  ],
+  "Hay descargas pendientes o en curso. ¿Quieres detenerlas y cerrar?": [
+    "There are pending or running downloads. Stop them and close?",
+    "Há downloads pendentes ou em andamento. Deseja interrompê-los e fechar?"
+  ],
+  "VideoFlow · Navegador privado": [
+    "VideoFlow · Private browser",
+    "VideoFlow · Navegador privado"
+  ],
+  "Ir": [
+    "Go",
+    "Ir"
+  ],
+  "Privado · AdBlock": [
+    "Private · AdBlock",
+    "Privado · AdBlock"
+  ],
+  "La ruta ya no existe.": [
+    "The path no longer exists.",
+    "O caminho não existe mais."
+  ],
+  "El archivo ya no existe.": [
+    "The file no longer exists.",
+    "O arquivo não existe mais."
+  ],
+  "Color": [
+    "Color",
+    "Cor"
+  ],
+  "Sin pérdida": [
+    "Lossless",
+    "Sem perdas"
+  ],
+  "Quitar de la lista": [
+    "Remove from list",
+    "Remover da lista"
+  ],
+  "Cancelar descarga": [
+    "Cancel download",
+    "Cancelar download"
+  ],
+  "Se detendrá el trabajo y se eliminarán los archivos temporales.": [
+    "The job will stop and temporary files will be removed.",
+    "A tarefa será interrompida e os arquivos temporários serão removidos."
+  ],
+  "Guardar en:": [
+    "Save to:",
+    "Salvar em:"
+  ],
+  "comenzará según el límite configurado.": [
+    "will start according to the configured limit.",
+    "iniciará de acordo com o limite configurado."
+  ],
+  "Video": [
+    "Video",
+    "Vídeo"
+  ],
+  "video": [
+    "video",
+    "vídeo"
+  ],
+  "audio": [
+    "audio",
+    "áudio"
+  ],
+  "Audio (kbps)": [
+    "Audio (kbps)",
+    "Áudio (kbps)"
+  ],
+  "Aceptar": [
+    "OK",
+    "OK"
+  ],
+  "Guardar archivo": [
+    "Save file",
+    "Salvar arquivo"
+  ],
+  "Todos los archivos": [
+    "All files",
+    "Todos os arquivos"
+  ],
+  "Separación completada": [
+    "Separation completed",
+    "Separação concluída"
+  ],
+  "Error en la separación": [
+    "Separation error",
+    "Erro na separação"
+  ],
+  "Error al convertir video": [
+    "Video conversion error",
+    "Erro ao converter vídeo"
+  ],
+  "Error en la descarga": [
+    "Download error",
+    "Erro no download"
+  ],
+  "Video analizado": [
+    "Video analyzed",
+    "Vídeo analisado"
+  ],
+  "Ya puedes elegir el formato, la calidad y dónde guardarlo.": [
+    "You can now choose the format, quality and destination.",
+    "Agora você pode escolher o formato, a qualidade e o destino."
+  ],
+  "No se pudo analizar": [
+    "Could not analyze",
+    "Não foi possível analisar"
+  ],
+  "No se pudo abrir la carpeta": [
+    "Could not open the folder",
+    "Não foi possível abrir a pasta"
+  ],
+  "Falta la carpeta": [
+    "Missing folder",
+    "Pasta ausente"
+  ],
+  "Selecciona una ruta de destino.": [
+    "Select a destination path.",
+    "Selecione um caminho de destino."
+  ],
+  "{0} comenzará según el límite configurado.": [
+    "{0} will start according to the configured limit.",
+    "{0} iniciará de acordo com o limite configurado."
+  ],
+  "No se pudo agregar": [
+    "Could not add",
+    "Não foi possível adicionar"
+  ],
+  "No se pudo completar la acción": [
+    "Could not complete the action",
+    "Não foi possível concluir a ação"
+  ],
+  "No se pudo eliminar": [
+    "Could not remove",
+    "Não foi possível remover"
+  ],
+  "No se pudo abrir la ruta": [
+    "Could not open the path",
+    "Não foi possível abrir o caminho"
+  ],
+  "No se pudo cargar el historial": [
+    "Could not load history",
+    "Não foi possível carregar o histórico"
+  ],
+  "La URL del video está en el portapapeles.": [
+    "The video URL is on the clipboard.",
+    "A URL do vídeo está na área de transferência."
+  ],
+  "Puedes abrir el enlace y copiarlo desde la barra del navegador.": [
+    "You can open the link and copy it from the browser address bar.",
+    "Você pode abrir o link e copiá-lo da barra de endereços do navegador."
+  ],
+  "Listo para volver a descargar": [
+    "Ready to download again",
+    "Pronto para baixar novamente"
+  ],
+  "Se recuperó el destino anterior. Revisa las opciones y agrega el video a la cola.": [
+    "The previous destination was restored. Review the options and add the video to the queue.",
+    "O destino anterior foi recuperado. Confira as opções e adicione o vídeo à fila."
+  ],
+  "No se pudo recuperar el video": [
+    "Could not retrieve the video",
+    "Não foi possível recuperar o vídeo"
+  ]
+}

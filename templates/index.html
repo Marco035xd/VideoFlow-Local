@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-theme="dark">
+<html lang="{{ ui_language }}" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -403,6 +403,14 @@
               <div class="section-heading"><div><span class="eyebrow">PREFERENCIAS</span><h3>Configuración general</h3></div></div>
 
               <div class="settings-group">
+                <h4>Idioma de la aplicación</h4>
+                <label class="form-field" for="settingsLanguage"><span>Idioma de la interfaz</span>
+                  <select id="settingsLanguage" translate="no"><option value="es">Español</option><option value="en">English</option><option value="pt">Português</option></select>
+                </label>
+                <p id="languageStatus" class="field-hint" role="status">El idioma se guarda automáticamente y se aplica al instante.</p>
+                <p class="field-hint">Los nombres de archivos y enlaces se conservan. Los diálogos de Windows usan el idioma del sistema.</p>
+              </div>
+              <div class="settings-group">
                 <h4>Descargas</h4>
                 <label class="form-field">
                   <span>Destino de YouTube</span>
@@ -486,6 +494,7 @@
     </div>
   </div>
 
+  <script src="/static/language.js"></script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 <script src="/static/extensions.js"></script>
 <script src="/static/separation.js"></script>

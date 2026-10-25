@@ -28,7 +28,13 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.7-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.8-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Idiomas de la interfaz · versión 1.6.8
+
+En **Configuración → Idioma de la aplicación**, elige **Español**, **English** o **Português**. El cambio se aplica al instante y se guarda automáticamente para los próximos inicios. Se traducen las pantallas, controles y mensajes habituales, incluido el reproductor y sus ventanas flotantes. Se conservan los títulos de videos, nombres de archivos, rutas y enlaces. Las fechas y cantidades siguen el idioma elegido. Los catálogos se incluyen en el programa y funcionan sin un servicio externo de traducción.
+
+Consulta [cómo funciona y cómo mantener las traducciones](docs/IDIOMAS.md). Los diálogos proporcionados por Windows y los mensajes técnicos externos pueden conservar su idioma original.
 
 ### Clic sobre el video en PiP · versión 1.6.6
 

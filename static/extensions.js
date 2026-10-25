@@ -17,7 +17,11 @@ function renderConversionFiles() {
     const info = document.createElement('div'); info.className = 'conversion-file-info';
     const name = document.createElement('strong'); name.textContent = path.split(/[\\/]/).pop(); name.title = path;
     const destination = document.createElement('small');
-    destination.textContent = conversionTargets.has(path) ? `Guardar en: ${conversionTargets.get(path).path}` : 'Nombre automático · '+$('#conversionFolder').value;
+    const destinationLabel = document.createElement('span');
+    destinationLabel.textContent = conversionTargets.has(path) ? 'Guardar en:' : 'Nombre automático';
+    const destinationPath = document.createElement('span'); destinationPath.setAttribute('translate','no');
+    destinationPath.textContent = conversionTargets.get(path)?.path || $('#conversionFolder').value;
+    destination.append(destinationLabel, document.createTextNode(' · '), destinationPath);
     info.append(name, destination);
     const actions = document.createElement('div'); actions.className = 'conversion-file-actions';
     const save = document.createElement('button'); save.type = 'button'; save.className = 'secondary-button'; save.textContent = 'Guardar como…'; save.disabled = conversionBusy;
@@ -42,7 +46,9 @@ function syncBatchDestination() {
 }
 function resultLine(container, label, message) {
   const line = document.createElement('p');
-  line.textContent = `${label}: ${message}`;
+  const name = document.createElement('span'); name.setAttribute('translate', 'no'); name.textContent = label;
+  const detail = document.createElement('span'); detail.textContent = message;
+  line.append(name, document.createTextNode(': '), detail);
   $(container).append(line);
 }
 async function batchDownload() {

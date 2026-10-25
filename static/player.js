@@ -336,6 +336,7 @@ function initMainPlayer() {
     if(token&&token!==data.token&&playback.remoteState)await api(`/api/player/${token}/close`,{method:'POST',body:'{}'});
     token = data.token || null;
     playback.session?.stop();playback.remoteState=null;
+    document.querySelector('#playerName').setAttribute('translate', 'no');
     document.querySelector('#playerName').textContent = data.name;
     document.querySelector('#playerFloating').disabled = !token;
     document.querySelector('#playerPip').disabled = !token && !document.pictureInPictureEnabled;

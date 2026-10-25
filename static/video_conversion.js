@@ -21,9 +21,11 @@ function renderVideoConvertFiles() {
     const info = document.createElement('div'); info.className = 'conversion-file-info';
     const name = document.createElement('strong'); name.textContent = path.split(/[\\/]/).pop(); name.title = path;
     const destination = document.createElement('small');
-    destination.textContent = videoConvertUI.targets.has(path)
-      ? `Guardar en: ${videoConvertUI.targets.get(path).path}`
-      : `Nombre automático · ${$('#videoConvertFolder').value}`;
+    const destinationLabel = document.createElement('span');
+    destinationLabel.textContent = videoConvertUI.targets.has(path) ? 'Guardar en:' : 'Nombre automático';
+    const destinationPath = document.createElement('span'); destinationPath.setAttribute('translate','no');
+    destinationPath.textContent = videoConvertUI.targets.get(path)?.path || $('#videoConvertFolder').value;
+    destination.append(destinationLabel, document.createTextNode(' · '), destinationPath);
     info.append(name, destination);
     const actions = document.createElement('div'); actions.className = 'conversion-file-actions';
     const save = document.createElement('button'); save.type = 'button'; save.className = 'secondary-button'; save.textContent = 'Guardar como…'; save.disabled = videoConvertUI.busy;
