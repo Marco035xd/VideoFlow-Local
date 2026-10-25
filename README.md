@@ -2,6 +2,30 @@
 
 Aplicación de escritorio para Windows. Permite analizar y guardar videos autorizados de YouTube, Facebook y TikTok, con cola, progreso, historial y configuración local, dentro de su propia ventana.
 
+## Capturas de pantalla
+
+Conoce la interfaz y sus herramientas en este recorrido de **11 capturas**, tomadas el **25 de octubre de 2026** y ordenadas según las secciones de la aplicación.
+
+![Pantalla de inicio de VideoFlow Local con TikTok seleccionado y entrada de varios enlaces.](docs/capturas/01-inicio-descargas.png)
+
+La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o varios enlaces y preparar sus opciones de descarga. En esta captura está seleccionada la pestaña de TikTok.
+
+| Pantalla | Qué muestra |
+| --- | --- |
+| [01. Inicio](docs/CAPTURAS.md#01-inicio-y-nueva-descarga) | Selección de plataforma, entrada de enlaces y opciones de descarga. |
+| [02. Descargas](docs/CAPTURAS.md#02-gestión-de-descargas) | Cola de trabajos, contadores y progreso general. |
+| [03. Video a audio](docs/CAPTURAS.md#03-video-a-audio) | Selección de videos locales, formato de audio y carpeta de salida. |
+| [04. Voz e instrumentos](docs/CAPTURAS.md#04-voz-e-instrumentos) | Separación local de pistas, con el modo experimental de seis pistas seleccionado. |
+| [05. Historial](docs/CAPTURAS.md#05-historial) | Búsqueda, exportación CSV y estado vacío después de limpiar los registros. |
+| [06. Listas y canales](docs/CAPTURAS.md#06-listas-y-canales) | Descarga de colecciones de YouTube con formato, calidad y destino. |
+| [07. Reproductor](docs/CAPTURAS.md#07-reproductor-local) | Apertura o arrastre de archivos y controles de reproducción. |
+| [08. Navegador privado](docs/CAPTURAS.md#08-navegador-privado) | Apertura de direcciones y consulta de recursos multimedia detectados. |
+| [09. Carpeta privada](docs/CAPTURAS.md#09-carpeta-privada) | Acceso mediante PIN a las copias cifradas de archivos. |
+| [10. Apariencia](docs/CAPTURAS.md#10-apariencia) | Modos de color, seis temas, acentos y vista previa. |
+| [11. Configuración](docs/CAPTURAS.md#11-configuración) | Destinos por plataforma, concurrencia y comprobación de FFmpeg. |
+
+**[Ver todas las capturas con sus descripciones →](docs/CAPTURAS.md)**
+
 ## Instalar como programa de Windows
 
 Descarga y ejecuta **VideoFlow-Local-1.6.5-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
