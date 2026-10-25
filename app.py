@@ -1326,12 +1326,13 @@ def api_open_path():
     raw_path = str(payload.get("path") or "")
     if not raw_path:
         return jsonify({"ok": False, "error": "Ruta vacía."}), 400
-    path = Path(raw_path).expanduser().resolve()
     try:
+        path = Path(raw_path).expanduser().resolve()
         if os.name == "nt":
             if path.is_file():
-                subprocess.Popen(["explorer.exe", "/select,", str(path)])
-            elif path.exists():
+                from desktop_shell import reveal_file
+                reveal_file(path)
+            elif path.is_dir():
                 os.startfile(str(path))  # type: ignore[attr-defined]
             else:
                 raise FileNotFoundError("La ruta ya no existe.")

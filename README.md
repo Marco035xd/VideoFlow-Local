@@ -4,7 +4,11 @@ Aplicación de escritorio para Windows. Permite analizar y guardar videos autori
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.4-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.5-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Mostrar la ubicación de un archivo · versión 1.6.5
+
+El botón para abrir la ubicación selecciona el archivo mediante la API nativa de Windows `SHOpenFolderAndSelectItems`, en lugar de ejecutar `explorer.exe` con argumentos. Las carpetas se siguen abriendo con la acción de apertura del sistema. Los errores al abrir una ubicación aparecen en la aplicación. Este cambio no garantiza que un antivirus deje de avisar: la clasificación depende del proveedor del antivirus.
 
 ### Picture-in-Picture minimalista · versión 1.6.4
 
