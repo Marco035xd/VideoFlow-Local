@@ -566,7 +566,7 @@ async function loadRemovedDownloads() {
       const detail = document.createElement('p'); detail.className = 'field-hint';
       detail.textContent = `${task.source} · ${task.format.toUpperCase()} · ${task.status}`;
       const expiry = document.createElement('p'); expiry.className = 'field-hint';
-      expiry.textContent = window.VideoFlowI18n.t('Disponible hasta: {0}').replace('{0}',new Date(task.expires_at*1000).toLocaleDateString(window.VideoFlowI18n.locale));
+      expiry.textContent = `Disponible hasta: ${new Date(task.expires_at*1000).toLocaleDateString(window.VideoFlowI18n.locale)}`;
       const path = document.createElement('small'); path.setAttribute('translate','no');path.textContent = task.final_path || task.folder;
       info.append(title,detail,expiry,path);
       const actions = document.createElement('div');actions.className = 'removed-download-actions';
