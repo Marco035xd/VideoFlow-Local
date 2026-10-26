@@ -2510,5 +2510,33 @@
   "No se pudo recuperar el video": [
     "Could not retrieve the video",
     "Não foi possível recuperar o vídeo"
+  ],
+  "Lectura finalizada": [
+    "Import finished",
+    "Importação concluída"
+  ],
+  "Ver descargas": [
+    "View downloads",
+    "Ver downloads"
+  ],
+  "Pega el enlace de una lista o un canal de YouTube.": [
+    "Paste a YouTube playlist or channel link.",
+    "Cole o link de uma playlist ou canal do YouTube."
+  ],
+  "Iniciando la lectura de la colección…": [
+    "Starting collection import…",
+    "Iniciando a importação da coleção…"
+  ],
+  "Colección iniciada. El estado de lectura aparece abajo; cada canción o video se descarga en Descargas.": [
+    "Collection started. The import status appears below; each song or video is downloaded in Downloads.",
+    "Coleção iniciada. O estado da importação aparece abaixo; cada música ou vídeo é baixado em Downloads."
+  ],
+  "La colección se inició, pero no se pudo actualizar su estado. Vuelve a entrar en Listas y canales.": [
+    "The collection started, but its status could not be refreshed. Open Playlists and channels again.",
+    "A coleção foi iniciada, mas não foi possível atualizar seu estado. Abra Playlists e canais novamente."
+  ],
+  "No se encontraron videos disponibles.": [
+    "No available videos were found.",
+    "Nenhum vídeo disponível foi encontrado."
   ]
 }

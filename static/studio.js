@@ -35,7 +35,20 @@ function collectionQuality() {
 async function refreshCollections() {
   const {collections}=await api('/api/collections');
   const list=$('#collectionJobs'); list.replaceChildren();
-  for(const job of collections) list.append(studioRow(job.title,`${job.status} · ${job.added} añadidos · ${job.skipped} omitidos${job.error?' · '+job.error:''}`,job.status!=='Cancelado'?'Cancelar colección':null,async()=>{await api(`/api/collections/${job.id}/cancel`,{method:'POST',body:'{}'});await refreshCollections();}));
+  for(const job of collections) {
+    const summary=job.status==='Completado'?'Lectura finalizada':job.status;
+    const canCancel=job.status!=='Cancelado' && (job.status==='Leyendo' || job.added>0);
+    const row=studioRow(job.title,`${summary} · ${job.added} añadidos · ${job.skipped} omitidos`,canCancel?'Cancelar colección':null,async()=>{await api(`/api/collections/${job.id}/cancel`,{method:'POST',body:'{}'});await refreshCollections();});
+    if(job.error){
+      const error=document.createElement('p');error.className='error-message';error.textContent=job.error;
+      row.querySelector('div').append(error);
+    }
+    if(job.added){
+      const view=document.createElement('button');view.type='button';view.className='secondary-button';view.textContent='Ver descargas';
+      view.onclick=()=>navigate('downloads');row.append(view);
+    }
+    list.append(row);
+  }
 }
 async function refreshBrowser() {
   const data=await api('/api/browser');
@@ -80,12 +93,17 @@ function initStudio() {
   collectionFormats();
   $('#collectionMode').onchange=collectionFormats;$('#collectionFormat').onchange=collectionQuality;
   $('#collectionBrowse').onclick=()=>pickFolder('#collectionFolder');$('#browserBrowse').onclick=()=>pickFolder('#browserFolder');
-  $('#collectionStart').onclick=async()=>{
-    const button=$('#collectionStart');button.disabled=true;
+  $('#collectionDownload').onclick=async()=>{
+    const button=$('#collectionDownload'),feedback=$('#collectionFeedback');
+    const url=$('#collectionUrl').value.trim();
+    if(!url){feedback.textContent='Pega el enlace de una lista o un canal de YouTube.';$('#collectionUrl').focus();return;}
+    button.disabled=true;feedback.classList.remove('error-message');feedback.textContent='Iniciando la lectura de la colección…';
     try {
-      await api('/api/collections',{method:'POST',body:JSON.stringify({url:$('#collectionUrl').value,format:$('#collectionFormat').value,mode:$('#collectionMode').value,quality:$('#collectionQuality').value,folder:$('#collectionFolder').value,advanced:advancedOptions('collection')})});
-      $('#collectionUrl').value='';await refreshCollections();toast('Colección iniciada','Los videos se añadirán conforme se lea la lista.');
-    }catch(e){toast('No se pudo iniciar',e.message,'error');}finally{button.disabled=false;}
+      await api('/api/collections',{method:'POST',body:JSON.stringify({url,format:$('#collectionFormat').value,mode:$('#collectionMode').value,quality:$('#collectionQuality').value,folder:$('#collectionFolder').value,advanced:advancedOptions('collection')})});
+      feedback.textContent='Colección iniciada. El estado de lectura aparece abajo; cada canción o video se descarga en Descargas.';
+      toast('Colección iniciada','Los videos se añadirán conforme se lea la lista.');
+      refreshCollections().catch(()=>{feedback.textContent='La colección se inició, pero no se pudo actualizar su estado. Vuelve a entrar en Listas y canales.';});
+    }catch(e){feedback.classList.add('error-message');feedback.textContent=e.message;toast('No se pudo iniciar',e.message,'error');}finally{button.disabled=false;}
   };
   $('#browserOpen').onclick=async()=>{try{await api('/api/browser',{method:'POST',body:JSON.stringify({url:$('#browserUrl').value})});}catch(e){toast('No se pudo abrir el navegador',e.message,'error');}};
   $('#browserRefresh').onclick=()=>refreshBrowser().catch(e=>toast('Error',e.message,'error'));

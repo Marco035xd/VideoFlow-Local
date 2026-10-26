@@ -28,7 +28,11 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.8-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.9-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Inicio de colecciones · versión 1.6.9
+
+Corregido el botón **Descargar colección**, que compartía identificador con el campo de inicio del recorte y no recibía la acción de descarga. Ahora muestra una confirmación persistente al iniciar, conserva el enlace y presenta los errores de lectura junto a la colección. **Ver descargas** abre la cola de canciones o videos añadidos. «Lectura finalizada» indica que se terminó de importar la lista; el estado de cada archivo se consulta en Descargas. Una colección sin entradas disponibles se marca como error.
 
 ### Idiomas de la interfaz · versión 1.6.8
 

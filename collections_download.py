@@ -89,7 +89,7 @@ class CollectionJobs:
                         job['task_ids'].append(task.id)
                         job['added'] += 1
                 with self.lock:
-                    job['status'] = 'Completado'
+                    job['status'] = 'Completado' if job['added'] else 'Error'
                     if not job['added']:
                         job['error'] = 'No se encontraron videos disponibles.'
         except StopCollection:
