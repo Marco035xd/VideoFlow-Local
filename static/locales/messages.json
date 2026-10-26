@@ -2642,5 +2642,37 @@
   "30 días": [
     "30 days",
     "30 dias"
+  ],
+  "Restaurar todas": [
+    "Restore all",
+    "Restaurar todos"
+  ],
+  "Restaurando…": [
+    "Restoring…",
+    "Restaurando…"
+  ],
+  "Restaurando las descargas retiradas…": [
+    "Restoring removed downloads…",
+    "Restaurando os downloads removidos…"
+  ],
+  "Restauración completada": [
+    "Restore completed",
+    "Restauração concluída"
+  ],
+  "Descargas restauradas": [
+    "Downloads restored",
+    "Downloads restaurados"
+  ],
+  "Se restauraron {0} descargas sin volver a descargar los archivos.": [
+    "Restored {0} downloads without downloading the files again.",
+    "Foram restaurados {0} downloads sem baixar os arquivos novamente."
+  ],
+  "Se restauraron {0} descargas sin volver a descargarlas. No se pudieron restaurar {1} registros.": [
+    "Restored {0} downloads without downloading them again. Could not restore {1} records.",
+    "Foram restaurados {0} downloads sem baixá-los novamente. Não foi possível restaurar {1} registros."
+  ],
+  "No hay descargas retiradas para restaurar.": [
+    "There are no removed downloads to restore.",
+    "Não há downloads removidos para restaurar."
   ]
 }

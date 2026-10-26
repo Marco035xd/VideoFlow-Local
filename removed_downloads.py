@@ -84,3 +84,17 @@ class RemovedDownloads:
             count = con.execute('DELETE FROM removed_downloads WHERE id = ?', (identifier,)).rowcount
             if not removed and not count:
                 raise KeyError('Registro temporal no encontrado o vencido.')
+
+    def delete_many(self, identifiers):
+        """Remove available records in one transaction and return their identifiers."""
+        requested = set(identifiers)
+        with self.lock:
+            with self.connect() as con:
+                self.purge(con)
+                stored = {row['id'] for row in con.execute('SELECT id FROM removed_downloads')}
+                found = requested & (stored | set(self.private))
+                con.executemany('DELETE FROM removed_downloads WHERE id = ?',
+                                ((identifier,) for identifier in found & stored))
+            for identifier in found:
+                self.private.pop(identifier, None)
+            return found

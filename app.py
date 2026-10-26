@@ -504,16 +504,37 @@ class DownloadManager:
             record = self.removed.get(task_id)
             if not record:
                 raise KeyError('Registro temporal no encontrado o vencido.')
-            task = DownloadTask(**record['payload'])
-            if task.status not in {'Completado', 'Error', 'Cancelado'}:
-                raise ValueError('Solo se pueden restaurar trabajos finalizados.')
-            if task.id in self.tasks:
-                raise ValueError('La descarga ya está en la lista.')
-            if task.status == 'Cancelado':
-                task.cancel_event.set()
+            task = self._task_for_restore(record['payload'])
             self.removed.delete(task_id)
             self.tasks[task.id] = task
             return task
+
+    def _task_for_restore(self, payload):
+        task = DownloadTask(**payload)
+        if task.status not in {'Completado', 'Error', 'Cancelado'}:
+            raise ValueError('Solo se pueden restaurar trabajos finalizados.')
+        if task.id in self.tasks:
+            raise ValueError('La descarga ya está en la lista.')
+        if task.status == 'Cancelado':
+            task.cancel_event.set()
+        return task
+
+    def restore_all(self):
+        with self.lock:
+            records = self.removed.list()
+            candidates = {}
+            for record in records:
+                try:
+                    task = self._task_for_restore(record['payload'])
+                    candidates[task.id] = task
+                except (TypeError, ValueError):
+                    # A conflicting record must not prevent restoring the others.
+                    continue
+            restored_ids = self.removed.delete_many(candidates)
+            restored = [task for identifier, task in candidates.items() if identifier in restored_ids]
+            # Restore only queue metadata; never enqueue workers or write history.
+            self.tasks.update((task.id, task) for task in restored)
+            return restored, len(records) - len(restored)
 
     def _require(self, task_id: str) -> DownloadTask:
         task = self.get(task_id)
@@ -1220,6 +1241,13 @@ def api_restore_download(task_id):
         return jsonify(ok=False, error=str(exc)), 404
     except ValueError as exc:
         return jsonify(ok=False, error=str(exc)), 409
+
+
+@app.post('/api/removed-downloads/restore-all')
+def api_restore_all_downloads():
+    restored, skipped = download_manager.restore_all()
+    return jsonify(ok=True, restored=[{'id': task.id, 'status': task.status} for task in restored],
+                   restored_count=len(restored), skipped_count=skipped)
 
 
 @app.delete('/api/removed-downloads/<task_id>')

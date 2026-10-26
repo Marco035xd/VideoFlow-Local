@@ -28,7 +28,13 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.11-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.12-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Restaurar todas las descargas retiradas · versión 1.6.12
+
+En **Descargas → Retiradas temporalmente**, pulsa **Restaurar todas** para devolver a la cola todos los registros disponibles en una sola acción. Conservan su estado anterior (**Completado**, **Error** o **Cancelado**), sin volver a descargar, convertir ni separar archivos y sin crear entradas nuevas en el historial. También incluye los registros de incógnito disponibles durante la sesión y respeta el plazo de conservación configurado.
+
+El botón usa el estilo de la aplicación, se desactiva cuando la lista está vacía o mientras restaura, y muestra el resultado con la cantidad restaurada. Al terminar se actualizan la cola y el apartado temporal. Los registros que ya estén en la cola no se duplican; un conflicto no impide restaurar los demás. La restauración individual sigue disponible. Los controles y mensajes nuevos incluyen traducciones al inglés y al portugués.
 
 ### Plazo de conservación configurable · versión 1.6.11
 
