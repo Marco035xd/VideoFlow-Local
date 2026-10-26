@@ -2674,5 +2674,41 @@
   "No hay descargas retiradas para restaurar.": [
     "There are no removed downloads to restore.",
     "Não há downloads removidos para restaurar."
+  ],
+  "Vaciar retiradas": [
+    "Clear removed downloads",
+    "Esvaziar removidos"
+  ],
+  "Vaciar retiradas temporalmente": [
+    "Clear temporarily removed downloads",
+    "Esvaziar downloads removidos temporariamente"
+  ],
+  "Se quitarán todos los registros de Retiradas temporalmente y no podrán restaurarse desde este apartado. Los archivos descargados y el historial se conservarán. ¿Deseas continuar?": [
+    "All records in Temporarily removed will be removed and can no longer be restored from this section. Downloaded files and history will be kept. Do you want to continue?",
+    "Todos os registros de Removidos temporariamente serão removidos e não poderão mais ser restaurados por esta seção. Os arquivos baixados e o histórico serão mantidos. Deseja continuar?"
+  ],
+  "Vaciando…": [
+    "Clearing…",
+    "Esvaziando…"
+  ],
+  "Vaciando los registros temporales…": [
+    "Clearing temporary records…",
+    "Esvaziando os registros temporários…"
+  ],
+  "Retiradas vaciadas": [
+    "Removed downloads cleared",
+    "Downloads removidos esvaziados"
+  ],
+  "Se quitaron {0} registros temporales. Los archivos y el historial se conservaron.": [
+    "Removed {0} temporary records. Files and history were kept.",
+    "Foram removidos {0} registros temporários. Os arquivos e o histórico foram mantidos."
+  ],
+  "No se pudo vaciar": [
+    "Could not clear removed downloads",
+    "Não foi possível esvaziar os downloads removidos"
+  ],
+  "Confirma que deseas vaciar los registros temporales.": [
+    "Confirm that you want to clear the temporary records.",
+    "Confirme que deseja esvaziar os registros temporários."
   ]
 }

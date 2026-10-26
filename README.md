@@ -28,7 +28,13 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.12-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.13-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Vaciar las descargas retiradas · versión 1.6.13
+
+En **Descargas → Retiradas temporalmente**, el botón **Vaciar retiradas** permite quitar todos los registros temporales de una vez, incluidos los de incógnito disponibles durante la sesión. Antes de hacerlo aparece una confirmación que aclara que esos registros ya no podrán restaurarse desde este apartado. **Cancelar** conserva los registros; **Confirmar** vacía únicamente el archivo temporal de registros, sin borrar ni modificar archivos descargados, el historial o la cola de Descargas.
+
+El botón conserva el estilo de las acciones de limpieza de la app y se desactiva cuando no hay registros. Mientras se confirma o se vacía, las acciones del apartado quedan bloqueadas para evitar operaciones simultáneas. Al terminar se actualiza la lista y se muestra cuántos registros se quitaron. Los controles, la confirmación y los mensajes incluyen traducciones al inglés y al portugués.
 
 ### Restaurar todas las descargas retiradas · versión 1.6.12
 

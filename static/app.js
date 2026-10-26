@@ -10,7 +10,7 @@ const state = {
   destinationFolder: "",
   savePath: "",
   overwrite: false,
-  restoringRemovedDownloads: false,
+  removedDownloadsBusy: false,
   removedDownloadsRequest: 0,
 };
 
@@ -561,16 +561,28 @@ function syncRemovedRetention() {
   $('#removedRetentionHint').textContent = `Los registros que quites de la lista se guardan aquí durante ${state.settings.removed_retention_days} días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.`;
 }
 
+function setRemovedDownloadsBusy(busy) {
+  state.removedDownloadsBusy = busy;
+  if (busy) {
+    state.removedDownloadsRequest++;
+    $('#removedDownloadList').querySelectorAll('button').forEach(control => { control.disabled = true; });
+  }
+  $('#restoreAllRemovedDownloads').disabled = true;
+  $('#clearRemovedDownloads').disabled = true;
+  $('#refreshRemovedDownloads').disabled = busy;
+}
+
 async function loadRemovedDownloads() {
-  if (state.restoringRemovedDownloads) return;
+  if (state.removedDownloadsBusy) return;
   const requestId = ++state.removedDownloadsRequest;
   const status = $('#removedDownloadsStatus'), list = $('#removedDownloadList');
   try {
     const data = await api('/api/removed-downloads');
-    if (state.restoringRemovedDownloads || requestId !== state.removedDownloadsRequest) return;
+    if (state.removedDownloadsBusy || requestId !== state.removedDownloadsRequest) return;
     state.settings.removed_retention_days = data.retention_days;
     syncRemovedRetention();
     $('#restoreAllRemovedDownloads').disabled = data.downloads.length === 0;
+    $('#clearRemovedDownloads').disabled = data.downloads.length === 0;
     list.replaceChildren();
     status.textContent = data.downloads.length ? '' : 'No hay descargas retiradas temporalmente.';
     for (const task of data.downloads) {
@@ -608,24 +620,21 @@ async function loadRemovedDownloads() {
       actions.append(forget);card.append(info,actions);list.append(card);
     }
   } catch(error){
-    if (!state.restoringRemovedDownloads && requestId === state.removedDownloadsRequest) {
+    if (!state.removedDownloadsBusy && requestId === state.removedDownloadsRequest) {
       status.textContent=error.message;
       $('#restoreAllRemovedDownloads').disabled=true;
+      $('#clearRemovedDownloads').disabled=true;
     }
   }
 }
 
 async function restoreAllRemovedDownloads() {
   const button = $('#restoreAllRemovedDownloads');
-  if (state.restoringRemovedDownloads || button.disabled) return;
-  state.restoringRemovedDownloads = true;
-  state.removedDownloadsRequest++;
-  button.disabled = true;
+  if (state.removedDownloadsBusy || button.disabled) return;
+  setRemovedDownloadsBusy(true);
   button.textContent = 'Restaurando…';
   button.setAttribute('aria-busy', 'true');
-  $('#refreshRemovedDownloads').disabled = true;
   $('#removedDownloadsStatus').textContent = 'Restaurando las descargas retiradas…';
-  $('#removedDownloadList').querySelectorAll('button').forEach(control => { control.disabled = true; });
   try {
     const data = await api('/api/removed-downloads/restore-all', {method:'POST', body:'{}'});
     for (const task of data.restored) state.previousStatuses.set(task.id, task.status);
@@ -640,10 +649,31 @@ async function restoreAllRemovedDownloads() {
   } catch(error) {
     toast('No se pudo restaurar', error.message, 'error');
   } finally {
-    state.restoringRemovedDownloads = false;
+    setRemovedDownloadsBusy(false);
     button.textContent = 'Restaurar todas';
     button.removeAttribute('aria-busy');
-    $('#refreshRemovedDownloads').disabled = false;
+    await loadRemovedDownloads();
+  }
+}
+
+async function clearRemovedDownloads() {
+  const button = $('#clearRemovedDownloads');
+  if (state.removedDownloadsBusy || button.disabled) return;
+  setRemovedDownloadsBusy(true);
+  try {
+    const accepted = await confirmAction('Vaciar retiradas temporalmente', 'Se quitarán todos los registros de Retiradas temporalmente y no podrán restaurarse desde este apartado. Los archivos descargados y el historial se conservarán. ¿Deseas continuar?');
+    if (!accepted) return;
+    button.textContent = 'Vaciando…';
+    button.setAttribute('aria-busy', 'true');
+    $('#removedDownloadsStatus').textContent = 'Vaciando los registros temporales…';
+    const data = await api('/api/removed-downloads', {method:'DELETE', body:JSON.stringify({confirmed:true})});
+    toast('Retiradas vaciadas', `Se quitaron ${data.cleared_count} registros temporales. Los archivos y el historial se conservaron.`, 'success');
+  } catch(error) {
+    toast('No se pudo vaciar', error.message, 'error');
+  } finally {
+    setRemovedDownloadsBusy(false);
+    button.textContent = 'Vaciar retiradas';
+    button.removeAttribute('aria-busy');
     await loadRemovedDownloads();
   }
 }
@@ -806,6 +836,7 @@ async function saveInterfaceLanguage() {
 function bindEvents() {
   $('#removedDownloads').addEventListener('toggle',()=>{if($('#removedDownloads').open)loadRemovedDownloads();});
   $('#restoreAllRemovedDownloads').addEventListener('click',restoreAllRemovedDownloads);
+  $('#clearRemovedDownloads').addEventListener('click',clearRemovedDownloads);
   $('#refreshRemovedDownloads').addEventListener('click',loadRemovedDownloads);
   $('#settingsLanguage').addEventListener('change', saveInterfaceLanguage);
   document.addEventListener('videoflow:language', event => { if (state.settings) state.settings.language = event.detail.language; });

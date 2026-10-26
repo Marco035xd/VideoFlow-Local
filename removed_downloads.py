@@ -98,3 +98,12 @@ class RemovedDownloads:
             for identifier in found:
                 self.private.pop(identifier, None)
             return found
+
+    def clear(self):
+        """Clear only the temporary archive, including private session records."""
+        with self.lock:
+            with self.connect() as con:
+                self.purge(con)
+                count = con.execute('DELETE FROM removed_downloads').rowcount + len(self.private)
+            self.private.clear()
+            return count

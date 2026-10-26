@@ -536,6 +536,10 @@ class DownloadManager:
             self.tasks.update((task.id, task) for task in restored)
             return restored, len(records) - len(restored)
 
+    def clear_removed(self):
+        with self.lock:
+            return self.removed.clear()
+
     def _require(self, task_id: str) -> DownloadTask:
         task = self.get(task_id)
         if not task:
@@ -1257,6 +1261,14 @@ def api_forget_removed_download(task_id):
         return jsonify(ok=True)
     except KeyError as exc:
         return jsonify(ok=False, error=str(exc)), 404
+
+
+@app.delete('/api/removed-downloads')
+def api_clear_removed_downloads():
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict) or payload.get('confirmed') is not True:
+        return jsonify(ok=False, error='Confirma que deseas vaciar los registros temporales.'), 400
+    return jsonify(ok=True, cleared_count=download_manager.clear_removed())
 
 
 @app.get("/api/history")
