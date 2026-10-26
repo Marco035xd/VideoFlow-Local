@@ -23,7 +23,7 @@ from flask import Flask, jsonify, render_template, request
 from app_paths import APP_DIR, APP_VERSION, DATA_DIR, IS_FROZEN
 from appearance import DEFAULT_APPEARANCE, normalize_appearance
 from localization import LANGUAGES, normalize_language
-from removed_downloads import RemovedDownloads
+from removed_downloads import RemovedDownloads, RETENTION_OPTIONS, DEFAULT_RETENTION_DAYS, normalize_retention_days
 from download_options import validate_options, video_selector, apply_options
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
@@ -44,6 +44,7 @@ DEFAULT_SETTINGS = {
     "appearance": DEFAULT_APPEARANCE.copy(),
     "notifications": True,
     "max_concurrent": 3,
+    "removed_retention_days": DEFAULT_RETENTION_DAYS,
     "background_mode": True,
     "keep_awake": True,
     "welcome_seen": False,
@@ -164,6 +165,7 @@ class SettingsStore:
     def _merge(data: dict[str, Any]) -> dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **data}
         merged['language'] = normalize_language(data.get('language'))
+        merged['removed_retention_days'] = normalize_retention_days(data.get('removed_retention_days'))
         merged['theme'] = data.get('theme') if data.get('theme') in ('light', 'dark', 'system') else 'dark'
         merged['appearance'] = normalize_appearance(data.get('appearance'))
         folders = data.get("platform_folders")
@@ -394,7 +396,7 @@ class DownloadManager:
     def __init__(self, settings: SettingsStore, history: HistoryStore):
         self.settings = settings
         self.history = history
-        self.removed = RemovedDownloads(history.path)
+        self.removed = RemovedDownloads(history.path, settings.load()['removed_retention_days'])
         self.tasks: dict[str, DownloadTask] = {}
         self.lock = threading.RLock()
         self.condition = threading.Condition(self.lock)
@@ -1206,7 +1208,8 @@ def api_delete_download(task_id: str):
 
 @app.get('/api/removed-downloads')
 def api_removed_downloads():
-    return jsonify(ok=True, downloads=download_manager.removed_list())
+    return jsonify(ok=True, downloads=download_manager.removed_list(),
+                   retention_days=download_manager.removed.retention_days)
 
 
 @app.post('/api/removed-downloads/<task_id>/restore')
@@ -1252,6 +1255,11 @@ def api_update_settings():
         if not isinstance(payload['language'], str) or payload['language'] not in LANGUAGES:
             return jsonify(ok=False, error='Selecciona un idioma disponible.'), 400
         allowed['language'] = payload['language']
+    if 'removed_retention_days' in payload:
+        days = payload['removed_retention_days']
+        if type(days) is not int or days not in RETENTION_OPTIONS:
+            return jsonify(ok=False, error='Selecciona 7, 15 o 30 días de conservación.'), 400
+        allowed['removed_retention_days'] = days
     if 'video_conversion_folder' in payload:
         folder = Path(str(payload['video_conversion_folder'])).expanduser().resolve()
         if not folder.is_dir():
@@ -1327,6 +1335,8 @@ def api_update_settings():
             except (ValueError, TypeError):
                 return jsonify(ok=False, error="Valor de configuración fuera de rango."), 400
     updated = settings_store.update(allowed)
+    if 'removed_retention_days' in allowed:
+        download_manager.removed.set_retention(updated['removed_retention_days'])
     download_manager.notify_settings_changed()
     if 'language' in allowed:
         from desktop_runtime import runtime

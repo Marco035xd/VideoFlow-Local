@@ -2543,10 +2543,6 @@
     "Temporarily removed",
     "Removidos temporariamente"
   ],
-  "Los registros que quites de la lista se guardan aquí durante 30 días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.": [
-    "Records removed from the queue are kept here for 30 days. You can restore them to Downloads. Files and history remain intact.",
-    "Os registros removidos da fila ficam aqui por 30 dias. Você pode restaurá-los para Downloads. Os arquivos e o histórico permanecem intactos."
-  ],
   "Los registros en modo incógnito solo se conservan durante esta sesión.": [
     "Incognito records are kept only during this session.",
     "Os registros do modo anônimo são mantidos apenas durante esta sessão."
@@ -2595,14 +2591,6 @@
     "Downloads removed from queue",
     "Downloads removidos da fila"
   ],
-  "Puedes recuperarla en Retiradas temporalmente durante 30 días.": [
-    "You can restore it from Temporarily removed for 30 days.",
-    "Você pode recuperá-lo em Removidos temporariamente por 30 dias."
-  ],
-  "Puedes recuperarlas en Retiradas temporalmente durante 30 días.": [
-    "You can restore them from Temporarily removed for 30 days.",
-    "Você pode recuperá-los em Removidos temporariamente por 30 dias."
-  ],
   "Registro temporal no encontrado o vencido.": [
     "Temporary record not found or expired.",
     "Registro temporário não encontrado ou expirado."
@@ -2610,5 +2598,49 @@
   "La descarga ya está en la lista.": [
     "The download is already in the queue.",
     "O download já está na fila."
+  ],
+  "Descargas retiradas temporalmente": [
+    "Temporarily removed downloads",
+    "Downloads removidos temporariamente"
+  ],
+  "Tiempo de conservación": [
+    "Retention period",
+    "Prazo de retenção"
+  ],
+  "El plazo cuenta desde que retiras cada descarga. Al guardar, se aplica también a los registros temporales existentes. Los que superen el plazo se eliminarán de este apartado; los archivos y el historial se conservan.": [
+    "The period starts when you remove each download. Saving also applies it to existing temporary records. Records older than the selected period will be removed from this section; files and history are kept.",
+    "O prazo começa quando você remove cada download. Ao salvar, ele também se aplica aos registros temporários existentes. Os registros que ultrapassarem o prazo serão removidos desta seção; os arquivos e o histórico serão mantidos."
+  ],
+  "En modo incógnito, los registros solo duran esta sesión, aunque elijas un plazo mayor.": [
+    "In incognito mode, records last only for this session, even if you choose a longer period.",
+    "No modo anônimo, os registros duram apenas esta sessão, mesmo que você escolha um prazo maior."
+  ],
+  "Selecciona 7, 15 o 30 días de conservación.": [
+    "Choose a retention period of 7, 15 or 30 days.",
+    "Escolha um prazo de retenção de 7, 15 ou 30 dias."
+  ],
+  "Los registros que quites de la lista se guardan aquí durante {0} días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.": [
+    "Records removed from the queue are kept here for {0} days. You can restore them to Downloads. Files and history remain unchanged.",
+    "Os registros removidos da fila são mantidos aqui por {0} dias. Você pode restaurá-los para Downloads. Os arquivos e o histórico permanecem intactos."
+  ],
+  "Puedes recuperarla en Retiradas temporalmente durante {0} días.": [
+    "You can restore it from Temporarily removed for {0} days.",
+    "Você pode recuperá-lo em Removidos temporariamente por {0} dias."
+  ],
+  "Puedes recuperarlas en Retiradas temporalmente durante {0} días.": [
+    "You can restore them from Temporarily removed for {0} days.",
+    "Você pode recuperá-los em Removidos temporariamente por {0} dias."
+  ],
+  "7 días": [
+    "7 days",
+    "7 dias"
+  ],
+  "15 días": [
+    "15 days",
+    "15 dias"
+  ],
+  "30 días": [
+    "30 days",
+    "30 dias"
   ]
 }

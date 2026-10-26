@@ -5,19 +5,25 @@ import threading
 import time
 from contextlib import contextmanager
 
-RETENTION_SECONDS = 30 * 24 * 60 * 60
+RETENTION_OPTIONS = (7, 15, 30)
+DEFAULT_RETENTION_DAYS = 30
+
+
+def normalize_retention_days(value):
+    return value if type(value) is int and value in RETENTION_OPTIONS else DEFAULT_RETENTION_DAYS
 
 
 class RemovedDownloads:
-    def __init__(self, path):
+    def __init__(self, path, retention_days=DEFAULT_RETENTION_DAYS):
         self.path = path
         self.lock = threading.RLock()
         self.private = {}
+        self.retention_days = normalize_retention_days(retention_days)
         with self.connect() as con:
             con.execute('''CREATE TABLE IF NOT EXISTS removed_downloads (
                 id TEXT PRIMARY KEY, payload TEXT NOT NULL,
                 removed_at REAL NOT NULL, expires_at REAL NOT NULL)''')
-            self.purge(con)
+        self.set_retention(self.retention_days)
 
     @contextmanager
     def connect(self):
@@ -35,10 +41,24 @@ class RemovedDownloads:
         con.execute('DELETE FROM removed_downloads WHERE expires_at <= ?', (cutoff,))
         self.private = {key: value for key, value in self.private.items() if value['expires_at'] > cutoff}
 
-    def put(self, payload):
-        timestamp = time.time()
-        record = dict(payload=payload, removed_at=timestamp, expires_at=timestamp + RETENTION_SECONDS)
+    def set_retention(self, days):
+        if type(days) is not int or days not in RETENTION_OPTIONS:
+            raise ValueError('Selecciona 7, 15 o 30 días de conservación.')
         with self.connect() as con:
+            # Expired records must not return when the retention period increases.
+            self.purge(con)
+            seconds = days * 24 * 60 * 60
+            con.execute('UPDATE removed_downloads SET expires_at = removed_at + ?', (seconds,))
+            for record in self.private.values():
+                record['expires_at'] = record['removed_at'] + seconds
+            self.purge(con)
+            self.retention_days = days
+
+    def put(self, payload):
+        with self.connect() as con:
+            timestamp = time.time()
+            record = dict(payload=payload, removed_at=timestamp,
+                          expires_at=timestamp + self.retention_days * 24 * 60 * 60)
             self.purge(con)
             if payload.get('advanced', {}).get('incognito'):
                 self.private[payload['id']] = record

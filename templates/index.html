@@ -332,7 +332,7 @@
           </section>
           <details id="removedDownloads" class="panel removed-downloads-panel">
             <summary>Retiradas temporalmente</summary>
-            <p class="field-hint">Los registros que quites de la lista se guardan aquí durante 30 días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.</p>
+            <p id="removedRetentionHint" class="field-hint">Los registros que quites de la lista se guardan aquí durante 30 días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.</p>
             <p class="field-hint">Los registros en modo incógnito solo se conservan durante esta sesión.</p>
             <div class="queue-toolbar"><button id="refreshRemovedDownloads" class="secondary-button" type="button">Actualizar lista</button></div>
             <p id="removedDownloadsStatus" class="field-hint" role="status"></p>
@@ -451,6 +451,16 @@
                   <input id="settingsConcurrent" class="studio-input-number" type="number" min="0" step="1"><p class="field-hint">0 = iniciar todos sin límite de la aplicación. Un valor de 3 a 6 reduce la carga de CPU, memoria y conexión.</p>
                   <div class="studio-checks"><label><input type="checkbox" id="settingsBackground"> Cerrar a la bandeja y continuar trabajando</label><label><input type="checkbox" id="settingsAwake"> Evitar suspensión automática durante los trabajos</label></div><p class="field-hint">La pantalla puede apagarse. La suspensión manual, hibernación o apagado del equipo detienen la actividad. Usa «Salir» en el icono de VideoFlow junto al reloj para cerrar por completo.</p>
                 </label>
+              </div>
+
+              <div class="settings-group">
+                <h4>Descargas retiradas temporalmente</h4>
+                <label class="form-field" for="settingsRemovedRetention">
+                  <span>Tiempo de conservación</span>
+                  <select id="settingsRemovedRetention" aria-describedby="removedRetentionHelp"><option value="7">7 días</option><option value="15">15 días</option><option value="30" selected>30 días</option></select>
+                </label>
+                <p id="removedRetentionHelp" class="field-hint">El plazo cuenta desde que retiras cada descarga. Al guardar, se aplica también a los registros temporales existentes. Los que superen el plazo se eliminarán de este apartado; los archivos y el historial se conservan.</p>
+                <p class="field-hint">En modo incógnito, los registros solo duran esta sesión, aunque elijas un plazo mayor.</p>
               </div>
 
               <div class="settings-group">

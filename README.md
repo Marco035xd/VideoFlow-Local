@@ -28,7 +28,13 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.10-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.11-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Plazo de conservación configurable · versión 1.6.11
+
+En **Configuración → Descargas retiradas temporalmente → Tiempo de conservación**, elige **7, 15 o 30 días** y pulsa **Guardar configuración**. La opción se conserva al reiniciar; el valor inicial es 30 días. El plazo se cuenta desde que retiraste cada descarga y se aplica también a los registros temporales existentes, sin reiniciar su antigüedad.
+
+Al acortar el plazo se descartan los registros que ya lo superen. Ampliarlo conserva durante más tiempo los registros que siguen disponibles; no recupera registros vencidos. La sección de retiradas muestra el plazo elegido y la fecha de vencimiento de cada registro. Solo se eliminan registros temporales: los archivos y el historial se conservan. En modo incógnito siguen disponibles únicamente durante la sesión. El selector y los avisos están traducidos al inglés y al portugués.
 
 ### Descargas retiradas temporalmente · versión 1.6.10
 

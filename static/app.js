@@ -186,6 +186,8 @@ async function loadSettings() {
   $("#settingsVideoQuality").value = state.settings.default_video_quality;
   $("#settingsAudioQuality").value = state.settings.default_audio_quality;
   $("#settingsConcurrent").value = state.settings.max_concurrent;
+  $('#settingsRemovedRetention').value = state.settings.removed_retention_days;
+  syncRemovedRetention();
   $("#concurrentValue").textContent = state.settings.max_concurrent;
   $("#settingsNotifications").checked = Boolean(state.settings.notifications);
   if (!state.settings.welcome_seen) {
@@ -553,10 +555,16 @@ async function loadDownloads() {
   }
 }
 
+function syncRemovedRetention() {
+  $('#removedRetentionHint').textContent = `Los registros que quites de la lista se guardan aquí durante ${state.settings.removed_retention_days} días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.`;
+}
+
 async function loadRemovedDownloads() {
   const status = $('#removedDownloadsStatus'), list = $('#removedDownloadList');
   try {
     const data = await api('/api/removed-downloads');
+    state.settings.removed_retention_days = data.retention_days;
+    syncRemovedRetention();
     list.replaceChildren();
     status.textContent = data.downloads.length ? '' : 'No hay descargas retiradas temporalmente.';
     for (const task of data.downloads) {
@@ -614,7 +622,7 @@ async function deleteDownload(id) {
     await api(`/api/downloads/${id}`, { method: "DELETE" });
     await loadDownloads();
     await loadRemovedDownloads();
-    toast('Descarga retirada','Puedes recuperarla en Retiradas temporalmente durante 30 días.','success');
+    toast('Descarga retirada',`Puedes recuperarla en Retiradas temporalmente durante ${state.settings.removed_retention_days} días.`,'success');
   } catch (error) {
     toast("No se pudo eliminar", error.message, "error");
   }
@@ -707,6 +715,7 @@ async function saveSettings() {
     default_video_quality: $("#settingsVideoQuality").value,
     default_audio_quality: $("#settingsAudioQuality").value,
     max_concurrent: Number($("#settingsConcurrent").value),
+    removed_retention_days: Number($('#settingsRemovedRetention').value),
     background_mode: $("#settingsBackground").checked, keep_awake: $("#settingsAwake").checked,
     rate_limit_kbps: Number($("#settingsRate").value),
     retry_count: Number($("#settingsRetries").value),
@@ -725,6 +734,8 @@ async function saveSettings() {
     syncFolderSettings();
     syncBatchDestination();
     syncVideoConvertConcurrency();
+    syncRemovedRetention();
+    if ($('#removedDownloads').open) await loadRemovedDownloads();
     toast("Configuración guardada", "Los cambios se aplicaron correctamente.", "success");
   } catch (error) {
     toast("No se pudo guardar", error.message, "error");

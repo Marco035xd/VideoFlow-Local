@@ -167,7 +167,7 @@ function initExtensions() {
     catch(error) { toast('No se pudo cancelar',error.message,'error'); }
   };
   $('#cleanCompleted').onclick = async () => {
-    try { for(const task of state.downloads.filter(t=>t.status==='Completado')) await api(`/api/downloads/${task.id}`,{method:'DELETE'}); await loadDownloads(); await loadRemovedDownloads();toast('Descargas retiradas','Puedes recuperarlas en Retiradas temporalmente durante 30 días.','success'); }
+    try { for(const task of state.downloads.filter(t=>t.status==='Completado')) await api(`/api/downloads/${task.id}`,{method:'DELETE'}); await loadDownloads(); await loadRemovedDownloads();toast('Descargas retiradas',`Puedes recuperarlas en Retiradas temporalmente durante ${state.settings.removed_retention_days} días.`,'success'); }
     catch(error) { toast('No se pudo limpiar',error.message,'error'); }
   };
 }
