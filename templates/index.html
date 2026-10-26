@@ -330,6 +330,14 @@
               <p>Agrega un video desde la pantalla de inicio.</p>
             </div>
           </section>
+          <details id="removedDownloads" class="panel removed-downloads-panel">
+            <summary>Retiradas temporalmente</summary>
+            <p class="field-hint">Los registros que quites de la lista se guardan aquí durante 30 días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.</p>
+            <p class="field-hint">Los registros en modo incógnito solo se conservan durante esta sesión.</p>
+            <div class="queue-toolbar"><button id="refreshRemovedDownloads" class="secondary-button" type="button">Actualizar lista</button></div>
+            <p id="removedDownloadsStatus" class="field-hint" role="status"></p>
+            <div id="removedDownloadList" class="download-list" aria-live="polite"></div>
+          </details>
         </section>
 
         <section id="page-history" class="page"><div class="queue-toolbar"><input id="historySearch" type="search" aria-label="Buscar en el historial" placeholder="Buscar por título, enlace o plataforma"><button id="exportHistory" class="secondary-button" type="button">Exportar historial CSV</button></div>

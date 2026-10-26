@@ -2538,5 +2538,77 @@
   "No se encontraron videos disponibles.": [
     "No available videos were found.",
     "Nenhum vídeo disponível foi encontrado."
+  ],
+  "Retiradas temporalmente": [
+    "Temporarily removed",
+    "Removidos temporariamente"
+  ],
+  "Los registros que quites de la lista se guardan aquí durante 30 días. Puedes restaurarlos a Descargas. Los archivos y el historial permanecen intactos.": [
+    "Records removed from the queue are kept here for 30 days. You can restore them to Downloads. Files and history remain intact.",
+    "Os registros removidos da fila ficam aqui por 30 dias. Você pode restaurá-los para Downloads. Os arquivos e o histórico permanecem intactos."
+  ],
+  "Los registros en modo incógnito solo se conservan durante esta sesión.": [
+    "Incognito records are kept only during this session.",
+    "Os registros do modo anônimo são mantidos apenas durante esta sessão."
+  ],
+  "Actualizar lista": [
+    "Refresh list",
+    "Atualizar lista"
+  ],
+  "No hay descargas retiradas temporalmente.": [
+    "No temporarily removed downloads.",
+    "Não há downloads removidos temporariamente."
+  ],
+  "Disponible hasta: {0}": [
+    "Available until: {0}",
+    "Disponível até: {0}"
+  ],
+  "Restaurar a Descargas": [
+    "Restore to Downloads",
+    "Restaurar para Downloads"
+  ],
+  "Registro restaurado": [
+    "Record restored",
+    "Registro restaurado"
+  ],
+  "La descarga volvió a la lista sin descargar el archivo de nuevo.": [
+    "The download is back in the queue without downloading the file again.",
+    "O download voltou para a fila sem baixar o arquivo novamente."
+  ],
+  "No se pudo restaurar": [
+    "Could not restore",
+    "Não foi possível restaurar"
+  ],
+  "Quitar registro temporal": [
+    "Remove temporary record",
+    "Remover registro temporário"
+  ],
+  "Se quitará este registro temporal. El archivo y el historial se conservarán.": [
+    "This temporary record will be removed. The file and history will be kept.",
+    "Este registro temporário será removido. O arquivo e o histórico serão mantidos."
+  ],
+  "Descarga retirada": [
+    "Download removed from queue",
+    "Download removido da fila"
+  ],
+  "Descargas retiradas": [
+    "Downloads removed from queue",
+    "Downloads removidos da fila"
+  ],
+  "Puedes recuperarla en Retiradas temporalmente durante 30 días.": [
+    "You can restore it from Temporarily removed for 30 days.",
+    "Você pode recuperá-lo em Removidos temporariamente por 30 dias."
+  ],
+  "Puedes recuperarlas en Retiradas temporalmente durante 30 días.": [
+    "You can restore them from Temporarily removed for 30 days.",
+    "Você pode recuperá-los em Removidos temporariamente por 30 dias."
+  ],
+  "Registro temporal no encontrado o vencido.": [
+    "Temporary record not found or expired.",
+    "Registro temporário não encontrado ou expirado."
+  ],
+  "La descarga ya está en la lista.": [
+    "The download is already in the queue.",
+    "O download já está na fila."
   ]
 }

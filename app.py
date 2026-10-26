@@ -12,7 +12,7 @@ import time
 import uuid
 import tempfile
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterator
@@ -23,6 +23,7 @@ from flask import Flask, jsonify, render_template, request
 from app_paths import APP_DIR, APP_VERSION, DATA_DIR, IS_FROZEN
 from appearance import DEFAULT_APPEARANCE, normalize_appearance
 from localization import LANGUAGES, normalize_language
+from removed_downloads import RemovedDownloads
 from download_options import validate_options, video_selector, apply_options
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
@@ -393,6 +394,7 @@ class DownloadManager:
     def __init__(self, settings: SettingsStore, history: HistoryStore):
         self.settings = settings
         self.history = history
+        self.removed = RemovedDownloads(history.path)
         self.tasks: dict[str, DownloadTask] = {}
         self.lock = threading.RLock()
         self.condition = threading.Condition(self.lock)
@@ -479,11 +481,37 @@ class DownloadManager:
         return task
 
     def delete(self, task_id: str) -> None:
-        task = self._require(task_id)
-        if task.status not in {"Completado", "Error", "Cancelado"}:
-            raise ValueError("Cancela la descarga antes de eliminarla de la lista.")
         with self.lock:
+            task = self._require(task_id)
+            if task.status not in {"Completado", "Error", "Cancelado"}:
+                raise ValueError("Cancela la descarga antes de eliminarla de la lista.")
+            payload = {item.name: getattr(task, item.name) for item in fields(DownloadTask)
+                       if item.name not in {'pause_event', 'cancel_event'}}
+            self.removed.put(payload)
             self.tasks.pop(task_id, None)
+
+    def removed_list(self):
+        result = []
+        for record in self.removed.list():
+            task = DownloadTask(**record['payload'])
+            result.append({**task.as_dict(), 'removed_at': record['removed_at'], 'expires_at': record['expires_at']})
+        return result
+
+    def restore(self, task_id):
+        with self.lock:
+            record = self.removed.get(task_id)
+            if not record:
+                raise KeyError('Registro temporal no encontrado o vencido.')
+            task = DownloadTask(**record['payload'])
+            if task.status not in {'Completado', 'Error', 'Cancelado'}:
+                raise ValueError('Solo se pueden restaurar trabajos finalizados.')
+            if task.id in self.tasks:
+                raise ValueError('La descarga ya está en la lista.')
+            if task.status == 'Cancelado':
+                task.cancel_event.set()
+            self.removed.delete(task_id)
+            self.tasks[task.id] = task
+            return task
 
     def _require(self, task_id: str) -> DownloadTask:
         task = self.get(task_id)
@@ -1174,6 +1202,30 @@ def api_delete_download(task_id: str):
         return jsonify({"ok": False, "error": str(exc)}), 404
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 409
+
+
+@app.get('/api/removed-downloads')
+def api_removed_downloads():
+    return jsonify(ok=True, downloads=download_manager.removed_list())
+
+
+@app.post('/api/removed-downloads/<task_id>/restore')
+def api_restore_download(task_id):
+    try:
+        return jsonify(ok=True, download=download_manager.restore(task_id).as_dict())
+    except KeyError as exc:
+        return jsonify(ok=False, error=str(exc)), 404
+    except ValueError as exc:
+        return jsonify(ok=False, error=str(exc)), 409
+
+
+@app.delete('/api/removed-downloads/<task_id>')
+def api_forget_removed_download(task_id):
+    try:
+        download_manager.removed.delete(task_id)
+        return jsonify(ok=True)
+    except KeyError as exc:
+        return jsonify(ok=False, error=str(exc)), 404
 
 
 @app.get("/api/history")

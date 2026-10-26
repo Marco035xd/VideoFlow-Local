@@ -553,6 +553,49 @@ async function loadDownloads() {
   }
 }
 
+async function loadRemovedDownloads() {
+  const status = $('#removedDownloadsStatus'), list = $('#removedDownloadList');
+  try {
+    const data = await api('/api/removed-downloads');
+    list.replaceChildren();
+    status.textContent = data.downloads.length ? '' : 'No hay descargas retiradas temporalmente.';
+    for (const task of data.downloads) {
+      const card = document.createElement('article'); card.className = 'removed-download-card';
+      const info = document.createElement('div');
+      const title = document.createElement('strong'); title.setAttribute('translate','no'); title.textContent = task.title;
+      const detail = document.createElement('p'); detail.className = 'field-hint';
+      detail.textContent = `${task.source} · ${task.format.toUpperCase()} · ${task.status}`;
+      const expiry = document.createElement('p'); expiry.className = 'field-hint';
+      expiry.textContent = window.VideoFlowI18n.t('Disponible hasta: {0}').replace('{0}',new Date(task.expires_at*1000).toLocaleDateString(window.VideoFlowI18n.locale));
+      const path = document.createElement('small'); path.setAttribute('translate','no');path.textContent = task.final_path || task.folder;
+      info.append(title,detail,expiry,path);
+      const actions = document.createElement('div');actions.className = 'removed-download-actions';
+      const restore = document.createElement('button');restore.type='button';restore.className='secondary-button';restore.textContent='Restaurar a Descargas';
+      restore.onclick=async()=>{
+        restore.disabled=true;
+        try {
+          const data=await api(`/api/removed-downloads/${task.id}/restore`,{method:'POST',body:'{}'});
+          state.previousStatuses.set(data.download.id,data.download.status);
+          await loadDownloads();await loadRemovedDownloads();
+          toast('Registro restaurado','La descarga volvió a la lista sin descargar el archivo de nuevo.','success');
+        } catch(error){restore.disabled=false;toast('No se pudo restaurar',error.message,'error');}
+      };
+      actions.append(restore);
+      if(task.final_path){
+        const show=document.createElement('button');show.type='button';show.className='secondary-button';show.textContent='Mostrar archivo';show.onclick=()=>openPath(task.final_path);actions.append(show);
+      }
+      const forget=document.createElement('button');forget.type='button';forget.className='text-button';forget.textContent='Quitar registro temporal';
+      forget.onclick=async()=>{
+        if(!await confirmAction('Quitar registro temporal','Se quitará este registro temporal. El archivo y el historial se conservarán.'))return;
+        forget.disabled=true;
+        try {await api(`/api/removed-downloads/${task.id}`,{method:'DELETE'});await loadRemovedDownloads();}
+        catch(error){forget.disabled=false;toast('No se pudo eliminar',error.message,'error');}
+      };
+      actions.append(forget);card.append(info,actions);list.append(card);
+    }
+  } catch(error){status.textContent=error.message;}
+}
+
 async function downloadAction(action, id) {
   try {
     if (action === "cancel") {
@@ -570,6 +613,8 @@ async function deleteDownload(id) {
   try {
     await api(`/api/downloads/${id}`, { method: "DELETE" });
     await loadDownloads();
+    await loadRemovedDownloads();
+    toast('Descarga retirada','Puedes recuperarla en Retiradas temporalmente durante 30 días.','success');
   } catch (error) {
     toast("No se pudo eliminar", error.message, "error");
   }
@@ -704,6 +749,8 @@ async function saveInterfaceLanguage() {
 }
 
 function bindEvents() {
+  $('#removedDownloads').addEventListener('toggle',()=>{if($('#removedDownloads').open)loadRemovedDownloads();});
+  $('#refreshRemovedDownloads').addEventListener('click',loadRemovedDownloads);
   $('#settingsLanguage').addEventListener('change', saveInterfaceLanguage);
   document.addEventListener('videoflow:language', event => { if (state.settings) state.settings.language = event.detail.language; });
   $$(".nav-item").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.page)));

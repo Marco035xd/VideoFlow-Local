@@ -28,7 +28,13 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.9-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.10-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Descargas retiradas temporalmente · versión 1.6.10
+
+Al pulsar **Quitar de la lista** o **Quitar completadas de la cola**, los registros pasan al apartado **Retiradas temporalmente**, debajo de la cola de Descargas. Se conservan durante **30 días**, también al cerrar la app. **Restaurar a Descargas** devuelve el registro con su estado anterior sin volver a descargar ni crear otra entrada en Historial. Desde ese apartado también puedes mostrar el archivo o quitar un registro temporal con confirmación.
+
+Esta función guarda la información del trabajo; no mueve, copia ni elimina el video o audio. El historial permanece intacto. Al vencer el plazo se descarta únicamente el registro temporal, durante la siguiente consulta o inicio. Los trabajos en modo incógnito se mantienen solo en memoria durante la sesión. Los registros quitados en versiones anteriores no pueden recuperarse mediante esta función.
 
 ### Inicio de colecciones · versión 1.6.9
 
