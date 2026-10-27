@@ -2710,5 +2710,201 @@
   "Confirma que deseas vaciar los registros temporales.": [
     "Confirm that you want to clear the temporary records.",
     "Confirme que deseja esvaziar os registros temporários."
+  ],
+  "Comprimir video": [
+    "Compress video",
+    "Comprimir vídeo"
+  ],
+  "AHORRA ESPACIO": [
+    "SAVE SPACE",
+    "ECONOMIZE ESPAÇO"
+  ],
+  "Tus videos, más ligeros.": [
+    "Smaller files for your videos.",
+    "Seus vídeos, mais leves."
+  ],
+  "Reduce el tamaño de uno o varios videos y guarda una copia nueva. Los originales permanecen intactos.": [
+    "Reduce the size of one or more videos and save a new copy. Originals remain unchanged.",
+    "Reduza o tamanho de um ou vários vídeos e salve uma nova cópia. Os originais permanecem intactos."
+  ],
+  "Comprimir videos": [
+    "Compress videos",
+    "Comprimir vídeos"
+  ],
+  "Elige cuánto quieres reducir el tamaño y compara la estimación antes de comenzar.": [
+    "Choose how much to reduce the file size and compare the estimate before starting.",
+    "Escolha quanto deseja reduzir o tamanho e compare a estimativa antes de começar."
+  ],
+  "Nivel de compresión": [
+    "Compression level",
+    "Nível de compressão"
+  ],
+  "Ligera · aproximadamente 30% menos": [
+    "Light · approximately 30% smaller",
+    "Leve · aproximadamente 30% menor"
+  ],
+  "Equilibrada · aproximadamente 50% menos": [
+    "Balanced · approximately 50% smaller",
+    "Equilibrada · aproximadamente 50% menor"
+  ],
+  "Alta · aproximadamente 70% menos": [
+    "High · approximately 70% smaller",
+    "Alta · aproximadamente 70% menor"
+  ],
+  "Resolución de salida": [
+    "Output resolution",
+    "Resolução de saída"
+  ],
+  "Mantener resolución": [
+    "Keep resolution",
+    "Manter resolução"
+  ],
+  "Máximo 1080p": [
+    "Up to 1080p",
+    "Até 1080p"
+  ],
+  "Máximo 720p": [
+    "Up to 720p",
+    "Até 720p"
+  ],
+  "Máximo 480p": [
+    "Up to 480p",
+    "Até 480p"
+  ],
+  "Tamaño original": [
+    "Original size",
+    "Tamanho original"
+  ],
+  "Salida aproximada": [
+    "Estimated output",
+    "Saída aproximada"
+  ],
+  "Ahorro aproximado": [
+    "Estimated space saved",
+    "Economia aproximada"
+  ],
+  "El tamaño es orientativo. Una reducción mayor puede disminuir la nitidez. La resolución nunca se aumenta; el límite se aplica a la altura del video.": [
+    "File size is an estimate. Greater reduction can reduce sharpness. Resolution is never increased; the limit applies to video height.",
+    "O tamanho é uma estimativa. Uma redução maior pode diminuir a nitidez. A resolução nunca aumenta; o limite se aplica à altura do vídeo."
+  ],
+  "Esta carpeta se recuerda por separado de las conversiones.": [
+    "This folder is remembered separately from conversions.",
+    "Esta pasta é lembrada separadamente das conversões."
+  ],
+  "Comprimir archivos →": [
+    "Compress files →",
+    "Comprimir arquivos →"
+  ],
+  "MP4 más ligero": [
+    "Smaller MP4",
+    "MP4 mais leve"
+  ],
+  "Se guarda un MP4 con video H.264 y audio AAC. Se conserva el contenido completo y la primera pista de audio; no se copian subtítulos ni pistas adicionales. Los videos HDR se convierten a SDR. El progreso, la cancelación y el ahorro real aparecen en Descargas; el archivo terminado también aparece en Historial.": [
+    "Saves an MP4 with H.264 video and AAC audio. Keeps the full video and the first audio track; subtitles and additional tracks are not copied. HDR videos are converted to SDR. Progress, cancellation and actual space saved appear in Downloads; the finished file also appears in History.",
+    "Salva um MP4 com vídeo H.264 e áudio AAC. Mantém o vídeo completo e a primeira faixa de áudio; legendas e faixas adicionais não são copiadas. Vídeos HDR são convertidos para SDR. O progresso, o cancelamento e a economia real aparecem em Downloads; o arquivo concluído também aparece no Histórico."
+  ],
+  "Sin límite de compresiones simultáneas. El rendimiento depende del equipo.": [
+    "No app limit on simultaneous compressions. Performance depends on your computer.",
+    "Sem limite de compressões simultâneas. O desempenho depende do computador."
+  ],
+  "Hasta {0} compresiones simultáneas. Cambia este valor en Configuración.": [
+    "Up to {0} simultaneous compressions. Change this in Settings.",
+    "Até {0} compressões simultâneas. Altere esse valor em Configurações."
+  ],
+  "Selecciona uno o varios videos para calcular el tamaño aproximado.": [
+    "Select one or more videos to estimate their compressed size.",
+    "Selecione um ou vários vídeos para calcular o tamanho aproximado."
+  ],
+  "{0} → aproximadamente {1}": [
+    "{0} → approximately {1}",
+    "{0} → aproximadamente {1}"
+  ],
+  "Lote de compresión": [
+    "Compression batch",
+    "Lote de compressão"
+  ],
+  "Video comprimido": [
+    "Video compressed",
+    "Vídeo comprimido"
+  ],
+  "Error al comprimir video": [
+    "Video compression error",
+    "Erro ao comprimir vídeo"
+  ],
+  "Reducción objetivo: {0}%": [
+    "Target reduction: {0}%",
+    "Redução desejada: {0}%"
+  ],
+  "Leyendo el video para comprimir": [
+    "Reading video for compression",
+    "Lendo o vídeo para compressão"
+  ],
+  "Analizando la compresión · paso 1 de 2": [
+    "Analyzing compression · pass 1 of 2",
+    "Analisando a compressão · etapa 1 de 2"
+  ],
+  "Comprimiendo el video · paso 2 de 2": [
+    "Compressing video · pass 2 of 2",
+    "Comprimindo o vídeo · etapa 2 de 2"
+  ],
+  "Comprobando el video comprimido": [
+    "Checking compressed video",
+    "Verificando o vídeo comprimido"
+  ],
+  "Video comprimido · {0} → {1} · {2}% menos": [
+    "Video compressed · {0} → {1} · {2}% smaller",
+    "Vídeo comprimido · {0} → {1} · {2}% menor"
+  ],
+  "FFmpeg no pudo comprimir este video.": [
+    "FFmpeg could not compress this video.",
+    "O FFmpeg não conseguiu comprimir este vídeo."
+  ],
+  "No se pudo determinar la duración del video para calcular su tamaño.": [
+    "Could not determine video duration to calculate its size.",
+    "Não foi possível determinar a duração do vídeo para calcular seu tamanho."
+  ],
+  "El video es demasiado pequeño para este nivel de compresión. Prueba una reducción menor.": [
+    "The video is too small for this compression level. Try a smaller reduction.",
+    "O vídeo é pequeno demais para este nível de compressão. Tente uma redução menor."
+  ],
+  "No se pudo obtener un video comprimido completo y válido.": [
+    "Could not produce a complete, valid compressed video.",
+    "Não foi possível obter um vídeo comprimido completo e válido."
+  ],
+  "El video original cambió durante la compresión. Vuelve a seleccionarlo.": [
+    "The original video changed during compression. Select it again.",
+    "O vídeo original mudou durante a compressão. Selecione-o novamente."
+  ],
+  "Este video no se redujo de tamaño. Prueba una reducción mayor o una resolución menor.": [
+    "This video did not get smaller. Try greater reduction or a lower resolution.",
+    "Este vídeo não diminuiu de tamanho. Tente uma redução maior ou uma resolução menor."
+  ],
+  "Selecciona un video para comprimir.": [
+    "Select a video to compress.",
+    "Selecione um vídeo para comprimir."
+  ],
+  "Selecciona un video, una reducción y una resolución válidos.": [
+    "Select a valid video, reduction and resolution.",
+    "Selecione um vídeo, uma redução e uma resolução válidos."
+  ],
+  "El archivo seleccionado está vacío.": [
+    "The selected file is empty.",
+    "O arquivo selecionado está vazio."
+  ],
+  "Selecciona una carpeta existente para los videos comprimidos.": [
+    "Select an existing folder for compressed videos.",
+    "Selecione uma pasta existente para os vídeos comprimidos."
+  ],
+  "El destino coincide con un video de la cola. Elige otro nombre para conservar los originales.": [
+    "The destination matches a video in the queue. Choose another name to keep the originals.",
+    "O destino corresponde a um vídeo da fila. Escolha outro nome para manter os originais."
+  ],
+  "El destino coincide con un video seleccionado. Elige otro nombre para conservar los originales.": [
+    "The destination matches a selected video. Choose another name to keep the originals.",
+    "O destino corresponde a um vídeo selecionado. Escolha outro nome para manter os originais."
+  ],
+  "{0}% menos": [
+    "{0}% smaller",
+    "{0}% menor"
   ]
 }

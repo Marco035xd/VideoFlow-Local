@@ -21,6 +21,7 @@ const pageTitles = {
   home: "Nueva descarga",
   convert: "Video a audio",
   "video-convert": "Convertir video",
+  compress: "Comprimir video",
   separate: "Voz e instrumentos",
   downloads: "Gestión de descargas",
   history: "Historial",
@@ -70,7 +71,8 @@ function formatDate(value) {
   });
 }
 
-function qualityLabel(format, quality, source = "") {
+function qualityLabel(format, quality, source = "", mode = "") {
+  if (mode === 'video_compress') return `Reducción objetivo: ${quality}%`;
   if (["wav", "flac"].includes(format)) return "Sin pérdida";
   if (format === "flac") return "Sin pérdida";
   if (String(quality) === "4320") return "8K (4320p)";
@@ -489,9 +491,9 @@ function renderDownloads() {
           <div class="download-submeta">
             <span>${escapeHtml(task.source || "YouTube")}</span>
             <span>${escapeHtml(task.format.toUpperCase())}</span>
-            <span>${escapeHtml(task.mode.startsWith('separate_') ? 'Separación de audio' : task.mode === 'video_convert' ? 'Video convertido' : task.mode === "video_only" ? "Solo video" : task.mode === "audio" ? "Solo audio" : "Video + audio")}</span>
-            <span>${escapeHtml(task.mode === 'video_convert' ? ({'18':'Calidad muy alta','20':'Calidad alta','23':'Calidad equilibrada'}[task.quality] || 'Calidad alta') : qualityLabel(task.format, task.quality, task.source))}</span>
-            ${task.mode === 'video_convert' ? '' : `<span>${escapeHtml(task.downloaded_human)} / ${escapeHtml(total)}</span>`}
+            <span>${escapeHtml(task.mode.startsWith('separate_') ? 'Separación de audio' : task.mode === 'video_compress' ? 'Video comprimido' : task.mode === 'video_convert' ? 'Video convertido' : task.mode === "video_only" ? "Solo video" : task.mode === "audio" ? "Solo audio" : "Video + audio")}</span>
+            <span>${escapeHtml(task.mode === 'video_convert' ? ({'18':'Calidad muy alta','20':'Calidad alta','23':'Calidad equilibrada'}[task.quality] || 'Calidad alta') : qualityLabel(task.format, task.quality, task.source, task.mode))}</span>
+            ${['video_convert', 'video_compress'].includes(task.mode) ? '' : `<span>${escapeHtml(task.downloaded_human)} / ${escapeHtml(total)}</span>`}
             <span>${escapeHtml(detail)}</span>
           </div>
           <div class="progress-row">
@@ -527,12 +529,12 @@ function handleDownloadNotifications(downloads) {
     const previous = state.previousStatuses.get(task.id);
     if (previous && previous !== task.status) {
       if (task.status === "Completado") {
-        const label = task.mode.startsWith('separate_') ? 'Separación completada' : task.mode === 'video_convert' ? 'Video convertido' : 'Descarga completada';
+        const label = task.mode.startsWith('separate_') ? 'Separación completada' : task.mode === 'video_compress' ? 'Video comprimido' : task.mode === 'video_convert' ? 'Video convertido' : 'Descarga completada';
         toast(label, task.title, "success", 4300, true);
         browserNotification(label, task.title);
         loadHistory();
       } else if (task.status === "Error") {
-        const label = task.mode.startsWith('separate_') ? 'Error en la separación' : task.mode === 'video_convert' ? 'Error al convertir video' : 'Error en la descarga';
+        const label = task.mode.startsWith('separate_') ? 'Error en la separación' : task.mode === 'video_compress' ? 'Error al comprimir video' : task.mode === 'video_convert' ? 'Error al convertir video' : 'Error en la descarga';
         toast(label, task.error || task.title, "error", 6500, !task.error);
         browserNotification(label, task.title);
       }
@@ -774,7 +776,7 @@ function renderHistory() {
       </td>
       <td>${escapeHtml(formatDate(item.downloaded_at))}</td>
       <td><span class="format-tag">${escapeHtml(item.format)}</span></td>
-      <td>${escapeHtml(item.mode === 'video_convert' ? ({'18':'Calidad muy alta','20':'Calidad alta','23':'Calidad equilibrada'}[item.quality] || 'Calidad alta') : qualityLabel(item.format, item.quality, item.source))}</td>
+      <td>${escapeHtml(item.mode === 'video_convert' ? ({'18':'Calidad muy alta','20':'Calidad alta','23':'Calidad equilibrada'}[item.quality] || 'Calidad alta') : qualityLabel(item.format, item.quality, item.source, item.mode))}</td>
       <td>${escapeHtml(item.size_human)}</td>
       <td>${historyUrlCell(item.url)}</td>
       <td><button class="path-button" data-open-path="${escapeHtml(item.filepath)}" title="${escapeHtml(item.filepath)}">${escapeHtml(item.filepath)}</button></td>
@@ -808,6 +810,7 @@ async function saveSettings() {
     syncFolderSettings();
     syncBatchDestination();
     syncVideoConvertConcurrency();
+    syncCompressionConcurrency();
     syncRemovedRetention();
     if ($('#removedDownloads').open) await loadRemovedDownloads();
     toast("Configuración guardada", "Los cambios se aplicaron correctamente.", "success");
@@ -927,6 +930,7 @@ async function init() {
     initExtensions();
     initSeparation();
     initVideoConversion();
+    initVideoCompression();
     await Promise.all([loadSystem(), loadDownloads(), loadHistory()]);
   } catch (error) {
     toast("Error de inicio", error.message, "error", 7000);

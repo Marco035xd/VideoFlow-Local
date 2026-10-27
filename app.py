@@ -52,6 +52,7 @@ DEFAULT_SETTINGS = {
     "retry_count": 5,
     "conversion_folder": DEFAULT_FOLDER,
     "video_conversion_folder": DEFAULT_FOLDER,
+    "compression_folder": DEFAULT_FOLDER,
 }
 
 SUPPORTED_FORMATS = [
@@ -335,6 +336,7 @@ class DownloadTask:
     phase: str = ""
     outputs: list = field(default_factory=list)
     advanced: dict = field(default_factory=dict)
+    compression: dict = field(default_factory=dict)
     pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
 
@@ -374,6 +376,7 @@ class DownloadTask:
             "phase": self.phase,
             "outputs": self.outputs,
             "incognito": self.advanced.get('incognito', False),
+            "compression": dict(self.compression),
         }
 
 
@@ -436,6 +439,7 @@ class DownloadManager:
             original_url=str(payload.get("original_url") or payload["url"]).strip(),
             estimated_size=int(payload.get("estimated_size") or 0),
             advanced=validate_options(payload),
+            compression=dict(payload.get('compression') or {}),
         )
         with self.lock:
             if task.save_path and any(
@@ -603,6 +607,9 @@ class DownloadManager:
             raise DownloadCancelled("Descarga cancelada")
 
     def _download(self, task: DownloadTask) -> None:
+        if task.mode == 'video_compress':
+            from video_compression import compress
+            return compress(task, self.history, find_tool)
         if task.mode == 'video_convert':
             from video_conversion import transcode
             return transcode(task, self.history, find_tool)
@@ -1300,6 +1307,11 @@ def api_update_settings():
         if type(days) is not int or days not in RETENTION_OPTIONS:
             return jsonify(ok=False, error='Selecciona 7, 15 o 30 días de conservación.'), 400
         allowed['removed_retention_days'] = days
+    if 'compression_folder' in payload:
+        folder = Path(str(payload['compression_folder'])).expanduser().resolve()
+        if not folder.is_dir():
+            return jsonify(ok=False, error='Selecciona una carpeta existente para los videos comprimidos.'), 400
+        allowed['compression_folder'] = str(folder)
     if 'video_conversion_folder' in payload:
         folder = Path(str(payload['video_conversion_folder'])).expanduser().resolve()
         if not folder.is_dir():
@@ -1468,6 +1480,8 @@ from audio_separation import register as register_separation
 register_separation(app, settings_store, download_manager, find_tool)
 from video_conversion import register as register_video_conversion
 register_video_conversion(app, settings_store, download_manager, find_tool)
+from video_compression import register as register_video_compression
+register_video_compression(app, settings_store, download_manager, find_tool)
 
 
 from collections_download import register as register_collections

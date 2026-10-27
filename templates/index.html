@@ -67,6 +67,7 @@
         </button>
         <button class="nav-item" data-page="convert" type="button"><span class="nav-icon"><img src="/static/icons/navigation/convert.ico" alt=""></span><span>Video a audio</span></button>
         <button class="nav-item" data-page="video-convert" type="button"><span class="nav-icon"><img src="/static/icons/navigation/video.svg" alt=""></span><span>Convertir video</span></button>
+        <button class="nav-item" data-page="compress" type="button"><span class="nav-icon"><img src="/static/icons/navigation/compress.svg" alt=""></span><span>Comprimir video</span></button>
         <button class="nav-item" data-page="separate" type="button"><span class="nav-icon"><img src="/static/icons/navigation/separate.svg" alt=""></span><span>Voz e instrumentos</span></button>
         <button class="nav-item" data-page="history" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/history.ico" alt=""></span><span>Historial</span>
@@ -279,6 +280,33 @@
             <div id="videoConvertResults" class="job-results" aria-live="polite"></div>
             <div id="videoConvertNotice" class="separation-notice"><span aria-hidden="true">ⓘ</span><div><strong>MP4 compatible para edición</strong><p>Se genera un archivo nuevo con H.264, color YUV 4:2:0 y audio AAC. Convertir MP4 a MP4 cambia el contenido interno del archivo, no solo su nombre.</p></div></div>
             <p class="field-hint">El progreso aparece en Descargas y el archivo terminado en Historial. La compatibilidad depende también de la versión y configuración de VEGAS Pro.</p>
+          </section>
+        </section>
+        <section id="page-compress" class="page">
+          <div class="hero-panel separation-hero video-convert-hero">
+            <div><span class="eyebrow">AHORRA ESPACIO</span><h1>Tus videos, más ligeros.</h1><p>Reduce el tamaño de uno o varios videos y guarda una copia nueva. Los originales permanecen intactos.</p></div>
+            <div class="video-convert-mark" aria-hidden="true"><span>MP4</span><b>→</b><span id="compressionHeroReduction">−50%</span></div>
+          </div>
+          <section class="panel batch-panel">
+            <div class="separation-heading"><div><h3>Comprimir videos</h3><p>Elige cuánto quieres reducir el tamaño y compara la estimación antes de comenzar.</p></div><span class="separation-badge">Procesamiento local</span></div>
+            <div class="video-convert-selection"><div><strong>Videos seleccionados</strong><small id="compressionCount">0 archivos</small></div><button id="compressionChoose" class="secondary-button" type="button">Seleccionar videos</button></div>
+            <div id="compressionFiles" class="conversion-files" aria-live="polite"></div>
+            <div class="field-grid">
+              <label class="form-field" for="compressionReduction"><span>Nivel de compresión</span><select id="compressionReduction"><option value="30">Ligera · aproximadamente 30% menos</option><option value="50" selected>Equilibrada · aproximadamente 50% menos</option><option value="70">Alta · aproximadamente 70% menos</option></select></label>
+              <label class="form-field" for="compressionHeight"><span>Resolución de salida</span><select id="compressionHeight"><option value="0">Mantener resolución</option><option value="1080">Máximo 1080p</option><option value="720">Máximo 720p</option><option value="480">Máximo 480p</option></select></label>
+            </div>
+            <div class="compression-summary" aria-live="polite">
+              <div><span>Tamaño original</span><strong id="compressionOriginalSize">—</strong></div>
+              <div><span>Salida aproximada</span><strong id="compressionTargetSize">—</strong></div>
+              <div><span>Ahorro aproximado</span><strong id="compressionSavedSize">—</strong></div>
+            </div>
+            <p class="field-hint">El tamaño es orientativo. Una reducción mayor puede disminuir la nitidez. La resolución nunca se aumenta; el límite se aplica a la altura del video.</p>
+            <div class="form-field"><label for="compressionFolder">Carpeta de destino</label><div class="folder-input"><input id="compressionFolder" type="text" readonly><button id="compressionBrowse" class="secondary-button" type="button">Elegir carpeta</button></div><small class="destination-hint">Esta carpeta se recuerda por separado de las conversiones.</small></div>
+            <p class="field-hint">Usa «Guardar como…» junto a un video para elegir su nombre y destino. Los demás se guardarán en la carpeta indicada arriba.</p>
+            <button id="compressionStart" class="primary-button" type="button" disabled>Comprimir archivos →</button>
+            <p id="compressionConcurrency" class="field-hint"></p>
+            <div id="compressionResults" class="job-results" aria-live="polite"></div>
+            <div class="separation-notice"><span aria-hidden="true">ⓘ</span><div><strong>MP4 más ligero</strong><p>Se guarda un MP4 con video H.264 y audio AAC. Se conserva el contenido completo y la primera pista de audio; no se copian subtítulos ni pistas adicionales. Los videos HDR se convierten a SDR. El progreso, la cancelación y el ahorro real aparecen en Descargas; el archivo terminado también aparece en Historial.</p></div></div>
           </section>
         </section>
         <section id="page-separate" class="page">
@@ -517,6 +545,7 @@
 <script src="/static/extensions.js"></script>
 <script src="/static/separation.js"></script>
 <script src="/static/video_conversion.js"></script>
+<script src="/static/video_compression.js"></script>
 <script src="/static/appearance.js"></script><script src="/static/player.js"></script><script src="/static/updates.js"></script><script src="/static/studio.js"></script>
 {% include 'arcade.html' %}
 <script src="/static/arcade.js"></script>

@@ -28,7 +28,15 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.13-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.14-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Comprimir videos para ahorrar espacio · versión 1.6.14
+
+Abre **Comprimir video**, selecciona uno o varios archivos y elige una reducción **ligera (aproximadamente 30%)**, **equilibrada (50%)** o **alta (70%)**. Se muestran el tamaño original, la salida estimada y el ahorro del lote. Puedes mantener la resolución o limitar la altura a **1080p, 720p o 480p**, sin aumentarla. Elige la carpeta de destino o usa **Guardar como…** junto a cada archivo. La carpeta de compresión se recuerda por separado de las conversiones.
+
+**Comprimir archivos** añade los trabajos a Descargas, con progreso y cancelación, respetando el límite de trabajos simultáneos configurado. Al terminar se muestra el tamaño real antes y después y el porcentaje ahorrado; el archivo también aparece en Historial. Los originales se conservan y la salida lleva un nombre nuevo, como `Video - comprimido [id].mp4`. No se guarda como completado un resultado vacío, incompleto o que pese más que el original. Se eliminan los archivos parciales tras un error o cancelación.
+
+La salida es MP4 con H.264 y la primera pista de audio en AAC, si existe. No se copian subtítulos ni pistas adicionales; los videos HDR se convierten a SDR. Se calcula un presupuesto de bits según el tamaño original y la duración y se codifica en [dos pasadas con FFmpeg](https://ffmpeg.org/ffmpeg.html#Video-Options). El tamaño es orientativo y reducirlo puede disminuir la nitidez. Los videos muy pequeños o ya muy comprimidos pueden requerir un nivel distinto o una resolución menor. La pantalla, los mensajes y las fases de trabajo incluyen traducciones al inglés y al portugués.
 
 ### Vaciar las descargas retiradas · versión 1.6.13
 
