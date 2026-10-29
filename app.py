@@ -692,8 +692,8 @@ class DownloadManager:
                         "postprocessors": [
                             {
                                 "key": "FFmpegExtractAudio",
-                                "preferredcodec": task.output_format,
-                                "preferredquality": str(quality_number) if task.output_format == "mp3" else None,
+                                "preferredcodec": 'vorbis' if task.output_format == 'ogg' else task.output_format,
+                                "preferredquality": str(quality_number) if task.output_format in {'mp3', 'ogg'} else None,
                             },
                             {"key": "FFmpegMetadata", "add_metadata": True},
                         ],
@@ -757,6 +757,12 @@ class DownloadManager:
                 raise RuntimeError("La descarga terminó, pero no se encontró el archivo final.")
             if final_file.suffix.lower() != f".{task.output_format}":
                 raise RuntimeError("El archivo descargado no coincide con el formato elegido.")
+            if task.output_format == 'ogg':
+                from local_audio import audio_info
+                output_info = audio_info(task, final_file, find_tool)
+                if not any(stream.get('codec_name') == 'vorbis' and stream.get('codec_type') == 'audio'
+                           for stream in output_info.get('streams', [])):
+                    raise RuntimeError('El archivo OGG no contiene el audio Vorbis esperado.')
             if task.save_path:
                 target = Path(task.save_path)
                 if target.exists() and not task.overwrite:
@@ -1160,12 +1166,12 @@ def api_add_download():
     if source_for_url(original_url) != source:
         return jsonify({"ok": False, "error": "El enlace original debe pertenecer a la misma plataforma."}), 400
     payload["original_url"] = original_url
-    mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav", "flac"} else "video_audio"))
+    mode = str(payload.get("mode") or ("audio" if payload["format"] in {"mp3", "m4a", "wav", "flac", "ogg"} else "video_audio"))
     payload["mode"] = mode
     allowed_formats = {
         "video_audio": {"mp4", "mkv", "webm", "vob", "mov", "avi"},
         "video_only": {"mp4", "mkv", "webm", "mov", "avi"},
-        "audio": {"mp3", "m4a", "wav", "flac"},
+        "audio": {"mp3", "m4a", "wav", "flac", "ogg"},
     }
     if mode not in allowed_formats or payload["format"] not in allowed_formats[mode]:
         return jsonify({"ok": False, "error": "Formato no válido."}), 400
@@ -1173,7 +1179,7 @@ def api_add_download():
         quality = int(payload["quality"])
     except (TypeError, ValueError):
         return jsonify({"ok": False, "error": "Calidad no válida."}), 400
-    if mode == "audio" and quality not in ({128, 192, 320} if payload["format"] == "mp3" else {0}):
+    if mode == "audio" and quality not in ({128, 192, 320} if payload["format"] in {'mp3', 'ogg'} else {0}):
         return jsonify({"ok": False, "error": "Calidad de audio no válida."}), 400
     valid_video_quality = (
         quality == 0 or 144 <= quality <= 4320
@@ -1344,7 +1350,7 @@ def api_update_settings():
                 folder.mkdir(parents=True, exist_ok=True)
                 folders[source_key] = str(folder)
         allowed["platform_folders"] = folders
-    if payload.get("default_format") in {"mp4", "mkv", "webm", "vob", "mov", "avi", "mp3", "m4a", "wav", "flac"}:
+    if payload.get("default_format") in {"mp4", "mkv", "webm", "vob", "mov", "avi", "mp3", "m4a", "wav", "flac", "ogg"}:
         allowed["default_format"] = payload["default_format"]
     if str(payload.get("default_video_quality")) in {
         "0", "144", "240", "360", "480", "720", "1080", "1440", "2160", "4320"
@@ -1429,7 +1435,7 @@ def api_save_path():
     if source_key not in PLATFORMS:
         return jsonify({"ok": False, "error": "Plataforma no válida."}), 400
     output_format = str(payload.get("format") or "").lower()
-    if output_format not in {"mp4", "mkv", "webm", "vob", "mov", "avi", "mp3", "m4a", "wav", "flac"}:
+    if output_format not in {"mp4", "mkv", "webm", "vob", "mov", "avi", "mp3", "m4a", "wav", "flac", "ogg"}:
         return jsonify({"ok": False, "error": "Formato no válido."}), 400
     initial = Path(str(payload.get("initial") or settings_store.folder_for(source_key))).expanduser().resolve()
     if not initial.is_dir():

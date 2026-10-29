@@ -1,5 +1,6 @@
 """Local media conversion using the shared work queue."""
 import json
+import math
 import subprocess
 import tempfile
 import time
@@ -10,6 +11,14 @@ from pathlib import Path
 _processes = set()
 _process_lock = threading.RLock()
 _closing = False
+AUDIO_FORMATS = {'mp3', 'm4a', 'wav', 'flac', 'ogg'}
+
+
+def audio_info(task, path, find_tool):
+    from audio_separation import command
+    with tempfile.TemporaryDirectory(prefix='videoflow-audio-info-') as temporary:
+        return json.loads(command(task, [find_tool('ffprobe'), '-v', 'error', '-show_format',
+                                        '-show_streams', '-of', 'json', str(path)], Path(temporary)))
 
 
 def start_process(command, **options):
@@ -46,25 +55,26 @@ def convert(task, history, find_tool):
     try:
         folder.mkdir(parents=True, exist_ok=True)
         task.status = 'Procesando'
+        task.phase = 'Leyendo el archivo de audio o video'
+        if target.resolve() == source.resolve() or (target.exists() and source.samefile(target)):
+            raise ValueError('El destino no puede ser el archivo original.')
         flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
-        process = start_process([find_tool('ffprobe'), '-v', 'error', '-show_format', '-show_streams', '-of', 'json', str(source)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8', creationflags=flags)
-        probe_output, _ = process.communicate(timeout=30)
-        with _process_lock:
-            _processes.discard(process)
-        if process.returncode:
-            raise ValueError('No se pudo leer el archivo de video.')
+        info = audio_info(task, source, find_tool)
         if task.cancel_event.is_set():
             task.status = 'Cancelado'
             return
-        info = json.loads(probe_output)
         if not any(s.get('codec_type') == 'audio' for s in info.get('streams', [])):
             raise ValueError('Este archivo no contiene una pista de audio.')
         duration = float(info.get('format', {}).get('duration') or 0)
+        duration = duration if math.isfinite(duration) and duration > 0 else 0
         task.duration = int(duration)
-        codecs = {'mp3': 'libmp3lame', 'm4a': 'aac', 'wav': 'pcm_s16le', 'flac': 'flac'}
+        codecs = {'mp3': 'libmp3lame', 'm4a': 'aac', 'wav': 'pcm_s16le', 'flac': 'flac', 'ogg': 'libvorbis'}
         command = [find_tool('ffmpeg'), '-nostdin', '-v', 'error', '-n', '-i', str(source), '-map', '0:a:0', '-vn', '-c:a', codecs[task.output_format]]
-        if task.output_format in {'mp3', 'm4a'}:
+        if task.output_format in {'mp3', 'm4a', 'ogg'}:
             command += ['-b:a', f'{task.quality}k']
+        if task.output_format == 'ogg':
+            command += ['-ar', '48000', '-ac', '2', '-f', 'ogg']
+        task.phase = 'Convirtiendo a OGG · Vorbis' if task.output_format == 'ogg' else f'Convirtiendo a {task.output_format.upper()}'
         command += ['-progress', 'pipe:1', str(partial)]
         with tempfile.TemporaryDirectory(prefix='videoflow-progress-') as temp, open(Path(temp) / 'progress', 'w+b') as progress, open(Path(temp) / 'progress', 'rb') as reader, tempfile.TemporaryFile(mode='w+b') as errors:
             process = start_process(command, stdout=progress, stderr=errors, creationflags=flags)
@@ -90,6 +100,17 @@ def convert(task, history, find_tool):
             if process.returncode:
                 errors.seek(0)
                 raise ValueError(errors.read().decode('utf-8', errors='replace')[-800:] or 'No se pudo convertir el archivo.')
+        if task.output_format == 'ogg':
+            task.phase = 'Comprobando el audio OGG · Vorbis'
+            output = audio_info(task, partial, find_tool)
+            audio = next((stream for stream in output.get('streams', []) if stream.get('codec_type') == 'audio'), {})
+            output_duration = float(output.get('format', {}).get('duration') or 0)
+            if (audio.get('codec_name') != 'vorbis' or not partial.stat().st_size
+                    or not math.isfinite(output_duration) or output_duration <= 0
+                    or (duration and abs(output_duration - duration) > max(1, duration * .02))):
+                raise ValueError('No se pudo obtener un archivo OGG con audio Vorbis completo y válido.')
+        if task.cancel_event.is_set():
+            raise InterruptedError('Cancelado')
         if target.resolve() == source.resolve() or (target.exists() and source.samefile(target)):
             raise ValueError('El destino no puede ser el archivo original.')
         if target.exists() and not task.overwrite:
@@ -102,11 +123,12 @@ def convert(task, history, find_tool):
         task.final_size = target.stat().st_size
         task.progress = 100
         task.completed_at = now_iso()
+        task.phase = 'Audio guardado · OGG Vorbis' if task.output_format == 'ogg' else 'Audio guardado'
         history.add(task)
         task.status = 'Completado'
     except Exception as exc:
         task.status = 'Cancelado' if task.cancel_event.is_set() else 'Error'
-        task.error = str(exc)
+        task.error = '' if task.status == 'Cancelado' else str(exc)
     finally:
         if process is not None and process.poll() is None:
             process.kill()
@@ -118,12 +140,12 @@ def convert(task, history, find_tool):
 
 def register(app, settings, manager, find_tool):
     from flask import request, jsonify
-    from desktop_dialogs import choose, save_audio, VIDEO_TYPES
+    from desktop_dialogs import choose, save_audio, AUDIO_VIDEO_TYPES
 
     @app.post('/api/local-files')
     def local_files():
         try:
-            paths = choose('OPEN', settings.load().get('conversion_input_folder', ''), file_types=VIDEO_TYPES)
+            paths = choose('OPEN', settings.load().get('conversion_input_folder', ''), file_types=AUDIO_VIDEO_TYPES)
             if paths:
                 settings.update({'conversion_input_folder': str(Path(paths[0]).parent)})
             return jsonify(ok=True, paths=paths)
@@ -136,8 +158,8 @@ def register(app, settings, manager, find_tool):
         try:
             source = Path(str(data.get('path', ''))).expanduser().resolve()
             output_format = data.get('format')
-            if not source.is_file() or output_format not in {'mp3', 'm4a', 'wav', 'flac'}:
-                raise ValueError('Selecciona un video y un formato de audio válido.')
+            if not source.is_file() or output_format not in AUDIO_FORMATS:
+                raise ValueError('Selecciona un archivo y un formato de audio válidos.')
             target = save_audio(data.get('initial') or settings.load().get('conversion_folder') or settings.load()['default_folder'], f'{source.stem[:110]}.{output_format}', output_format)
             if target is None:
                 return jsonify(ok=True, cancelled=True)
@@ -155,7 +177,7 @@ def register(app, settings, manager, find_tool):
             source = Path(str(data.get('path', ''))).expanduser().resolve()
             if not source.is_file():
                 raise ValueError('Selecciona un archivo existente.')
-            if data.get('format') not in {'mp3', 'm4a', 'wav', 'flac'}:
+            if data.get('format') not in AUDIO_FORMATS:
                 raise ValueError('Formato de audio no válido.')
             quality = str(data.get('quality', '192'))
             if quality not in {'128', '192', '320'}:

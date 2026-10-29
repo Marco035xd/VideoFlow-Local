@@ -7,6 +7,8 @@ from pathlib import Path
 _window = None
 _lock = threading.Lock()
 VIDEO_TYPES = ('Videos (*.mp4;*.mkv;*.mov;*.webm;*.avi;*.wmv;*.flv;*.mpeg;*.vob;*.m4v;*.ts)', 'Todos los archivos (*.*)')
+AUDIO_VIDEO_TYPES = ('Audio y video (*.wav;*.mp3;*.m4a;*.aac;*.flac;*.ogg;*.opus;*.wma;*.aiff;*.aif;*.mp4;*.mkv;*.mov;*.webm;*.avi;*.wmv;*.flv;*.mpeg;*.mpg;*.vob;*.m4v;*.ts)',
+                     'Audio WAV (*.wav)', 'Todos los archivos (*.*)')
 
 
 def bind_window(window):

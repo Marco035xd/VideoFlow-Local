@@ -28,8 +28,8 @@ function collectionFormats() {
   collectionQuality();
 }
 function collectionQuality() {
-  const audio=$('#collectionMode').value==='audio', mp3=$('#collectionFormat').value==='mp3';
-  const options=audio?(mp3?[[320,'320 kbps'],[192,'192 kbps'],[128,'128 kbps']]:[[0,'Mejor disponible']]):[[0,'Mejor disponible'],[4320,'8K · hasta 4320p'],[2160,'4K · hasta 2160p'],[1440,'2K · hasta 1440p'],[1080,'Hasta 1080p'],[720,'Hasta 720p'],[480,'Hasta 480p']];
+  const audio=$('#collectionMode').value==='audio', bitrate=['mp3','ogg'].includes($('#collectionFormat').value);
+  const options=audio?(bitrate?[[320,'320 kbps'],[192,'192 kbps'],[128,'128 kbps']]:[[0,'Mejor disponible']]):[[0,'Mejor disponible'],[4320,'8K · hasta 4320p'],[2160,'4K · hasta 2160p'],[1440,'2K · hasta 1440p'],[1080,'Hasta 1080p'],[720,'Hasta 720p'],[480,'Hasta 480p']];
   $('#collectionQuality').replaceChildren(...options.map(([v,l])=>new Option(l,v)));
 }
 async function refreshCollections() {
@@ -56,7 +56,7 @@ async function refreshBrowser() {
   const list=$('#browserDetected');list.replaceChildren();
   for(const item of [...data.detected].reverse()) list.append(studioRow(item.kind,item.url,'Descargar',async()=>{
     const format=$('#browserFormat').value;
-    await api('/api/browser/download',{method:'POST',body:JSON.stringify({url:item.url,format,mode:format==='mp3'?'audio':'video_audio',folder:$('#browserFolder').value})});
+    await api('/api/browser/download',{method:'POST',body:JSON.stringify({url:item.url,format,mode:['mp3','ogg'].includes(format)?'audio':'video_audio',folder:$('#browserFolder').value})});
     toast('Descarga añadida','Puedes seguir el progreso en Descargas.');await loadDownloads();
   }));
 }

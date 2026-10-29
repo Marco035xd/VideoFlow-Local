@@ -246,15 +246,16 @@
 
         <section id="page-convert" class="page">
           <section class="panel batch-panel">
-            <h3>Convierte tus videos en audio</h3><p>Selecciona videos de tu computadora. Se crean archivos nuevos y se conserva el video original.</p>
-            <button id="chooseVideos" class="secondary-button" type="button">Seleccionar videos</button>
+            <h3>Convierte tus audios y videos</h3><p>Selecciona archivos WAV u otros audios y videos de tu computadora. Se crean archivos nuevos y se conservan los originales.</p>
+            <button id="chooseVideos" class="secondary-button" type="button">Seleccionar archivos</button>
             <div id="conversionFiles" class="conversion-files" aria-live="polite">Ningún archivo seleccionado.</div>
             <div class="field-grid three-fields">
-              <label class="form-field"><span>Formato</span><select id="conversionFormat"><option value="mp3">MP3</option><option value="m4a">M4A</option><option value="wav">WAV · sin compresión</option><option value="flac">FLAC · sin pérdida</option></select></label>
-              <label class="form-field"><span>Calidad MP3 / M4A</span><select id="conversionQuality"><option>128</option><option selected>192</option><option>320</option></select></label>
+              <label class="form-field"><span>Formato</span><select id="conversionFormat"><option value="mp3">MP3</option><option value="m4a">M4A</option><option value="wav">WAV · sin compresión</option><option value="flac">FLAC · sin pérdida</option><option value="ogg">OGG · Vorbis</option></select></label>
+              <label class="form-field"><span>Calidad MP3 / M4A / OGG (kbps)</span><select id="conversionQuality"><option>128</option><option selected>192</option><option>320</option></select></label>
             </div>
+            <div id="conversionOggNotice" class="separation-notice hidden"><span aria-hidden="true">ⓘ</span><div><strong>WAV a OGG · Vorbis</strong><p>El audio se convierte a Vorbis y se guarda con extensión .ogg. Usa compresión con pérdida y una tasa de bits aproximada; el archivo original se conserva.</p></div></div>
             <div class="form-field"><label for="conversionFolder">Carpeta para nombres automáticos</label><div class="folder-input"><input id="conversionFolder" type="text" readonly><button id="conversionBrowse" class="secondary-button" type="button">Elegir carpeta</button></div></div>
-            <p class="field-hint">Usa «Guardar como» junto a cada video para elegir el nombre y la ubicación exacta de su audio. Los demás se guardarán en esta carpeta con un nombre automático.</p>
+            <p class="field-hint">Usa «Guardar como» junto a cada archivo para elegir su nombre y ubicación exactos. Los demás se guardarán en esta carpeta con un nombre automático.</p>
             <button id="convertStart" class="primary-button" type="button">Convertir archivos</button>
             <p>El progreso y la cancelación están en Descargas. Las conversiones terminadas también aparecen en Historial.</p>
             <div id="conversionResults" class="job-results" aria-live="polite"></div>
@@ -470,7 +471,7 @@
                   </div>
                 </label>
                 <div class="field-grid three-fields">
-                  <label class="form-field"><span>Formato predeterminado</span><select id="settingsFormat"><option value="mp4">MP4 · video</option><option value="mkv">MKV · video</option><option value="webm">WEBM · video</option><option value="vob">VOB · video</option><option value="mp3">MP3 · audio</option><option value="m4a">M4A · audio</option><option value="wav">WAV · audio</option></select></label>
+                  <label class="form-field"><span>Formato predeterminado</span><select id="settingsFormat"><option value="mp4">MP4 · video</option><option value="mkv">MKV · video</option><option value="webm">WEBM · video</option><option value="vob">VOB · video</option><option value="mp3">MP3 · audio</option><option value="m4a">M4A · audio</option><option value="wav">WAV · audio</option><option value="ogg">OGG · Vorbis</option></select></label>
                   <label class="form-field"><span>Calidad de video</span><select id="settingsVideoQuality"><option value="144">144p</option><option value="240">240p</option><option value="360">360p</option><option value="480">480p</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">2K</option><option value="2160">4K</option><option value="4320">8K</option><option value="0">Mejor disponible</option></select></label>
                   <label class="form-field"><span>Calidad de audio</span><select id="settingsAudioQuality"><option value="128">128 kbps</option><option value="192">192 kbps</option><option value="320">320 kbps</option></select></label>
                 </div>

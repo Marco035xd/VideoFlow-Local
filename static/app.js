@@ -78,6 +78,7 @@ function qualityLabel(format, quality, source = "", mode = "") {
   if (String(quality) === "4320") return "8K (4320p)";
   if (format === "m4a") return source === "Local" ? `${quality} kbps` : "Original";
   if (format === "mp3") return `${quality} kbps`;
+  if (format === "ogg") return `Vorbis · ${quality} kbps`;
   if (String(quality) === "0") return "Mejor disponible";
   if (source === "TikTok") return `${quality} px de alto`;
   if (String(quality) === "1440") return "2K (1440p)";
@@ -88,7 +89,7 @@ function qualityLabel(format, quality, source = "", mode = "") {
 const formatChoices = {
   video_audio: [["mp4", "MP4"], ["mkv", "MKV"], ["webm", "WEBM"], ["mov", "MOV"], ["avi", "AVI"], ["vob", "VOB"]],
   video_only: [["mp4", "MP4"], ["mkv", "MKV"], ["webm", "WEBM"], ["mov", "MOV"], ["avi", "AVI"]],
-  audio: [["mp3", "MP3"], ["m4a", "M4A"], ["wav", "WAV"], ["flac", "FLAC"]],
+  audio: [["mp3", "MP3"], ["m4a", "M4A"], ["wav", "WAV"], ["flac", "FLAC"], ["ogg", "OGG · Vorbis"]],
 };
 
 const platformNames = { youtube: "YouTube", facebook: "Facebook", tiktok: "TikTok" };
@@ -227,7 +228,7 @@ function rebuildQualityOptions() {
   const format = $("#formatSelect").value;
   const mode = $("#modeSelect").value;
   let options = mode === "audio" ? state.video.audio_options : state.video.video_options;
-  if (mode === "audio" && format !== "mp3") {
+  if (mode === "audio" && !['mp3', 'ogg'].includes(format)) {
     options = [{ value: "0", label: "Calidad original", estimated_size: state.video.source_audio_size || 0, estimated_size_human: "—" }];
   }
   if (format === "vob") options = options.filter((item) => Number(item.value) <= 480);
@@ -236,7 +237,7 @@ function rebuildQualityOptions() {
     .map((item) => `<option value="${item.value}" data-size="${item.estimated_size || 0}">${escapeHtml(item.label)} · ${escapeHtml(item.estimated_size_human || "—")}</option>`)
     .join("");
 
-  const preferred = mode === "audio" && format !== "mp3" ? "0" : mode === "audio"
+  const preferred = mode === "audio" && !['mp3', 'ogg'].includes(format) ? "0" : mode === "audio"
     ? state.settings.default_audio_quality
     : format === "vob"
       ? String(Math.min(480, Number(state.settings.default_video_quality)))
@@ -286,7 +287,7 @@ function showVideo(video, previous = {}) {
     : `${video.source} · ${video.uploader}`;
   $("#videoDuration").textContent = video.duration_human;
   const preferredFormat = previous.format || state.settings.default_format;
-  $("#modeSelect").value = ["mp3", "m4a", "wav"].includes(preferredFormat)
+  $("#modeSelect").value = formatChoices.audio.some(([value]) => value === preferredFormat)
     ? "audio" : previous.mode === "video_only" ? "video_only" : "video_audio";
   state.destinationFolder = previous.folder || folderForSource(video.source);
   state.savePath = "";

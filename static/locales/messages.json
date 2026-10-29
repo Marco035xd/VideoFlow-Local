@@ -2906,5 +2906,73 @@
   "{0}% menos": [
     "{0}% smaller",
     "{0}% menor"
+  ],
+  "Convierte tus audios y videos": [
+    "Convert your audio and video files",
+    "Converta seus áudios e vídeos"
+  ],
+  "Selecciona archivos WAV u otros audios y videos de tu computadora. Se crean archivos nuevos y se conservan los originales.": [
+    "Select WAV files or other audio and video files from your computer. New files are created and originals are kept.",
+    "Selecione arquivos WAV ou outros áudios e vídeos do computador. Novos arquivos são criados e os originais são mantidos."
+  ],
+  "Seleccionar archivos": [
+    "Select files",
+    "Selecionar arquivos"
+  ],
+  "Selecciona archivos": [
+    "Select files",
+    "Selecione arquivos"
+  ],
+  "Calidad MP3 / M4A / OGG (kbps)": [
+    "MP3 / M4A / OGG quality (kbps)",
+    "Qualidade MP3 / M4A / OGG (kbps)"
+  ],
+  "WAV a OGG · Vorbis": [
+    "WAV to OGG · Vorbis",
+    "WAV para OGG · Vorbis"
+  ],
+  "El audio se convierte a Vorbis y se guarda con extensión .ogg. Usa compresión con pérdida y una tasa de bits aproximada; el archivo original se conserva.": [
+    "Audio is converted to Vorbis and saved with the .ogg extension. Uses lossy compression and an approximate bitrate; the original file is kept.",
+    "O áudio é convertido para Vorbis e salvo com a extensão .ogg. Usa compressão com perda e uma taxa de bits aproximada; o arquivo original é mantido."
+  ],
+  "Usa «Guardar como» junto a cada archivo para elegir su nombre y ubicación exactos. Los demás se guardarán en esta carpeta con un nombre automático.": [
+    "Use “Save as” next to each file to choose its exact name and location. The rest will be saved to this folder with an automatic name.",
+    "Use “Salvar como” ao lado de cada arquivo para escolher seu nome e local exatos. Os demais serão salvos nesta pasta com um nome automático."
+  ],
+  "Ningún archivo seleccionado. Elige audios o videos de tu computadora.": [
+    "No files selected. Choose audio or video files from your computer.",
+    "Nenhum arquivo selecionado. Escolha áudios ou vídeos do computador."
+  ],
+  "Leyendo el archivo de audio o video": [
+    "Reading the audio or video file",
+    "Lendo o arquivo de áudio ou vídeo"
+  ],
+  "Convirtiendo a OGG · Vorbis": [
+    "Converting to OGG · Vorbis",
+    "Convertendo para OGG · Vorbis"
+  ],
+  "Comprobando el audio OGG · Vorbis": [
+    "Checking OGG · Vorbis audio",
+    "Verificando o áudio OGG · Vorbis"
+  ],
+  "No se pudo obtener un archivo OGG con audio Vorbis completo y válido.": [
+    "Could not produce a complete, valid OGG file with Vorbis audio.",
+    "Não foi possível obter um arquivo OGG completo e válido com áudio Vorbis."
+  ],
+  "Audio guardado · OGG Vorbis": [
+    "Audio saved · OGG Vorbis",
+    "Áudio salvo · OGG Vorbis"
+  ],
+  "Audio guardado": [
+    "Audio saved",
+    "Áudio salvo"
+  ],
+  "Selecciona un archivo y un formato de audio válidos.": [
+    "Select a valid file and audio format.",
+    "Selecione um arquivo e um formato de áudio válidos."
+  ],
+  "El archivo OGG no contiene el audio Vorbis esperado.": [
+    "The OGG file does not contain the expected Vorbis audio.",
+    "O arquivo OGG não contém o áudio Vorbis esperado."
   ]
 }

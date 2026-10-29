@@ -6,12 +6,13 @@ function setConversionBusy(busy) {
   conversionBusy = busy;
   ['chooseVideos', 'convertStart', 'conversionBrowse', 'conversionFormat', 'conversionQuality'].forEach(id => { $('#'+id).disabled = busy; });
   $('#conversionQuality').disabled = busy || ['wav','flac'].includes($('#conversionFormat').value);
+  $('#conversionOggNotice').classList.toggle('hidden', $('#conversionFormat').value !== 'ogg');
   renderConversionFiles();
 }
 function renderConversionFiles() {
   const container = $('#conversionFiles');
   container.replaceChildren();
-  if (!localFiles.length) container.textContent = 'Ningún archivo seleccionado. Elige los videos de tu computadora.';
+  if (!localFiles.length) container.textContent = 'Ningún archivo seleccionado. Elige audios o videos de tu computadora.';
   for (const path of localFiles) {
     const row = document.createElement('div'); row.className = 'conversion-file';
     const info = document.createElement('div'); info.className = 'conversion-file-info';
@@ -77,7 +78,7 @@ async function batchDownload() {
         const {video} = await api('/api/analyze', {method:'POST',body:JSON.stringify({url,browser})});
         const heights = video.video_options.map(o=>Number(o.value)).filter(v=>v>0 && (!videoQuality || v<=videoQuality));
         if (mode !== 'audio' && !heights.length) throw new Error('No hay calidad disponible dentro del máximo elegido.');
-        await api('/api/downloads',{method:'POST',body:JSON.stringify({url:video.url, original_url:url, title:video.title, video_id:video.id, thumbnail:video.thumbnail, duration:video.duration, folder, mode, format, quality:mode==='audio'?(format==='mp3'?audioQuality:'0'):String(videoQuality ? Math.max(...heights) : 0),browser,advanced:advancedOptions()})});
+        await api('/api/downloads',{method:'POST',body:JSON.stringify({url:video.url, original_url:url, title:video.title, video_id:video.id, thumbnail:video.thumbnail, duration:video.duration, folder, mode, format, quality:mode==='audio'?(['mp3','ogg'].includes(format)?audioQuality:'0'):String(videoQuality ? Math.max(...heights) : 0),browser,advanced:advancedOptions()})});
         resultLine('#batchResults', video.title, 'Añadido a la cola');
       } catch(error) { failed.push(url); resultLine('#batchResults', url, error.message); }
     }
@@ -130,7 +131,7 @@ function initExtensions() {
     finally { setConversionBusy(false); }
   };
   $('#convertStart').onclick = async () => {
-    if (!localFiles.length) return toast('Selecciona videos','Elige los archivos que quieras convertir.','error');
+    if (!localFiles.length) return toast('Selecciona archivos','Elige los archivos que quieras convertir.','error');
     const paths = [...localFiles];
     const format = $('#conversionFormat').value, quality = $('#conversionQuality').value, folder = $('#conversionFolder').value;
     setConversionBusy(true);

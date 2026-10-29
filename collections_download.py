@@ -21,7 +21,7 @@ class CollectionJobs:
         if mode not in {'audio', 'video_only', 'video_audio'} or fmt not in (AUDIO_FORMATS if mode == 'audio' else VIDEO_FORMATS - {'vob'}):
             raise ValueError('Formato de la colección no válido.')
         quality = int(payload.get('quality', 0))
-        if (mode == 'audio' and quality not in ({128, 192, 320} if fmt == 'mp3' else {0})) or (mode != 'audio' and quality not in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}):
+        if (mode == 'audio' and quality not in ({128, 192, 320} if fmt in {'mp3', 'ogg'} else {0})) or (mode != 'audio' and quality not in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}):
             raise ValueError('Calidad de la colección no válida.')
         advanced = validate_options({**payload, 'mode': mode, 'format': fmt})
         folder = Path(payload.get('folder') or self.settings.folder_for('YouTube')).expanduser().resolve()

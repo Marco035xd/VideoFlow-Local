@@ -180,7 +180,7 @@ def register(app, manager, settings):
             data = request.get_json() or {}
             url = public_url(data.get('url', ''))
             mode, fmt = data.get('mode', 'video_audio'), data.get('format', 'mp4')
-            if (mode, fmt) not in {('video_audio', 'mp4'), ('video_audio', 'mkv'), ('audio', 'mp3')}:
+            if (mode, fmt) not in {('video_audio', 'mp4'), ('video_audio', 'mkv'), ('audio', 'mp3'), ('audio', 'ogg')}:
                 raise ValueError('Formato no válido.')
             folder = Path(data.get('folder') or settings.load()['default_folder']).expanduser().resolve()
             quality = '320' if mode == 'audio' else '0'

@@ -3,7 +3,7 @@ import math
 import re
 
 VIDEO_FORMATS = {'mp4', 'mkv', 'mov', 'avi', 'webm', 'vob'}
-AUDIO_FORMATS = {'mp3', 'm4a', 'wav', 'flac'}
+AUDIO_FORMATS = {'mp3', 'm4a', 'wav', 'flac', 'ogg'}
 
 
 def timestamp(value):

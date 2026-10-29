@@ -28,7 +28,15 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.14-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.15-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### OGG con audio Vorbis y conversión de WAV · versión 1.6.15
+
+En **Video a audio**, pulsa **Seleccionar archivos** y elige uno o varios **WAV**, audios o videos. Selecciona **OGG · Vorbis**, elige **128, 192 o 320 kbps**, indica la carpeta de salida y pulsa **Convertir archivos**. **Guardar como…** permite elegir el nombre y destino por archivo. Se crea un `.ogg` nuevo con audio Vorbis, conservando el original; el progreso y la cancelación aparecen en Descargas y el resultado se añade a Historial.
+
+La selección nativa incluye WAV y otros formatos de audio. OGG también está disponible en **Solo audio** para descargas individuales, lotes y listas o canales, en el navegador privado y como formato predeterminado en Configuración. La extensión de salida y el formato interno se corresponden: se comprueba que la pista de audio sea Vorbis antes de marcar el trabajo como completado. Los controles y mensajes nuevos incluyen inglés y portugués.
+
+Vorbis usa compresión con pérdida; la tasa de bits es aproximada, según las [opciones de libvorbis en FFmpeg](https://ffmpeg.org/ffmpeg-codecs.html#libvorbis). Para conversiones locales se genera audio estéreo a 48 kHz. Si una descarga ya contiene Vorbis, el motor puede conservarlo sin recodificar, manteniendo su tasa original.
 
 ### Comprimir videos para ahorrar espacio · versión 1.6.14
 
