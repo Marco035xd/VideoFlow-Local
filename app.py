@@ -25,6 +25,7 @@ from appearance import DEFAULT_APPEARANCE, normalize_appearance
 from localization import LANGUAGES, normalize_language
 from removed_downloads import RemovedDownloads, RETENTION_OPTIONS, DEFAULT_RETENTION_DAYS, normalize_retention_days
 from download_options import validate_options, video_selector, apply_options
+from audio_tracks import available_tracks, restrict_audio_selector
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
@@ -248,6 +249,9 @@ class HistoryStore:
                 con.execute("ALTER TABLE history ADD COLUMN mode TEXT DEFAULT 'video_audio'")
             if "url" not in columns:
                 con.execute("ALTER TABLE history ADD COLUMN url TEXT NOT NULL DEFAULT ''")
+            for column in ('audio_track', 'audio_track_label', 'audio_track_language'):
+                if column not in columns:
+                    con.execute(f"ALTER TABLE history ADD COLUMN {column} TEXT NOT NULL DEFAULT ''")
             con.commit()
 
     def add(self, task: "DownloadTask") -> None:
@@ -258,8 +262,9 @@ class HistoryStore:
                 """
                 INSERT INTO history
                 (task_id, video_id, title, downloaded_at, format, quality,
-                 size_bytes, filepath, thumbnail, duration, source, mode, url)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 size_bytes, filepath, thumbnail, duration, source, mode, url,
+                 audio_track, audio_track_label, audio_track_language)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     task.id,
@@ -275,6 +280,9 @@ class HistoryStore:
                     task.source,
                     task.mode,
                     task.original_url or task.url,
+                    task.advanced.get('audio_track', ''),
+                    task.advanced.get('audio_track_label', ''),
+                    task.advanced.get('audio_track_language', ''),
                 ),
             )
             con.commit()
@@ -377,6 +385,9 @@ class DownloadTask:
             "outputs": self.outputs,
             "incognito": self.advanced.get('incognito', False),
             "compression": dict(self.compression),
+            "audio_track": self.advanced.get('audio_track', ''),
+            "audio_track_label": self.advanced.get('audio_track_label', ''),
+            "audio_track_language": self.advanced.get('audio_track_language', ''),
         }
 
 
@@ -731,6 +742,8 @@ class DownloadManager:
 
             apply_options(common_opts, task)
             with yt_dlp.YoutubeDL(common_opts) as ydl:
+                if task.advanced.get('audio_track') and task.mode != 'video_only':
+                    ydl.format_selector = restrict_audio_selector(ydl.build_format_selector(common_opts['format']), task)
                 info = ydl.extract_info(task.url, download=True)
                 if info:
                     task.video_id = str(info.get("id") or task.video_id or "video")
@@ -1138,6 +1151,7 @@ def api_analyze():
             "view_count": int(info.get("view_count") or 0),
             "video_options": estimate_video_options(info, source),
             "audio_options": audio_options,
+            "audio_tracks": available_tracks(info.get('formats') or []),
             "source_audio_size": max((format_size(f) for f in (info.get("formats") or []) if f.get("acodec") not in {None, "none"} and f.get("vcodec") == "none"), default=0),
         }
         return jsonify({"ok": True, "video": result})

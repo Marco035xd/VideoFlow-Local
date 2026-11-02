@@ -28,7 +28,15 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.15-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.16-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Elegir la pista de audio de un video · versión 1.6.16
+
+Pega un enlace y pulsa **Analizar video**. En **Información y opciones → Pista de audio** aparecen las pistas que el sitio permite descargar, con su nombre o idioma y las marcas **Original**, **Predeterminada** o **Audiodescripción** cuando estén identificadas. Elige una pista y pulsa **Agregar a la cola** para guardar el video con ese audio. **Automático · recomendado** conserva la selección habitual del motor. La elección también sirve para **Solo audio**, incluidos OGG Vorbis, MP3, M4A, WAV y FLAC; **Solo video** desactiva el selector.
+
+Las variantes de calidad que comparten los mismos datos de pista se agrupan para elegir la mejor disponible dentro de la calidad de video indicada. La descarga vuelve a consultar las pistas y restringe tanto la selección principal como sus alternativas a la elegida: si ya no está disponible, muestra un error en lugar de cambiar a otro audio. Esto se integra con la [selección de formatos de yt-dlp](https://github.com/yt-dlp/yt-dlp#format-selection).
+
+La pista elegida se muestra en Descargas, se guarda en Historial y se conserva en los registros retirados temporalmente. Al volver a descargar desde Historial se intenta preseleccionar esa pista si sigue disponible. Los lotes y colecciones mantienen la selección automática de cada video. Algunos sitios solo exponen una pista o no informan los idiomas; la app muestra los datos disponibles y no crea doblajes. Se mantiene el diseño, con textos en español, inglés y portugués.
 
 ### OGG con audio Vorbis y conversión de WAV · versión 1.6.15
 

@@ -191,6 +191,15 @@
                   </label>
                 </div>
 
+                <div class="audio-track-picker">
+                  <label class="form-field" for="audioTrackSelect">
+                    <span>Pista de audio</span>
+                    <select id="audioTrackSelect" translate="no" aria-describedby="audioTrackStatus"><option value="">Automático · recomendado</option></select>
+                  </label>
+                  <p id="audioTrackStatus" class="field-hint" role="status"></p>
+                  <small id="audioTrackDetail" class="destination-hint" translate="no"></small>
+                </div>
+
                 <label class="form-field">
                   <span id="destinationLabel">Destino de la descarga · YouTube</span>
                   <div class="folder-input">
@@ -547,6 +556,7 @@
 <script src="/static/separation.js"></script>
 <script src="/static/video_conversion.js"></script>
 <script src="/static/video_compression.js"></script>
+<script src="/static/audio_tracks.js"></script>
 <script src="/static/appearance.js"></script><script src="/static/player.js"></script><script src="/static/updates.js"></script><script src="/static/studio.js"></script>
 {% include 'arcade.html' %}
 <script src="/static/arcade.js"></script>

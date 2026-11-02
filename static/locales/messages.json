@@ -2974,5 +2974,61 @@
   "El archivo OGG no contiene el audio Vorbis esperado.": [
     "The OGG file does not contain the expected Vorbis audio.",
     "O arquivo OGG não contém o áudio Vorbis esperado."
+  ],
+  "Pista de audio": [
+    "Audio track",
+    "Faixa de áudio"
+  ],
+  "Automático · recomendado": [
+    "Automatic · recommended",
+    "Automático · recomendado"
+  ],
+  "Original": [
+    "Original",
+    "Original"
+  ],
+  "Audiodescripción": [
+    "Audio description",
+    "Audiodescrição"
+  ],
+  "Predeterminada": [
+    "Default",
+    "Padrão"
+  ],
+  "Audio:": [
+    "Audio:",
+    "Áudio:"
+  ],
+  "Solo video no incluye ninguna pista de audio.": [
+    "Video only does not include an audio track.",
+    "Somente vídeo não inclui nenhuma faixa de áudio."
+  ],
+  "El sitio no ha informado pistas de audio seleccionables para este video. Se usará el audio disponible automáticamente.": [
+    "The site did not provide selectable audio tracks for this video. Available audio will be selected automatically.",
+    "O site não informou faixas de áudio selecionáveis para este vídeo. O áudio disponível será selecionado automaticamente."
+  ],
+  "Se detectó una pista de audio. Puedes elegirla o usar la selección automática.": [
+    "One audio track was found. You can choose it or use automatic selection.",
+    "Uma faixa de áudio foi encontrada. Você pode escolhê-la ou usar a seleção automática."
+  ],
+  "Hay {0} pistas de audio disponibles. Elige cuál incluir en la descarga.": [
+    "{0} audio tracks are available. Choose which one to include in your download.",
+    "Há {0} faixas de áudio disponíveis. Escolha qual incluir no download."
+  ],
+  "La pista guardada en el historial ya no aparece disponible. Revisa las pistas antes de descargar.": [
+    "The track saved in History is no longer listed. Review the audio tracks before downloading.",
+    "A faixa salva no Histórico não está mais disponível na lista. Revise as faixas antes de baixar."
+  ],
+  "Selecciona una pista de audio disponible.": [
+    "Select an available audio track.",
+    "Selecione uma faixa de áudio disponível."
+  ],
+  "La pista de audio elegida ya no está disponible. Analiza el video otra vez y elige una pista disponible.": [
+    "The selected audio track is no longer available. Analyze the video again and choose an available track.",
+    "A faixa de áudio escolhida não está mais disponível. Analise o vídeo novamente e escolha uma faixa disponível."
+  ],
+  "La pista elegida no está disponible con esa calidad de video. Elige otra calidad o pista de audio.": [
+    "The selected track is not available at that video quality. Choose another quality or audio track.",
+    "A faixa escolhida não está disponível com essa qualidade de vídeo. Escolha outra qualidade ou faixa de áudio."
   ]
 }

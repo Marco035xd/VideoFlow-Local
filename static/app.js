@@ -247,6 +247,7 @@ function rebuildQualityOptions() {
 
   $("#finalExtension").textContent = `.${format}`;
   $("#vobNotice").classList.toggle("hidden", format !== "vob");
+  syncAudioTrackMode();
   if (state.savePath && !state.savePath.toLowerCase().endsWith(`.${format}`)) {
     state.savePath = "";
     state.overwrite = false;
@@ -272,6 +273,12 @@ function rebuildFormatOptions() {
 
 function updateEstimate() {
   const option = getCurrentQualityOption();
+  const track = selectedAudioTrack();
+  if (track && Number(track.estimated_size) > 0 && $('#modeSelect').value === 'audio'
+      && !['mp3', 'ogg', 'wav', 'flac'].includes($('#formatSelect').value)) {
+    $('#estimatedSize').textContent = compressionBytes(Number(track.estimated_size));
+    return;
+  }
   $("#estimatedSize").textContent = option
     ? option.textContent.split("·").slice(-1)[0].trim()
     : "—";
@@ -292,6 +299,7 @@ function showVideo(video, previous = {}) {
   state.destinationFolder = previous.folder || folderForSource(video.source);
   state.savePath = "";
   state.overwrite = false;
+  renderAudioTracks(previous.audio_track || '');
   $("#folderPath").value = state.destinationFolder;
   $("#destinationHint").textContent = previous.folder
     ? "Carpeta recuperada del historial. Se usará un nombre automático para esta nueva descarga."
@@ -304,6 +312,9 @@ function showVideo(video, previous = {}) {
   if (previous.quality !== undefined && [...$("#qualitySelect").options].some((option) => option.value === String(previous.quality))) {
     $("#qualitySelect").value = String(previous.quality);
     updateEstimate();
+  }
+  if (previous.audio_track && !selectedAudioTrack()) {
+    $('#audioTrackStatus').textContent = 'La pista guardada en el historial ya no aparece disponible. Revisa las pistas antes de descargar.';
   }
   $("#videoResult").classList.remove("hidden");
   $("#videoResult").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -416,7 +427,7 @@ async function addToQueue() {
         save_path: state.savePath,
         overwrite: state.overwrite,
         estimated_size: estimatedSize,
-        advanced: advancedOptions(),
+        advanced: {...advancedOptions(), ...audioTrackRequest()},
       }),
     });
     rememberFolder(data.download.source, data.download.folder);
@@ -493,6 +504,7 @@ function renderDownloads() {
             <span>${escapeHtml(task.source || "YouTube")}</span>
             <span>${escapeHtml(task.format.toUpperCase())}</span>
             <span>${escapeHtml(task.mode.startsWith('separate_') ? 'Separación de audio' : task.mode === 'video_compress' ? 'Video comprimido' : task.mode === 'video_convert' ? 'Video convertido' : task.mode === "video_only" ? "Solo video" : task.mode === "audio" ? "Solo audio" : "Video + audio")}</span>
+            ${task.audio_track_label ? `<span><span>Audio:</span> <span translate="no">${escapeHtml(task.audio_track_label)}</span></span>` : ''}
             <span>${escapeHtml(task.mode === 'video_convert' ? ({'18':'Calidad muy alta','20':'Calidad alta','23':'Calidad equilibrada'}[task.quality] || 'Calidad alta') : qualityLabel(task.format, task.quality, task.source, task.mode))}</span>
             ${['video_convert', 'video_compress'].includes(task.mode) ? '' : `<span>${escapeHtml(task.downloaded_human)} / ${escapeHtml(total)}</span>`}
             <span>${escapeHtml(detail)}</span>
@@ -772,7 +784,7 @@ function renderHistory() {
       <td>
         <div class="history-video">
           <img src="${escapeHtml(item.thumbnail || "/static/logo.svg")}" alt="">
-          <div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.source || "YouTube")} · ${escapeHtml(item.duration_human)}</small><button class="secondary-button history-redownload" type="button" data-redownload-id="${item.id}" ${/^https?:\/\//i.test(item.url || "") ? "" : 'disabled title="Este registro no tiene un enlace guardado"'}>↻ Volver a descargar</button></div>
+          <div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.source || "YouTube")} · ${escapeHtml(item.duration_human)}</small>${item.audio_track_label ? `<small><span>Audio:</span> <span translate="no">${escapeHtml(item.audio_track_label)}</span></small>` : ''}<button class="secondary-button history-redownload" type="button" data-redownload-id="${item.id}" ${/^https?:\/\//i.test(item.url || "") ? "" : 'disabled title="Este registro no tiene un enlace guardado"'}>↻ Volver a descargar</button></div>
         </div>
       </td>
       <td>${escapeHtml(formatDate(item.downloaded_at))}</td>
@@ -932,6 +944,7 @@ async function init() {
     initSeparation();
     initVideoConversion();
     initVideoCompression();
+    initAudioTracks();
     await Promise.all([loadSystem(), loadDownloads(), loadHistory()]);
   } catch (error) {
     toast("Error de inicio", error.message, "error", 7000);

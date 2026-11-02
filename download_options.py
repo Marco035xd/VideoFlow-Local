@@ -51,9 +51,16 @@ def validate_options(payload):
         fps, dynamic_range = 'best', 'auto'
     if dynamic_range == 'hdr' and payload.get('format') not in {'mkv', 'webm'}:
         raise ValueError('Para conservar HDR, selecciona MKV o WebM.')
+    audio_track = value.get('audio_track') or ''
+    if not isinstance(audio_track, str) or (audio_track and not re.fullmatch(r'[a-f0-9]{32}', audio_track)):
+        raise ValueError('Selecciona una pista de audio disponible.')
+    if payload.get('mode') == 'video_only':
+        audio_track = ''
     return dict(start=start, end=end, subtitles=subtitles, language=language,
                 automatic=value.get('automatic') is True, fps=fps, dynamic_range=dynamic_range,
-                incognito=value.get('incognito') is True)
+                incognito=value.get('incognito') is True, audio_track=audio_track,
+                audio_track_label=str(value.get('audio_track_label') or '')[:240] if audio_track else '',
+                audio_track_language=str(value.get('audio_track_language') or '')[:64] if audio_track else '')
 
 
 def video_selector(task):
