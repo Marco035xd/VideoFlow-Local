@@ -125,6 +125,8 @@ function selectSource(source) {
   $("#videoUrl").placeholder += "\nPega varios enlaces, uno por línea";
   $("#sourceHelp").textContent = 'Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».';
   $("#facebookNotice").classList.toggle("hidden", !facebook);
+  $('#youtubeNotice').classList.toggle('hidden', source !== 'youtube');
+  analysisFeedback();
   state.destinationFolder = folderForSource(source);
   state.savePath = "";
   state.overwrite = false;
@@ -331,18 +333,34 @@ async function analyzeVideo() {
   const button = $("#analyzeButton");
   button.classList.add("loading");
   button.disabled = true;
+  setYouTubeSessionBusy(true);
+  $('#batchStart').disabled = true;
+  $('#facebookBrowser').disabled = true;
+  $('#videoUrl').readOnly = true;
+  $('#pasteButton').disabled = true;
+  $$('.source-tab').forEach(tab => tab.disabled = true);
+  analysisFeedback('Analizando video…');
+  state.video = null;
+  $('#videoResult').classList.add('hidden');
   try {
     const data = await api("/api/analyze", {
       method: "POST",
-      body: JSON.stringify({ url, browser: $("#facebookBrowser").value }),
+      body: JSON.stringify({ url, browser: browserForSource() }),
     });
     showVideo(data.video);
     toast("Video analizado", "Ya puedes elegir el formato, la calidad y dónde guardarlo.", "success");
   } catch (error) {
+    analysisFeedback(error.message, true);
     toast("No se pudo analizar", error.message, "error", 6500);
   } finally {
     button.classList.remove("loading");
     button.disabled = false;
+    setYouTubeSessionBusy(false);
+    $('#batchStart').disabled = false;
+    $('#facebookBrowser').disabled = false;
+    $('#videoUrl').readOnly = false;
+    $('#pasteButton').disabled = false;
+    $$('.source-tab').forEach(tab => tab.disabled = false);
   }
 }
 
@@ -421,7 +439,7 @@ async function addToQueue() {
         duration: state.video.duration,
         format,
         mode,
-        browser: state.video.source === "Facebook" ? $("#facebookBrowser").value : "",
+        browser: state.video.browser || '',
         quality,
         folder,
         save_path: state.savePath,
@@ -759,7 +777,7 @@ async function redownloadFromHistory(id, button) {
   try {
     const data = await api("/api/analyze", {
       method: "POST",
-      body: JSON.stringify({ url: item.url, browser: $("#facebookBrowser").value }),
+      body: JSON.stringify({ url: item.url, browser: browserForSource(item.source || 'YouTube') }),
     });
     navigate("home");
     $("#videoUrl").value = item.url;
@@ -945,6 +963,7 @@ async function init() {
     initVideoConversion();
     initVideoCompression();
     initAudioTracks();
+    initYouTubeSession();
     await Promise.all([loadSystem(), loadDownloads(), loadHistory()]);
   } catch (error) {
     toast("Error de inicio", error.message, "error", 7000);

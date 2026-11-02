@@ -3030,5 +3030,113 @@
   "La pista elegida no está disponible con esa calidad de video. Elige otra calidad o pista de audio.": [
     "The selected track is not available at that video quality. Choose another quality or audio track.",
     "A faixa escolhida não está disponível com essa qualidade de vídeo. Escolha outra qualidade ou faixa de áudio."
+  ],
+  "Sesión de YouTube (opcional)": [
+    "YouTube session (optional)",
+    "Sessão do YouTube (opcional)"
+  ],
+  "Usar sesión de Brave": [
+    "Use Brave session",
+    "Usar sessão do Brave"
+  ],
+  "Usar archivo cookies.txt": [
+    "Use cookies.txt file",
+    "Usar arquivo cookies.txt"
+  ],
+  "Seleccionar cookies.txt": [
+    "Select cookies.txt",
+    "Selecionar cookies.txt"
+  ],
+  "Abre el video e inicia sesión en el navegador elegido. Si Windows impide leer sus cookies, usa Firefox o un archivo cookies.txt.": [
+    "Open the video and sign in using the selected browser. If Windows prevents reading its cookies, use Firefox or a cookies.txt file.",
+    "Abra o vídeo e entre na sua conta no navegador escolhido. Se o Windows impedir a leitura dos cookies, use o Firefox ou um arquivo cookies.txt."
+  ],
+  "Se aplica al análisis, las descargas y las listas de YouTube. La sesión solo se lee cuando la eliges.": [
+    "Applies to YouTube analysis, downloads and playlists. Your session is only read when you select it.",
+    "Aplica-se à análise, aos downloads e às listas do YouTube. A sessão só é lida quando você a escolhe."
+  ],
+  "Usa un archivo en formato Netscape. Su contenido permanece en memoria durante esta sesión de la app; no se modifica el archivo original.": [
+    "Use a Netscape format file. Its contents stay in memory during this app session; the original file is not modified.",
+    "Use um arquivo no formato Netscape. O conteúdo fica na memória durante esta sessão do aplicativo; o arquivo original não é alterado."
+  ],
+  "Si YouTube solicita iniciar sesión, elige tu sesión en Inicio antes de descargar la colección.": [
+    "If YouTube asks you to sign in, select your session on Home before downloading the collection.",
+    "Se o YouTube pedir para entrar na conta, escolha sua sessão em Início antes de baixar a coleção."
+  ],
+  "Elegir sesión de YouTube": [
+    "Choose YouTube session",
+    "Escolher sessão do YouTube"
+  ],
+  "Selecciona primero un archivo cookies.txt de YouTube.": [
+    "Select a YouTube cookies.txt file first.",
+    "Selecione primeiro um arquivo cookies.txt do YouTube."
+  ],
+  "Sesión actualizada. Vuelve a analizar el video para usarla.": [
+    "Session updated. Analyze the video again to use it.",
+    "Sessão atualizada. Analise o vídeo novamente para usá-la."
+  ],
+  "No se pudo cargar la sesión": [
+    "Could not load session",
+    "Não foi possível carregar a sessão"
+  ],
+  "Revisa la sesión": [
+    "Check the session",
+    "Verifique a sessão"
+  ],
+  "Analizando video…": [
+    "Analyzing video…",
+    "Analisando vídeo…"
+  ],
+  "Selecciona una opción de sesión de YouTube válida.": [
+    "Select a valid YouTube session option.",
+    "Selecione uma opção de sessão do YouTube válida."
+  ],
+  "Vuelve a seleccionar el archivo de cookies de YouTube. La sesión importada solo dura mientras la app está abierta.": [
+    "Select the YouTube cookies file again. The imported session only lasts while the app is open.",
+    "Selecione novamente o arquivo de cookies do YouTube. A sessão importada só dura enquanto o aplicativo estiver aberto."
+  ],
+  "Selecciona un archivo cookies.txt válido de hasta 2 MB.": [
+    "Select a valid cookies.txt file up to 2 MB.",
+    "Selecione um arquivo cookies.txt válido de até 2 MB."
+  ],
+  "No se pudo leer el archivo de cookies. Selecciona un archivo de texto en formato Netscape.": [
+    "Could not read the cookies file. Select a Netscape format text file.",
+    "Não foi possível ler o arquivo de cookies. Selecione um arquivo de texto no formato Netscape."
+  ],
+  "El archivo debe estar en formato Netscape cookies.txt, no JSON.": [
+    "The file must use Netscape cookies.txt format, not JSON.",
+    "O arquivo deve estar no formato Netscape cookies.txt, não JSON."
+  ],
+  "El archivo de cookies tiene un formato no válido. Expórtalo otra vez en formato Netscape.": [
+    "The cookies file has an invalid format. Export it again in Netscape format.",
+    "O arquivo de cookies tem um formato inválido. Exporte-o novamente no formato Netscape."
+  ],
+  "No se encontraron cookies vigentes de YouTube. Inicia sesión en YouTube y vuelve a exportarlas.": [
+    "No current YouTube cookies were found. Sign in to YouTube and export them again.",
+    "Não foram encontrados cookies válidos do YouTube. Entre na sua conta no YouTube e exporte-os novamente."
+  ],
+  "No se pudo seleccionar el archivo de cookies.": [
+    "Could not select the cookies file.",
+    "Não foi possível selecionar o arquivo de cookies."
+  ],
+  "YouTube solicita confirmar el acceso a este video. Ábrelo en tu navegador, inicia sesión y completa allí la comprobación si aparece. Luego elige esa sesión en «Sesión de YouTube» y vuelve a analizar.": [
+    "YouTube requires access verification for this video. Open it in your browser, sign in and complete any verification shown there. Then select that session under YouTube session and analyze again.",
+    "O YouTube exige confirmar o acesso a este vídeo. Abra-o no navegador, entre na sua conta e conclua a verificação, se aparecer. Depois escolha essa sessão em Sessão do YouTube e analise novamente."
+  ],
+  "No se pudo leer la sesión del navegador porque está en uso. Ciérralo por completo y vuelve a analizar, o selecciona un archivo cookies.txt de YouTube.": [
+    "Could not read the browser session because it is in use. Close the browser completely and analyze again, or select a YouTube cookies.txt file.",
+    "Não foi possível ler a sessão do navegador porque está em uso. Feche-o completamente e analise novamente, ou selecione um arquivo cookies.txt do YouTube."
+  ],
+  "Windows no permitió leer las cookies de ese navegador. Puedes usar una sesión de Firefox o seleccionar un archivo cookies.txt exportado de YouTube.": [
+    "Windows did not allow reading cookies from that browser. Use a Firefox session or select a cookies.txt file exported from YouTube.",
+    "O Windows não permitiu ler os cookies desse navegador. Use uma sessão do Firefox ou selecione um arquivo cookies.txt exportado do YouTube."
+  ],
+  "No se encontró una sesión en ese navegador. Abre YouTube allí, inicia sesión y comprueba que elegiste el navegador correcto.": [
+    "No session was found in that browser. Open YouTube there, sign in and check that you selected the correct browser.",
+    "Não foi encontrada uma sessão nesse navegador. Abra o YouTube nele, entre na sua conta e confira se escolheu o navegador correto."
+  ],
+  "YouTube ha limitado temporalmente las solicitudes de esta conexión. Espera antes de volver a intentarlo y reduce las descargas simultáneas.": [
+    "YouTube has temporarily limited requests from this connection. Wait before trying again and reduce simultaneous downloads.",
+    "O YouTube limitou temporariamente as solicitações desta conexão. Aguarde antes de tentar novamente e reduza os downloads simultâneos."
   ]
 }

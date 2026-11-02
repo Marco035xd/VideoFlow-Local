@@ -61,7 +61,11 @@ async function batchDownload() {
   const format = $('#batchFormat').value;
   const videoQuality = Number($('#batchVideoQuality').value);
   const audioQuality = $('#batchAudioQuality').value;
-  const browser = $('#facebookBrowser').value;
+  let browser;
+  try { browser = browserForSource(source); }
+  catch (error) { toast('Revisa la sesión', error.message, 'error'); return; }
+  setYouTubeSessionBusy(true);
+  $('#analyzeButton').disabled = true;
   $('#batchStart').disabled = true;
   $('#videoUrl').readOnly = true;
   $$('.source-tab').forEach(b=>b.disabled=true);
@@ -86,7 +90,7 @@ async function batchDownload() {
     if (state.source === source) $('#videoUrl').value = platformDrafts[source];
     await loadDownloads();
     toast('Lote procesado', `${urls.length-failed.length} añadidos; ${failed.length} pendientes de revisar.`, failed.length?'info':'success');
-  } finally { $('#batchStart').disabled = false; $('#videoUrl').readOnly=false; $$('.source-tab').forEach(b=>b.disabled=false); $('#pasteButton').disabled=false; }
+  } finally { setYouTubeSessionBusy(false); $('#analyzeButton').disabled = false; $('#batchStart').disabled = false; $('#videoUrl').readOnly=false; $$('.source-tab').forEach(b=>b.disabled=false); $('#pasteButton').disabled=false; }
 }
 function initExtensions() {
   syncBatchDestination();

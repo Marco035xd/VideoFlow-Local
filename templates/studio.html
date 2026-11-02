@@ -6,6 +6,8 @@
   <section class="panel batch-panel">
     <h3>Descargar una colección de YouTube</h3>
     <label class="form-field"><span>Enlace de lista o canal</span><input id="collectionUrl" type="url" placeholder="https://www.youtube.com/playlist?list=…"></label>
+    <p class="field-hint">Si YouTube solicita iniciar sesión, elige tu sesión en Inicio antes de descargar la colección.</p>
+    <button id="collectionSessionSettings" class="text-button" type="button">Elegir sesión de YouTube</button>
     <div class="field-grid three-fields">
       <label class="form-field"><span>Contenido</span><select id="collectionMode"><option value="video_audio">Video y audio</option><option value="video_only">Solo video</option><option value="audio">Solo audio</option></select></label>
       <label class="form-field"><span>Formato</span><select id="collectionFormat"></select></label>

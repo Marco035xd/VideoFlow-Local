@@ -26,6 +26,7 @@ from localization import LANGUAGES, normalize_language
 from removed_downloads import RemovedDownloads, RETENTION_OPTIONS, DEFAULT_RETENTION_DAYS, normalize_retention_days
 from download_options import validate_options, video_selector, apply_options
 from audio_tracks import available_tracks, restrict_audio_selector
+from youtube_session import session_options, validate_choice as validate_youtube_session
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
@@ -131,6 +132,8 @@ def ydl_environment(source: str = "YouTube", browser: str = "") -> dict[str, Any
     deno = find_tool("deno")
     if deno:
         options["js_runtimes"] = {"deno": {"path": deno}}
+    if source == 'YouTube':
+        options.update(session_options(browser))
     if source == "Facebook":
         from yt_dlp.networking.impersonate import ImpersonateTarget
         options["impersonate"] = ImpersonateTarget("chrome")
@@ -141,6 +144,18 @@ def ydl_environment(source: str = "YouTube", browser: str = "") -> dict[str, Any
 
 def describe_error(exc: Exception, source: str) -> str:
     message = str(exc).strip() or exc.__class__.__name__
+    lower = message.lower()
+    if source == 'YouTube':
+        if 'sign in to confirm' in lower or 'not a bot' in lower:
+            return 'YouTube solicita confirmar el acceso a este video. Ábrelo en tu navegador, inicia sesión y completa allí la comprobación si aparece. Luego elige esa sesión en «Sesión de YouTube» y vuelve a analizar.'
+        if ('could not copy' in lower and 'cookie' in lower) or 'database is locked' in lower:
+            return 'No se pudo leer la sesión del navegador porque está en uso. Ciérralo por completo y vuelve a analizar, o selecciona un archivo cookies.txt de YouTube.'
+        if any(term in lower for term in ('failed to decrypt', 'decrypting with dpapi', 'app-bound', 'v20')):
+            return 'Windows no permitió leer las cookies de ese navegador. Puedes usar una sesión de Firefox o seleccionar un archivo cookies.txt exportado de YouTube.'
+        if 'could not find' in lower and ('cookie' in lower or 'profile' in lower):
+            return 'No se encontró una sesión en ese navegador. Abre YouTube allí, inicia sesión y comprueba que elegiste el navegador correcto.'
+        if 'http error 429' in lower or 'too many requests' in lower:
+            return 'YouTube ha limitado temporalmente las solicitudes de esta conexión. Espera antes de volver a intentarlo y reduce las descargas simultáneas.'
     if source == "Facebook" and "Cannot parse data" in message:
         return "Facebook no entregó datos de este video. Comprueba que el enlace abra en el navegador y, si requiere sesión, elige ese navegador en la pestaña Facebook."
     if source == "TikTok" and "IP address is blocked" in message:
@@ -1152,6 +1167,7 @@ def api_analyze():
             "video_options": estimate_video_options(info, source),
             "audio_options": audio_options,
             "audio_tracks": available_tracks(info.get('formats') or []),
+            "browser": str(payload.get('browser') or '') if source in {'YouTube', 'Facebook'} else '',
             "source_audio_size": max((format_size(f) for f in (info.get("formats") or []) if f.get("acodec") not in {None, "none"} and f.get("vcodec") == "none"), default=0),
         }
         return jsonify({"ok": True, "video": result})
@@ -1160,7 +1176,7 @@ def api_analyze():
             jsonify(
                 {
                     "ok": False,
-                    "error": f"No se pudo analizar el video: {describe_error(exc, source)[:500]}",
+                    "error": describe_error(exc, source),
                 }
             ),
             422,
@@ -1203,6 +1219,8 @@ def api_add_download():
         return jsonify({"ok": False, "error": "Calidad de video no válida."}), 400
 
     try:
+        if source == 'YouTube':
+            payload['browser'] = validate_youtube_session(payload.get('browser') or '')
         payload['advanced'] = validate_options(payload)
         folder = Path(str(payload["folder"])).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
@@ -1499,13 +1517,15 @@ register_local_audio(app, settings_store, download_manager, find_tool)
 from audio_separation import register as register_separation
 register_separation(app, settings_store, download_manager, find_tool)
 from video_conversion import register as register_video_conversion
+from youtube_session import register as register_youtube_session
+register_youtube_session(app)
 register_video_conversion(app, settings_store, download_manager, find_tool)
 from video_compression import register as register_video_compression
 register_video_compression(app, settings_store, download_manager, find_tool)
 
 
 from collections_download import register as register_collections
-collection_jobs = register_collections(app, download_manager, settings_store, ydl_environment, source_for_url)
+collection_jobs = register_collections(app, download_manager, settings_store, ydl_environment, source_for_url, describe_error)
 
 
 from vault import register as register_vault

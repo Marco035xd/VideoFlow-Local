@@ -205,6 +205,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .facebook-options .form-field > span { margin: 0; }
 .facebook-options select { width: min(310px, 100%); min-height: 38px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface-solid); color: var(--text); }
 .facebook-options small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.youtube-session-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.youtube-session-row small { overflow-wrap: anywhere; }
+#analysisStatus { line-height: 1.6; overflow-wrap: anywhere; }
 
 .primary-button, .secondary-button {
   min-height: 42px;

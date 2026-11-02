@@ -138,6 +138,25 @@
               </button>
             </div>
             <div id="sourceHelp" class="input-help"><span>ⓘ</span> Añade los videos que necesites.</div>
+            <p id="analysisStatus" class="field-hint hidden" role="status" aria-live="polite"></p>
+            <div id="youtubeNotice" class="facebook-options">
+              <label class="form-field" for="youtubeBrowser"><span>Sesión de YouTube (opcional)</span></label>
+              <div class="youtube-session-row">
+                <select id="youtubeBrowser" aria-describedby="youtubeSessionHelp">
+                  <option value="">Sin sesión · videos públicos</option>
+                  <option value="brave">Usar sesión de Brave</option>
+                  <option value="chrome">Usar sesión de Chrome</option>
+                  <option value="edge">Usar sesión de Edge</option>
+                  <option value="firefox">Usar sesión de Firefox</option>
+                  <option value="cookies">Usar archivo cookies.txt</option>
+                </select>
+                <button id="youtubeCookieChoose" class="secondary-button hidden" type="button">Seleccionar cookies.txt</button>
+                <small id="youtubeCookieName" class="hidden" translate="no"></small>
+              </div>
+              <small id="youtubeSessionHelp">Abre el video e inicia sesión en el navegador elegido. Si Windows impide leer sus cookies, usa Firefox o un archivo cookies.txt.</small>
+              <small>Se aplica al análisis, las descargas y las listas de YouTube. La sesión solo se lee cuando la eliges.</small>
+              <small id="youtubeCookieHelp" class="hidden">Usa un archivo en formato Netscape. Su contenido permanece en memoria durante esta sesión de la app; no se modifica el archivo original.</small>
+            </div>
             <div id="facebookNotice" class="facebook-options hidden">
               <label class="form-field" for="facebookBrowser"><span>Sesión de Facebook (opcional)</span></label>
               <select id="facebookBrowser">
@@ -557,6 +576,7 @@
 <script src="/static/video_conversion.js"></script>
 <script src="/static/video_compression.js"></script>
 <script src="/static/audio_tracks.js"></script>
+<script src="/static/youtube_session.js"></script>
 <script src="/static/appearance.js"></script><script src="/static/player.js"></script><script src="/static/updates.js"></script><script src="/static/studio.js"></script>
 {% include 'arcade.html' %}
 <script src="/static/arcade.js"></script>

@@ -8,9 +8,10 @@ from download_options import validate_options, VIDEO_FORMATS, AUDIO_FORMATS
 
 
 class CollectionJobs:
-    def __init__(self, manager, settings, environment, source_for_url):
+    def __init__(self, manager, settings, environment, source_for_url, describe_error=None):
         self.manager, self.settings = manager, settings
         self.environment, self.source_for_url = environment, source_for_url
+        self.describe_error = describe_error or (lambda exc, source: str(exc)[:500])
         self.jobs, self.lock = {}, threading.RLock()
 
     def start(self, payload):
@@ -24,6 +25,8 @@ class CollectionJobs:
         if (mode == 'audio' and quality not in ({128, 192, 320} if fmt in {'mp3', 'ogg'} else {0})) or (mode != 'audio' and quality not in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}):
             raise ValueError('Calidad de la colección no válida.')
         advanced = validate_options({**payload, 'mode': mode, 'format': fmt})
+        from youtube_session import validate_choice
+        browser = validate_choice(payload.get('browser') or '')
         folder = Path(payload.get('folder') or self.settings.folder_for('YouTube')).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
         identifier = uuid.uuid4().hex
@@ -32,7 +35,7 @@ class CollectionJobs:
         with self.lock:
             self.jobs[identifier] = job
         self.settings.remember_folder('YouTube', str(folder))
-        base = dict(format=fmt, mode=mode, quality=str(quality), folder=str(folder), advanced=advanced)
+        base = dict(format=fmt, mode=mode, quality=str(quality), folder=str(folder), advanced=advanced, browser=browser)
         threading.Thread(target=self._run, args=(job, url, base), daemon=True).start()
         return identifier
 
@@ -57,8 +60,8 @@ class CollectionJobs:
                 yield info
         try:
             opts = dict(quiet=True, no_warnings=True, extract_flat='in_playlist', lazy_playlist=True,
-                        ignoreerrors=True, skip_download=True, socket_timeout=25, retries=3,
-                        match_filter=check, **self.environment('YouTube'))
+                        ignoreerrors='only_download', skip_download=True, socket_timeout=25, retries=3,
+                        match_filter=check, **self.environment('YouTube', base.get('browser', '')))
             seen = set()
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(url, download=False)
@@ -98,7 +101,7 @@ class CollectionJobs:
         except Exception as exc:
             with self.lock:
                 job['status'] = 'Cancelado' if job['cancel'].is_set() else 'Error'
-                job['error'] = '' if job['cancel'].is_set() else str(exc)[:500]
+                job['error'] = '' if job['cancel'].is_set() else self.describe_error(exc, 'YouTube')
 
     def list(self):
         with self.lock:
@@ -114,9 +117,9 @@ class CollectionJobs:
                     self.manager.cancel(task_id)
 
 
-def register(app, manager, settings, environment, source_for_url):
+def register(app, manager, settings, environment, source_for_url, describe_error=None):
     from flask import jsonify, request
-    jobs = CollectionJobs(manager, settings, environment, source_for_url)
+    jobs = CollectionJobs(manager, settings, environment, source_for_url, describe_error)
 
     @app.route('/api/collections', methods=['GET', 'POST'])
     def collections():

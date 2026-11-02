@@ -99,7 +99,7 @@ function initStudio() {
     if(!url){feedback.textContent='Pega el enlace de una lista o un canal de YouTube.';$('#collectionUrl').focus();return;}
     button.disabled=true;feedback.classList.remove('error-message');feedback.textContent='Iniciando la lectura de la colección…';
     try {
-      await api('/api/collections',{method:'POST',body:JSON.stringify({url,format:$('#collectionFormat').value,mode:$('#collectionMode').value,quality:$('#collectionQuality').value,folder:$('#collectionFolder').value,advanced:advancedOptions('collection')})});
+      await api('/api/collections',{method:'POST',body:JSON.stringify({url,browser:youtubeSessionChoice(),format:$('#collectionFormat').value,mode:$('#collectionMode').value,quality:$('#collectionQuality').value,folder:$('#collectionFolder').value,advanced:advancedOptions('collection')})});
       feedback.textContent='Colección iniciada. El estado de lectura aparece abajo; cada canción o video se descarga en Descargas.';
       toast('Colección iniciada','Los videos se añadirán conforme se lea la lista.');
       refreshCollections().catch(()=>{feedback.textContent='La colección se inició, pero no se pudo actualizar su estado. Vuelve a entrar en Listas y canales.';});

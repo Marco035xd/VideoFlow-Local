@@ -28,7 +28,15 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.16-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.17-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Sesión de YouTube y avisos de acceso · versión 1.6.17
+
+Si aparece **Sign in to confirm you’re not a bot**, YouTube está solicitando confirmar el acceso. En **Inicio → YouTube → Sesión de YouTube (opcional)**, elige **Brave, Chrome, Edge o Firefox** después de abrir el video e iniciar sesión en ese navegador. Completa allí cualquier comprobación que aparezca y vuelve a pulsar **Analizar video**. Si el navegador mantiene ocupada su base de cookies, ciérralo por completo antes de reintentar. El análisis, la descarga individual, los lotes y las colecciones utilizan la sesión que hayas elegido; la descarga individual conserva la utilizada al analizar. Desde Listas y canales puedes ir directamente al selector.
+
+Si Windows protege las cookies de un navegador Chromium y no permite leerlas, usa Firefox o **Usar archivo cookies.txt → Seleccionar cookies.txt**. Se admite un archivo de texto Netscape de hasta 2 MB, con cookies vigentes de YouTube. Consulta las [instrucciones oficiales de yt-dlp para exportar cookies de YouTube](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies). La importación filtra los dominios de YouTube; su contenido permanece en memoria, no se incluye en el historial ni se modifica el archivo original. Tras cerrar la app debes volver a seleccionarlo.
+
+El valor inicial es **Sin sesión**: no se lee una sesión del navegador sin elegirla. Los errores habituales de acceso, sesión ocupada, protección de Windows y límite de solicitudes se muestran en español, inglés o portugués con el paso siguiente. El error del análisis también queda junto al enlace, sin depender de la notificación temporal. Usar una sesión no garantiza que YouTube permita el acceso: la comprobación y los permisos del video dependen del sitio.
 
 ### Elegir la pista de audio de un video · versión 1.6.16
 
