@@ -3202,5 +3202,13 @@
   "Si el video abre en el navegador pero la descarga agota el tiempo de espera, prueba IPv4 o IPv6 y guarda la configuración. Automática renueva el enlace una vez mediante IPv4 tras un fallo de conexión; 0 reintentos desactiva esa recuperación.": [
     "If the video opens in your browser but the download times out, try IPv4 or IPv6 and save settings. Automatic refreshes the link once using IPv4 after a connection failure; 0 retries disables this recovery.",
     "Se o vídeo abre no navegador, mas o download esgota o tempo de espera, tente IPv4 ou IPv6 e salve as configurações. Automática renova o link uma vez por IPv4 após uma falha de conexão; 0 tentativas desativa essa recuperação."
+  ],
+  "Conectando a un servidor alternativo de YouTube…": [
+    "Connecting to an alternate YouTube server…",
+    "Conectando a um servidor alternativo do YouTube…"
+  ],
+  "Cuando el enlace incluye servidores alternativos de YouTube, se prueban hasta dos si el principal no responde. Se conserva el mismo formato y la pista de audio. 0 reintentos desactiva el cambio de servidor.": [
+    "When the link includes alternate YouTube servers, up to two are tried if the primary server does not respond. The selected format and audio track are preserved. 0 retries disables server switching.",
+    "Quando o link inclui servidores alternativos do YouTube, até dois são tentados se o principal não responder. O formato e a faixa de áudio escolhidos são mantidos. 0 tentativas desativa a troca de servidor."
   ]
 }

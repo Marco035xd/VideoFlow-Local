@@ -28,7 +28,19 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.18-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.19-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Servidores alternativos de YouTube · versión 1.6.19
+
+VideoFlow utiliza [yt-dlp](https://github.com/yt-dlp/yt-dlp) como biblioteca de Python para el análisis y las descargas. Esta versión incluye **yt-dlp 2026.10.26**. La interfaz, el reproductor, el historial y las herramientas de conversión pertenecen a VideoFlow.
+
+Se corrige el caso en el que el enlace dirige al motor a un servidor de video que no responde, aunque el navegador pueda reproducir el contenido desde otro servidor. El problema está documentado en [yt-dlp #1986](https://github.com/yt-dlp/yt-dlp/issues/1986). Si la URL de un formato de YouTube contiene la lista de servidores `mn`, las solicitudes nativas HTTP de descarga pueden utilizar hasta **dos alternativas** de esa misma lista tras un error de conexión o un HTTP 500/502/503/504.
+
+Se conserva la URL del archivo con su ruta, consulta firmada, rango solicitado, formato y pista de audio; solo cambia el servidor dentro de los dominios de video que anuncia YouTube. Las solicitudes con alternativas tienen una espera máxima de 12 segundos sin respuesta. Si una alternativa responde, se prefiere para solicitudes posteriores de la misma instancia cuando también figura en el enlace correspondiente. Se muestra **Conectando a un servidor alternativo de YouTube…** y continúa el progreso habitual.
+
+No se usan servidores ajenos, no se cambian ajustes de Windows y se mantiene la validación TLS. Los errores 401/403/429 y los errores de certificado no activan el cambio de servidor. **0 reintentos** desactiva esta recuperación. Las solicitudes sin alternativas declaradas, los métodos con cuerpo y los descargadores externos conservan su comportamiento normal. El recorte que se descarga mediante FFmpeg externo no utiliza este cambio de servidor nativo.
+
+En el diagnóstico del caso reportado, el servidor principal agotó el tiempo de conexión y una alternativa anunciada devolvió **HTTP 200** para las cabeceras de la misma pista de audio. No se descargó el contenido del audio o video durante esa comprobación. Que un servidor responda a HEAD no garantiza una descarga completa; el acceso depende también de la sesión, la vigencia del enlace y la disponibilidad del servidor.
 
 ### Recuperación de conexiones de descarga · versión 1.6.18
 

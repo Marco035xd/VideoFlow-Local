@@ -28,6 +28,7 @@ from download_options import validate_options, video_selector, apply_options
 from audio_tracks import available_tracks, restrict_audio_selector
 from youtube_session import session_options, validate_choice as validate_youtube_session
 from network_recovery import CONNECTION_MODES, connection_error_message, run_with_recovery
+from youtube_cdn import YouTubeCDNDownloader
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
@@ -819,7 +820,15 @@ class DownloadManager:
                     options['source_address'] = address
                 if retries is not None:
                     options.update(retries=retries, fragment_retries=retries, extractor_retries=retries)
-                with yt_dlp.YoutubeDL(options) as ydl:
+                def server_changed():
+                    task.error = ''
+                    task.phase = 'Conectando a un servidor alternativo de YouTube…'
+
+                downloader = (YouTubeCDNDownloader(options, checkpoint=lambda: self._wait_if_paused(task),
+                                                   on_server_change=server_changed,
+                                                   enabled=bool(network_settings.get('retry_count', 5)))
+                              if task.source == 'YouTube' else yt_dlp.YoutubeDL(options))
+                with downloader as ydl:
                     if task.advanced.get('audio_track') and task.mode != 'video_only':
                         ydl.format_selector = restrict_audio_selector(ydl.build_format_selector(options['format']), task)
                     return ydl.extract_info(task.url, download=True)

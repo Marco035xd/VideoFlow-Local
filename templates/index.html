@@ -526,6 +526,7 @@
                 <div class="field-grid"><label class="form-field"><span>Límite por descarga (KB/s, 0 = sin límite)</span><input id="settingsRate" type="number" min="0" max="102400" step="1"></label><label class="form-field"><span>Reintentos ante errores de red</span><input id="settingsRetries" type="number" min="0" max="20" step="1"></label></div>
                 <label class="form-field" for="settingsYouTubeConnection"><span>Conexión para YouTube</span><select id="settingsYouTubeConnection"><option value="auto">Automática · recuperar mediante IPv4</option><option value="ipv4">IPv4</option><option value="ipv6">IPv6 · requiere soporte de tu red</option></select></label>
                 <p class="field-hint">Si el video abre en el navegador pero la descarga agota el tiempo de espera, prueba IPv4 o IPv6 y guarda la configuración. Automática renueva el enlace una vez mediante IPv4 tras un fallo de conexión; 0 reintentos desactiva esa recuperación.</p>
+                <p class="field-hint">Cuando el enlace incluye servidores alternativos de YouTube, se prueban hasta dos si el principal no responde. Se conserva el mismo formato y la pista de audio. 0 reintentos desactiva el cambio de servidor.</p>
                 <p>Estos valores se aplican a las nuevas descargas. Las conversiones comparten el límite de trabajos simultáneos.</p>
                 <h4>Personalización y avisos</h4>
                 <div class="setting-row">
