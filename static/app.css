@@ -302,6 +302,8 @@ html[data-theme="dark"] { color-scheme: dark; }
 .action-button { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-solid); cursor: pointer; display: grid; place-items: center; transition: .18s ease; }
 .action-button:hover { border-color: var(--primary); color: var(--primary); }
 .action-button.danger:hover { border-color: var(--red); color: var(--red); }
+.retry-button { color: var(--primary); font-size: 20px; }
+.download-info .error-message { line-height: 1.5; overflow-wrap: anywhere; }
 
 .empty-state { padding: 55px 20px; text-align: center; }
 .empty-state.compact { padding: 38px 20px; }

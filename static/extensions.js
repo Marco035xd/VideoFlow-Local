@@ -98,6 +98,7 @@ function initExtensions() {
   $('#batchMode').onchange=batchFormats;batchFormats();
   $('#settingsRate').value = state.settings.rate_limit_kbps || 0;
   $('#settingsRetries').value = state.settings.retry_count ?? 5;
+  $('#settingsYouTubeConnection').value = state.settings.youtube_connection || 'auto';
   $('#conversionFolder').value = state.settings.conversion_folder || state.settings.default_folder;
   $('#batchStart').onclick = batchDownload;
   $('#batchFolder').onclick = async () => {

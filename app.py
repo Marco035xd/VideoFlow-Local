@@ -27,6 +27,7 @@ from removed_downloads import RemovedDownloads, RETENTION_OPTIONS, DEFAULT_RETEN
 from download_options import validate_options, video_selector, apply_options
 from audio_tracks import available_tracks, restrict_audio_selector
 from youtube_session import session_options, validate_choice as validate_youtube_session
+from network_recovery import CONNECTION_MODES, connection_error_message, run_with_recovery
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
@@ -52,6 +53,7 @@ DEFAULT_SETTINGS = {
     "welcome_seen": False,
     "rate_limit_kbps": 0,
     "retry_count": 5,
+    "youtube_connection": "auto",
     "conversion_folder": DEFAULT_FOLDER,
     "video_conversion_folder": DEFAULT_FOLDER,
     "compression_folder": DEFAULT_FOLDER,
@@ -124,7 +126,7 @@ def find_tool(name: str) -> str | None:
     return next((str(path) for path in candidates if path.is_file()), None)
 
 
-def ydl_environment(source: str = "YouTube", browser: str = "") -> dict[str, Any]:
+def ydl_environment(source: str = "YouTube", browser: str = "", connection_mode: str | None = None) -> dict[str, Any]:
     options: dict[str, Any] = {}
     ffmpeg = find_tool("ffmpeg")
     if ffmpeg:
@@ -134,6 +136,9 @@ def ydl_environment(source: str = "YouTube", browser: str = "") -> dict[str, Any
         options["js_runtimes"] = {"deno": {"path": deno}}
     if source == 'YouTube':
         options.update(session_options(browser))
+        address = CONNECTION_MODES[connection_mode or settings_store.load()['youtube_connection']]
+        if address:
+            options['source_address'] = address
     if source == "Facebook":
         from yt_dlp.networking.impersonate import ImpersonateTarget
         options["impersonate"] = ImpersonateTarget("chrome")
@@ -144,6 +149,9 @@ def ydl_environment(source: str = "YouTube", browser: str = "") -> dict[str, Any
 
 def describe_error(exc: Exception, source: str) -> str:
     message = str(exc).strip() or exc.__class__.__name__
+    connection_message = connection_error_message(message, source)
+    if connection_message:
+        return connection_message
     lower = message.lower()
     if source == 'YouTube':
         if 'sign in to confirm' in lower or 'not a bot' in lower:
@@ -182,6 +190,8 @@ class SettingsStore:
     def _merge(data: dict[str, Any]) -> dict[str, Any]:
         merged = {**DEFAULT_SETTINGS, **data}
         merged['language'] = normalize_language(data.get('language'))
+        connection = data.get('youtube_connection')
+        merged['youtube_connection'] = connection if isinstance(connection, str) and connection in CONNECTION_MODES else 'auto'
         merged['removed_retention_days'] = normalize_retention_days(data.get('removed_retention_days'))
         merged['theme'] = data.get('theme') if data.get('theme') in ('light', 'dark', 'system') else 'dark'
         merged['appearance'] = normalize_appearance(data.get('appearance'))
@@ -403,6 +413,7 @@ class DownloadTask:
             "audio_track": self.advanced.get('audio_track', ''),
             "audio_track_label": self.advanced.get('audio_track_label', ''),
             "audio_track_language": self.advanced.get('audio_track_language', ''),
+            "can_retry": self.status == 'Error' and not self.local_path and self.source in {'YouTube', 'Facebook', 'TikTok', 'Web'},
         }
 
 
@@ -418,7 +429,7 @@ class QuietLogger:
 
     def error(self, msg: str) -> None:
         if msg and not self.task.error:
-            self.task.error = str(msg)
+            self.task.error = describe_error(msg, self.task.source)
 
 
 class DownloadManager:
@@ -431,6 +442,7 @@ class DownloadManager:
         self.condition = threading.Condition(self.lock)
         self.work_queue: queue.Queue[str] = queue.Queue()
         self.active_count = 0
+        self.running_tasks = set()
         threading.Thread(target=self._worker, name='download-dispatcher', daemon=True).start()
 
     def notify_settings_changed(self) -> None:
@@ -483,7 +495,12 @@ class DownloadManager:
             values = sorted(
                 self.tasks.values(), key=lambda item: item.created_at, reverse=True
             )
-            return [task.as_dict() for task in values]
+            result = []
+            for task in values:
+                item = task.as_dict()
+                item['can_retry'] = item['can_retry'] and task.id not in self.running_tasks
+                result.append(item)
+            return result
 
     def get(self, task_id: str) -> DownloadTask | None:
         with self.lock:
@@ -502,6 +519,29 @@ class DownloadManager:
             task.pause_event.clear()
             task.status = "Descargando"
         return task
+
+    def retry(self, task_id: str) -> DownloadTask:
+        with self.condition:
+            task = self._require(task_id)
+            if not task.as_dict()['can_retry']:
+                raise ValueError('Solo se pueden reintentar descargas de Internet con error.')
+            if task.id in self.running_tasks:
+                raise ValueError('La descarga está terminando. Espera un momento y vuelve a intentarlo.')
+            if task.source == 'YouTube':
+                validate_youtube_session(task.browser)
+            if task.save_path and any(other.id != task.id and other.save_path == task.save_path
+                                      and other.status not in {'Completado', 'Error', 'Cancelado'}
+                                      for other in self.tasks.values()):
+                raise ValueError('Ese archivo ya está reservado por otra descarga en curso.')
+            task.pause_event.clear()
+            task.cancel_event.clear()
+            task.error, task.phase, task.completed_at, task.final_path = '', '', '', ''
+            task.progress, task.downloaded_bytes, task.total_bytes, task.final_size = 0, 0, 0, 0
+            task.speed, task.eta = 0, None
+            task.status = 'Pendiente'
+            self.work_queue.put(task.id)
+            self.condition.notify_all()
+            return task
 
     def cancel(self, task_id: str) -> DownloadTask:
         task = self._require(task_id)
@@ -595,6 +635,7 @@ class DownloadManager:
                         limit = int(self.settings.load().get("max_concurrent", 3))
                         if limit == 0 or self.active_count < limit:
                             self.active_count += 1
+                            self.running_tasks.add(task.id)
                             slot_acquired = True
                             break
                         self.condition.wait(timeout=1)
@@ -609,6 +650,7 @@ class DownloadManager:
                     task.status, task.error = 'Error', str(exc)
                     with self.condition:
                         self.active_count -= 1
+                        self.running_tasks.discard(task.id)
                         self.condition.notify_all()
             finally:
                 self.work_queue.task_done()
@@ -621,6 +663,7 @@ class DownloadManager:
         finally:
             with self.condition:
                 self.active_count = max(0, self.active_count - 1)
+                self.running_tasks.discard(task.id)
                 self.condition.notify_all()
 
     def _wait_if_paused(self, task: DownloadTask) -> None:
@@ -657,12 +700,14 @@ class DownloadManager:
 
             task.status = "Descargando"
             task.error = ""
+            task.phase = 'Conectando al servidor de video…'
             task.progress = max(task.progress, 0.1)
 
             def progress_hook(data: dict[str, Any]) -> None:
                 self._wait_if_paused(task)
                 status = data.get("status")
                 if status == "downloading":
+                    task.phase, task.error = '', ''
                     total = int(
                         data.get("total_bytes")
                         or data.get("total_bytes_estimate")
@@ -692,14 +737,23 @@ class DownloadManager:
             output_template = str(
                 folder / f"%(title).160B [%(id)s] [{quality_suffix}] [{task.id}].%(ext)s"
             )
+            network_settings = self.settings.load()
+
+            def retry_delay(n):
+                self._wait_if_paused(task)
+                task.phase = 'Reintentando la conexión de descarga…'
+                return min(2 ** n, 8)
+
             common_opts: dict[str, Any] = {
                 "outtmpl": {"default": output_template},
                 "noplaylist": True,
                 "continuedl": True,
-                "retries": self.settings.load().get("retry_count", 5),
-                "fragment_retries": self.settings.load().get("retry_count", 5),
+                "retries": network_settings.get("retry_count", 5),
+                "fragment_retries": network_settings.get("retry_count", 5),
                 "ratelimit": (self.settings.load().get("rate_limit_kbps", 0) * 1024) or None,
-                "concurrent_fragment_downloads": 4,
+                "concurrent_fragment_downloads": 1,
+                "skip_unavailable_fragments": False,
+                "retry_sleep_functions": {'http': retry_delay, 'fragment': retry_delay, 'extractor': retry_delay},
                 "windowsfilenames": True,
                 "overwrites": False,
                 "quiet": True,
@@ -708,7 +762,7 @@ class DownloadManager:
                 "progress_hooks": [progress_hook],
                 "postprocessor_hooks": [postprocessor_hook],
                 "socket_timeout": 30,
-                **ydl_environment(task.source, task.browser),
+                **ydl_environment(task.source, task.browser, network_settings['youtube_connection']),
             }
 
             if task.mode == "audio":
@@ -756,16 +810,31 @@ class DownloadManager:
                 )
 
             apply_options(common_opts, task)
-            with yt_dlp.YoutubeDL(common_opts) as ydl:
-                if task.advanced.get('audio_track') and task.mode != 'video_only':
-                    ydl.format_selector = restrict_audio_selector(ydl.build_format_selector(common_opts['format']), task)
-                info = ydl.extract_info(task.url, download=True)
-                if info:
-                    task.video_id = str(info.get("id") or task.video_id or "video")
-                    task.title = str(info.get("title") or task.title)
-                    task.duration = int(task.advanced['end'] - task.advanced['start']) if task.advanced.get('start') is not None else int(info.get('duration') or task.duration)
-                    if task.advanced.get('subtitles', 'none') != 'none' and not info.get('requested_subtitles'):
-                        task.phase = 'Video guardado; el idioma de subtítulos elegido no está disponible.'
+
+            def download_attempt(address, retries):
+                from copy import deepcopy
+                options = {**common_opts, **ydl_environment(task.source, task.browser, network_settings['youtube_connection'])}
+                options['postprocessors'] = deepcopy(common_opts.get('postprocessors', []))
+                if address:
+                    options['source_address'] = address
+                if retries is not None:
+                    options.update(retries=retries, fragment_retries=retries, extractor_retries=retries)
+                with yt_dlp.YoutubeDL(options) as ydl:
+                    if task.advanced.get('audio_track') and task.mode != 'video_only':
+                        ydl.format_selector = restrict_audio_selector(ydl.build_format_selector(options['format']), task)
+                    return ydl.extract_info(task.url, download=True)
+
+            info = run_with_recovery(task, download_attempt, self._wait_if_paused,
+                                     lambda: self._cleanup_partials(folder, task.id),
+                                     network_settings.get('retry_count', 5), network_settings['youtube_connection'])
+            if not info:
+                raise RuntimeError('El servidor no devolvió los datos de la descarga. Vuelve a intentarlo.')
+            task.video_id = str(info.get("id") or task.video_id or "video")
+            task.title = str(info.get("title") or task.title)
+            task.duration = int(task.advanced['end'] - task.advanced['start']) if task.advanced.get('start') is not None else int(info.get('duration') or task.duration)
+            task.phase = ''
+            if task.advanced.get('subtitles', 'none') != 'none' and not info.get('requested_subtitles'):
+                task.phase = 'Video guardado; el idioma de subtítulos elegido no está disponible.'
 
             self._wait_if_paused(task)
             if task.output_format == "vob":
@@ -813,6 +882,7 @@ class DownloadManager:
             task.progress = 100.0
             task.completed_at = now_iso()
             self.history.add(task)
+            task.error = ''
             task.status = "Completado"
         except DownloadCancelled:
             task.status = "Cancelado"
@@ -959,7 +1029,7 @@ class DownloadManager:
         for path in folder.iterdir():
             if not path.is_file() or f"[{video_id}]" not in path.name:
                 continue
-            if path.name.lower().endswith((".part", ".ytdl", ".temp")):
+            if path.name.lower().endswith((".part", ".ytdl", ".temp")) or re.search(r'\.part-Frag\d+(?:\.part)?$', path.name, re.IGNORECASE):
                 try:
                     path.unlink(missing_ok=True)
                 except OSError:
@@ -1258,11 +1328,15 @@ def api_download_action(task_id: str, action: str):
             task = download_manager.resume(task_id)
         elif action == "cancel":
             task = download_manager.cancel(task_id)
+        elif action == "retry":
+            task = download_manager.retry(task_id)
         else:
             return jsonify({"ok": False, "error": "Acción no válida."}), 404
         return jsonify({"ok": True, "download": task.as_dict()})
     except KeyError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 409
 
 
 @app.delete("/api/downloads/<task_id>")
@@ -1414,6 +1488,11 @@ def api_update_settings():
     for key in ('background_mode', 'keep_awake'):
         if key in payload:
             allowed[key] = payload[key] is True
+
+    if 'youtube_connection' in payload:
+        if not isinstance(payload['youtube_connection'], str) or payload['youtube_connection'] not in CONNECTION_MODES:
+            return jsonify(ok=False, error='Selecciona una conexión de YouTube válida.'), 400
+        allowed['youtube_connection'] = payload['youtube_connection']
 
     for key, maximum in (("rate_limit_kbps", 102400), ("retry_count", 20)):
         if key in payload:

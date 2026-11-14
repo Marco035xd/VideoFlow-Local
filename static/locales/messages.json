@@ -3138,5 +3138,69 @@
   "YouTube ha limitado temporalmente las solicitudes de esta conexión. Espera antes de volver a intentarlo y reduce las descargas simultáneas.": [
     "YouTube has temporarily limited requests from this connection. Wait before trying again and reduce simultaneous downloads.",
     "O YouTube limitou temporariamente as solicitações desta conexão. Aguarde antes de tentar novamente e reduza os downloads simultâneos."
+  ],
+  "No se pudo conectar con el servidor que entrega el video de YouTube. Si el video funciona en tu navegador, prueba IPv4 o IPv6 en Configuración → Conexión para YouTube y pulsa Reintentar. La disponibilidad del servidor depende de tu conexión y de YouTube.": [
+    "Could not connect to the server delivering the YouTube video. If the video plays in your browser, try IPv4 or IPv6 under Settings → YouTube connection and click Retry. Server availability depends on your connection and YouTube.",
+    "Não foi possível conectar ao servidor que fornece o vídeo do YouTube. Se o vídeo funciona no navegador, tente IPv4 ou IPv6 em Configurações → Conexão para o YouTube e clique em Tentar novamente. A disponibilidade do servidor depende da sua conexão e do YouTube."
+  ],
+  "Se interrumpió la conexión con el servidor del archivo. Revisa tu conexión y vuelve a intentarlo.": [
+    "The connection to the file server was interrupted. Check your connection and try again.",
+    "A conexão com o servidor do arquivo foi interrompida. Verifique sua conexão e tente novamente."
+  ],
+  "Reconectando con YouTube mediante IPv4…": [
+    "Reconnecting to YouTube using IPv4…",
+    "Reconectando ao YouTube por IPv4…"
+  ],
+  "Reintentando la conexión de descarga…": [
+    "Retrying the download connection…",
+    "Tentando novamente a conexão de download…"
+  ],
+  "Conectando al servidor de video…": [
+    "Connecting to the video server…",
+    "Conectando ao servidor de vídeo…"
+  ],
+  "Solo se pueden reintentar descargas de Internet con error.": [
+    "Only failed Internet downloads can be retried.",
+    "Só é possível tentar novamente downloads da Internet com erro."
+  ],
+  "La descarga está terminando. Espera un momento y vuelve a intentarlo.": [
+    "The download is finishing. Wait a moment and try again.",
+    "O download está sendo finalizado. Aguarde um momento e tente novamente."
+  ],
+  "El servidor no devolvió los datos de la descarga. Vuelve a intentarlo.": [
+    "The server did not return the download data. Try again.",
+    "O servidor não retornou os dados do download. Tente novamente."
+  ],
+  "Selecciona una conexión de YouTube válida.": [
+    "Select a valid YouTube connection.",
+    "Selecione uma conexão válida para o YouTube."
+  ],
+  "Reintentar descarga": [
+    "Retry download",
+    "Tentar download novamente"
+  ],
+  "Descarga en cola": [
+    "Download queued",
+    "Download na fila"
+  ],
+  "Se volverá a conectar con el formato y la pista de audio elegidos.": [
+    "It will reconnect with the selected format and audio track.",
+    "A conexão será refeita com o formato e a faixa de áudio escolhidos."
+  ],
+  "Conexión para YouTube": [
+    "YouTube connection",
+    "Conexão para o YouTube"
+  ],
+  "Automática · recuperar mediante IPv4": [
+    "Automatic · recover using IPv4",
+    "Automática · recuperar por IPv4"
+  ],
+  "IPv6 · requiere soporte de tu red": [
+    "IPv6 · requires network support",
+    "IPv6 · requer suporte da sua rede"
+  ],
+  "Si el video abre en el navegador pero la descarga agota el tiempo de espera, prueba IPv4 o IPv6 y guarda la configuración. Automática renueva el enlace una vez mediante IPv4 tras un fallo de conexión; 0 reintentos desactiva esa recuperación.": [
+    "If the video opens in your browser but the download times out, try IPv4 or IPv6 and save settings. Automatic refreshes the link once using IPv4 after a connection failure; 0 retries disables this recovery.",
+    "Se o vídeo abre no navegador, mas o download esgota o tempo de espera, tente IPv4 ou IPv6 e salve as configurações. Automática renova o link uma vez por IPv4 após uma falha de conexão; 0 tentativas desativa essa recuperação."
   ]
 }

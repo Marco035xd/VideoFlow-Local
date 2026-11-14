@@ -28,7 +28,19 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.17-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta **VideoFlow-Local-1.6.18-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Recuperación de conexiones de descarga · versión 1.6.18
+
+Si el análisis obtiene el título y la miniatura pero la descarga falla con **googlevideo.com timed out**, la conexión con el servidor que entrega el archivo está agotando el tiempo de espera. Poder reproducirlo en el navegador no confirma que el motor de descarga pueda llegar al mismo servidor por la misma ruta.
+
+En **Configuración → Conexión y recuperación → Conexión para YouTube**, elige **Automática**, **IPv4** o **IPv6** y guarda la configuración. IPv6 requiere soporte de tu red. La elección se aplica al análisis, las colecciones y los siguientes intentos de descarga. Son las [opciones de conexión de yt-dlp](https://github.com/yt-dlp/yt-dlp#network-options); no se modifican los ajustes de red de Windows.
+
+En modo Automática, tras agotar los reintentos normales por un fallo de conexión, la app vuelve a consultar el enlace una sola vez mediante IPv4. Esta recuperación adicional no repite los reintentos internos y se desactiva si configuras **0 reintentos**. Los reintentos normales esperan 1, 2, 4 y hasta 8 segundos entre solicitudes. La recuperación conserva formato, calidad, sesión, recorte y pista de audio; la cancelación y la pausa siguen disponibles.
+
+Las descargas de Internet que terminan con error tienen un botón **↻ Reintentar descarga**. Devuelve el mismo trabajo a la cola y utiliza la conexión configurada, conservando sus opciones y destino. Se impiden reintentos simultáneos del mismo trabajo y conflictos con una ruta reservada. Los trabajos completados no se vuelven a descargar con este botón. Los registros con error restaurados desde Retiradas temporalmente también pueden reintentarse; una sesión importada de cookies que haya vencido requiere volver a analizar el video con una sesión vigente.
+
+Se descarga un fragmento a la vez por archivo y se detiene el trabajo si falta uno, evitando marcar como completos videos con fragmentos omitidos. Se muestran las fases de conexión y recuperación y mensajes comprensibles en español, inglés y portugués. El resultado depende de la conectividad con YouTube; estos cambios no garantizan que un servidor inaccesible vuelva a responder.
 
 ### Sesión de YouTube y avisos de acceso · versión 1.6.17
 

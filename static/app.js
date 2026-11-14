@@ -489,6 +489,7 @@ function actionButtons(task) {
     buttons.push(`<button class="action-button" data-action="open" data-path="${escapeHtml(task.final_path)}" title="Mostrar archivo">⌂</button>`);
     buttons.push(`<button class="action-button danger" data-action="delete" data-id="${task.id}" title="Quitar de la lista">⌫</button>`);
   } else {
+    if (task.can_retry) buttons.push(`<button class="action-button retry-button" data-action="retry" data-id="${task.id}" title="Reintentar descarga" aria-label="Reintentar descarga">↻</button>`);
     buttons.push(`<button class="action-button danger" data-action="delete" data-id="${task.id}" title="Quitar de la lista">⌫</button>`);
   }
   return buttons.join("");
@@ -504,7 +505,7 @@ function renderDownloads() {
   list.innerHTML = state.downloads.map((task) => {
     const total = task.total_human !== "—" ? task.total_human : task.estimated_size_human;
     const detail = task.status === "Descargando"
-      ? `${task.speed_human} · ${task.eta_human} restantes`
+      ? task.phase || `${task.speed_human} · ${task.eta_human} restantes`
       : task.status === "Completado"
         ? `${task.final_size_human} · ${task.phase || "Guardado correctamente"}${task.incognito ? " · Incógnito" : ""}`
         : task.status === "Procesando"
@@ -718,6 +719,7 @@ async function downloadAction(action, id) {
       if (!accepted) return;
     }
     await api(`/api/downloads/${id}/${action}`, { method: "POST", body: "{}" });
+    if (action === 'retry') toast('Descarga en cola', 'Se volverá a conectar con el formato y la pista de audio elegidos.');
     await loadDownloads();
   } catch (error) {
     toast("No se pudo completar la acción", error.message, "error");
@@ -826,6 +828,7 @@ async function saveSettings() {
     background_mode: $("#settingsBackground").checked, keep_awake: $("#settingsAwake").checked,
     rate_limit_kbps: Number($("#settingsRate").value),
     retry_count: Number($("#settingsRetries").value),
+    youtube_connection: $('#settingsYouTubeConnection').value,
     notifications: $("#settingsNotifications").checked,
   };
   try {
@@ -939,7 +942,10 @@ function bindEvents() {
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const { action, id, path } = button.dataset;
-    if (["pause", "resume", "cancel"].includes(action)) downloadAction(action, id);
+    if (["pause", "resume", "cancel", "retry"].includes(action)) {
+      button.disabled = true;
+      downloadAction(action, id).finally(() => { if (button.isConnected) button.disabled = false; });
+    }
     if (action === "delete") deleteDownload(id);
     if (action === "open") openPath(path);
   });
