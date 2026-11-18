@@ -26,6 +26,7 @@ const pageTitles = {
   downloads: "Gestión de descargas",
   history: "Historial",
   appearance: "Apariencia",
+  profile: "Perfil",
   collections: "Listas y canales", player: "Reproductor", browser: "Navegador privado", vault: "Carpeta privada",
   settings: "Configuración",
 };
@@ -135,7 +136,8 @@ function selectSource(source) {
   $("#destinationHint").textContent = `Se guardará en la carpeta de ${platformNames[source]}. Usa «Guardar como» para cambiar nombre y ubicación.`;
 }
 
-function toast(title, message, type = "info", timeout = 4300, userContent = false) {
+function toast(title, message, type = "info", timeout = 4300, userContent = false, audible = true) {
+  if (type === "error" && audible) window.VideoFlowSounds?.play("error");
   const item = document.createElement("div");
   item.className = `toast ${type}`;
   const icon = type === "success" ? "✓" : type === "error" ? "!" : "i";
@@ -567,7 +569,7 @@ function handleDownloadNotifications(downloads) {
         loadHistory();
       } else if (task.status === "Error") {
         const label = task.mode.startsWith('separate_') ? 'Error en la separación' : task.mode === 'video_compress' ? 'Error al comprimir video' : task.mode === 'video_convert' ? 'Error al convertir video' : 'Error en la descarga';
-        toast(label, task.error || task.title, "error", 6500, !task.error);
+        toast(label, task.error || task.title, "error", 6500, !task.error, false);
         browserNotification(label, task.title);
       }
     }

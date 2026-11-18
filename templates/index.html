@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="/static/studio.css">
 <link rel="stylesheet" href="/static/player.css">
 <link rel="stylesheet" href="/static/arcade.css">
+<link rel="stylesheet" href="/static/profile/style.css">
 </head>
 <body>
   <div id="welcomeScreen" class="welcome-screen hidden" aria-hidden="true">
@@ -77,6 +78,7 @@
 <button class="nav-item" data-page="browser" type="button"><span class="nav-icon"><img src="/static/icons/navigation/browser.svg" alt=""></span><span>Navegador privado</span></button>
 <button class="nav-item" data-page="vault" type="button"><span class="nav-icon"><img src="/static/icons/navigation/vault.svg" alt=""></span><span>Carpeta privada</span></button>
         <button class="nav-item" data-page="appearance" type="button"><span class="nav-icon"><img src="/static/icons/navigation/appearance.svg" alt=""></span><span>Apariencia</span></button>
+        <button class="nav-item" data-page="profile" type="button"><span class="nav-icon"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="#79a7f7" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span><span>Perfil</span></button>
         <button class="nav-item" data-page="settings" type="button">
           <span class="nav-icon"><img src="/static/icons/navigation/settings.ico" alt=""></span><span>Configuración</span>
         </button>
@@ -481,6 +483,8 @@
           </div>
         </section>
 
+        <section id="page-profile" class="page"></section>
+
         <section id="page-settings" class="page">
           <div class="settings-layout">
             <section class="panel settings-panel">
@@ -558,6 +562,7 @@
                 </div>
               </div>
 
+              <div class="settings-group" data-sound-settings></div>
               <button id="saveSettingsButton" class="primary-button" type="button">Guardar configuración</button>
             </section>
 
@@ -601,6 +606,8 @@
 <script src="/static/youtube_session.js"></script>
 <script src="/static/appearance.js"></script><script src="/static/player.js"></script><script src="/static/updates.js"></script><script src="/static/studio.js"></script>
 <script src="/static/wallpapers.js"></script>
+<script src="/static/profile/sounds.js"></script>
+<script src="/static/profile/profile.js"></script>
 {% include 'arcade.html' %}
 <script src="/static/arcade.js"></script>
 </body>

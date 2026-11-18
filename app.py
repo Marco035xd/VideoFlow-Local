@@ -47,6 +47,7 @@ DEFAULT_SETTINGS = {
     "theme": "dark",
     "appearance": DEFAULT_APPEARANCE.copy(),
     "notifications": True,
+    "sounds": {"click": False, "complete": False, "error": False},
     "max_concurrent": 3,
     "removed_retention_days": DEFAULT_RETENTION_DAYS,
     "background_mode": True,
@@ -196,6 +197,9 @@ class SettingsStore:
         merged['removed_retention_days'] = normalize_retention_days(data.get('removed_retention_days'))
         merged['theme'] = data.get('theme') if data.get('theme') in ('light', 'dark', 'system') else 'dark'
         merged['appearance'] = normalize_appearance(data.get('appearance'))
+        sounds = data.get('sounds')
+        sounds = sounds if isinstance(sounds, dict) else {}
+        merged['sounds'] = {key: sounds.get(key) is True for key in DEFAULT_SETTINGS['sounds']}
         folders = data.get("platform_folders")
         folders = folders if isinstance(folders, dict) else {}
         merged["platform_folders"] = {
@@ -216,8 +220,9 @@ class SettingsStore:
         with self.lock:
             current = self.load()
             patch = patch.copy()
-            if "platform_folders" in patch:
-                current["platform_folders"].update(patch.pop("platform_folders"))
+            for key in ("platform_folders", "sounds"):
+                if key in patch:
+                    current[key].update(patch.pop(key))
             current.update(patch)
             return self.save(current)
 
@@ -666,6 +671,14 @@ class DownloadManager:
                 self.active_count = max(0, self.active_count - 1)
                 self.running_tasks.discard(task.id)
                 self.condition.notify_all()
+        sound = {"Completado": "complete", "Error": "error"}.get(task.status)
+        if sound and os.name == "nt" and self.settings.load()['sounds'].get(sound):
+            import winsound
+            try:
+                sample = APP_DIR / "static" / "profile" / f"sound-{sound}.wav"
+                winsound.PlaySound(str(sample), winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
+            except RuntimeError:
+                app.logger.debug("Could not play the download sound", exc_info=True)
 
     def _wait_if_paused(self, task: DownloadTask) -> None:
         while task.pause_event.is_set():
@@ -1419,6 +1432,11 @@ def api_get_settings():
 def api_update_settings():
     payload = request.get_json(silent=True) or {}
     allowed: dict[str, Any] = {}
+    if "sounds" in payload:
+        sounds = payload["sounds"]
+        if not isinstance(sounds, dict) or any(key not in DEFAULT_SETTINGS["sounds"] or type(value) is not bool for key, value in sounds.items()):
+            return jsonify(ok=False, error="Selecciona un ajuste de sonido válido."), 400
+        allowed["sounds"] = sounds
     if 'language' in payload:
         if not isinstance(payload['language'], str) or payload['language'] not in LANGUAGES:
             return jsonify(ok=False, error='Selecciona un idioma disponible.'), 400

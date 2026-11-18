@@ -164,6 +164,12 @@ La versión instalada guarda el historial y las preferencias en `%LOCALAPPDATA%\
 
 El instalador inicial no tiene firma digital.
 
+## Perfil y sonidos
+
+En **Perfil** puedes guardar un nombre visible, un nombre de usuario y una descripción. Elige un avatar de ejemplo, importa una imagen o un GIF, o descarga una imagen desde su enlace HTTPS directo si el sitio lo permite. El encuadre, el fondo y el avatar se guardan en este equipo. Un banner de video de hasta 30 segundos se repite en silencio y dispone de un control de reproducción.
+
+**Perfil → Suscripciones** muestra los beneficios propuestos para Usuario Pro. **Configuración → Sonidos (Tester)** permite activar y probar por separado los sonidos de clic, descarga completa y error.
+
 ## Inicio desde el código fuente
 
 1. Extrae toda la carpeta del ZIP.
