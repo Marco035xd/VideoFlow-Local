@@ -55,7 +55,7 @@ function appearanceError(preferences) {
   return '';
 }
 
-function applyAppearance(draft) {
+function applyAppearancePalette(draft) {
   if(!draft) return;
   const preferences=draft.appearance;
   let mode=draft.theme==='system'?(appearanceMedia.matches?'dark':'light'):draft.theme;
@@ -93,6 +93,13 @@ function applyAppearance(draft) {
   root.dataset.theme=mode;root.dataset.preset=preferences.preset;root.dataset.density=preferences.density;
   root.dataset.reduceMotion=String(preferences.reduce_motion);root.style.colorScheme=mode;
   for(const [key,value] of Object.entries(variables)) root.style.setProperty(key,value);
+  return mode;
+}
+
+function applyAppearance(draft) {
+  const mode = applyAppearancePalette(draft);
+  if (!mode) return;
+  const preferences = draft.appearance;
   for(const label of $$('.appearance-preset')) {
     const palette=appearancePresets[label.dataset.preset][mode];
     const sample=label.querySelector('.preset-sample');

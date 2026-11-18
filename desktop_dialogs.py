@@ -16,26 +16,27 @@ def bind_window(window):
     _window = window
 
 
-def choose(kind, directory='', filename='', file_types=(), allow_multiple=True):
+def choose(kind, directory='', filename='', file_types=(), allow_multiple=True, owner=None):
     """Always return a list, including for one selected file and cancellation."""
     if not _lock.acquire(blocking=False):
         raise ValueError('Ya hay un selector abierto. Ciérralo antes de abrir otro.')
     try:
         directory = str(directory) if Path(directory).is_dir() else str(Path.home())
-        if _window is not None:
+        owner = owner or _window
+        if owner is not None:
             import webview
             from System import Action
             # Flask requests run on worker threads; Windows dialogs require the UI STA thread.
             selection = {}
             def show():
                 try:
-                    selection['result'] = _window.create_file_dialog(
+                    selection['result'] = owner.create_file_dialog(
                         getattr(webview.FileDialog, kind), directory=directory,
                         allow_multiple=kind == 'OPEN' and allow_multiple, save_filename=filename, file_types=file_types,
                     )
                 except Exception as exc:
                     selection['error'] = exc
-            _window.native.Invoke(Action(show))
+            owner.native.Invoke(Action(show))
             if 'error' in selection:
                 raise selection['error']
             result = selection.get('result')

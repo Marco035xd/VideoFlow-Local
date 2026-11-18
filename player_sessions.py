@@ -7,7 +7,7 @@ import time
 def normalize_state(data):
     result = {}
     for key, minimum, maximum in [('position', 0, 8640000), ('duration', 0, 8640000),
-                                   ('volume', 0, 1), ('rate', .25, 4), ('brightness', 50, 150)]:
+                                   ('volume', 0, 2), ('rate', .25, 4), ('brightness', 50, 150)]:
         if key in data:
             value = float(data[key])
             if not math.isfinite(value) or not minimum <= value <= maximum:

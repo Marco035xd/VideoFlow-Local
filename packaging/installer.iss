@@ -1,7 +1,10 @@
 #ifndef AppVersion
-  #define AppVersion "1.6.19"
+  #define AppVersion "1.6.22"
 #endif
 #define ProjectRoot SourcePath + ".."
+#ifndef BuildOutput
+  #define BuildOutput ProjectRoot + "\dist\VideoFlowLocal"
+#endif
 
 [Setup]
 AppId={{2C4E7DA8-9B1B-41D7-8797-FD2AFA1DC774}
@@ -34,7 +37,7 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; GroupDescription: "Accesos directos:"
 
 [Files]
-Source: "{#ProjectRoot}\dist\VideoFlowLocal\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BuildOutput}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#ProjectRoot}\build\prerequisites\MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: dontcopy
 
 [Icons]

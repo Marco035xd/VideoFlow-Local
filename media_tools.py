@@ -3,11 +3,14 @@ import secrets
 import threading
 import json
 import re
+from io import BytesIO
 from pathlib import Path
 
 from desktop_runtime import runtime, public_url
 from download_options import validate_options
 from player_sessions import sessions, normalize_state
+from floating_window import resize_window, save_background, set_opacity
+from local_images import read_background, webp_bytes
 
 _media, _media_lock = {}, threading.RLock()
 _player_palettes = {}
@@ -62,6 +65,18 @@ def register(app, manager, settings):
     from flask import jsonify, request, send_file, render_template
     from desktop_dialogs import choose, VIDEO_TYPES
     media, lock = _media, _media_lock
+    background_path = settings.path.parent / 'player-background.webp'
+    background_lock = threading.Lock()
+
+    def window_preferences():
+        preferences = settings.load()
+        with background_lock:
+            try:
+                revision = str(background_path.stat().st_mtime_ns)
+            except FileNotFoundError:
+                revision = None
+        return dict(theme=preferences['theme'], appearance=preferences['appearance'],
+                    opacity=preferences.get('floating_opacity', 100), background=revision)
 
     @app.post('/api/player')
     def select_media():
@@ -89,7 +104,65 @@ def register(app, manager, settings):
             if token not in media:
                 return 'Archivo no abierto', 404
         mode = 'pip' if request.args.get('mode') == 'pip' else 'floating'
-        return render_template('player.html', token=token, mode=mode, palette=_player_palettes.get(token, {}))
+        return render_template('player.html', token=token, mode=mode, palette=_player_palettes.get(token, {}),
+                               preferences=window_preferences())
+
+    @app.get('/api/player/background')
+    def player_background():
+        with background_lock:
+            try:
+                data = background_path.read_bytes()
+            except FileNotFoundError:
+                return '', 404
+        return send_file(BytesIO(data), mimetype='image/webp')
+
+    @app.route('/api/player/<token>/window', methods=['GET', 'POST'])
+    def player_window(token):
+        with sessions.lock:
+            window = sessions.windows.get(token)
+        if not getattr(window, '_videoflow_mode', None):
+            return jsonify(ok=False, error='La ventana del reproductor está cerrada.'), 404
+        if request.method == 'GET':
+            return jsonify(ok=True, preferences=window_preferences())
+        data = request.get_json() or {}
+        try:
+            action = data.get('action')
+            if action == 'opacity':
+                opacity = data.get('value')
+                if type(opacity) is not int or not 25 <= opacity <= 100:
+                    raise ValueError('Elige una opacidad entre 25 % y 100 %.')
+                with sessions.lock:
+                    windows = [item for item in sessions.windows.values() if getattr(item, '_videoflow_mode', None)]
+                set_opacity(window, opacity)
+                settings.update({'floating_opacity': opacity})
+                for other in windows:
+                    if other is not window:
+                        try:
+                            set_opacity(other, opacity)
+                        except Exception:
+                            if not other.events.closed.is_set():
+                                raise
+            elif action == 'resize':
+                direction = data.get('direction')
+                if type(direction) is not int or direction not in (-1, 1):
+                    raise ValueError('Elige si quieres agrandar o reducir la ventana.')
+                resize_window(window, direction)
+            elif action == 'pick_background':
+                paths = choose('OPEN', settings.load()['default_folder'],
+                               file_types=('Imágenes (*.jpg;*.jpeg;*.png;*.webp)',),
+                               allow_multiple=False, owner=window)
+                if paths:
+                    image = webp_bytes(read_background(paths[0]))
+                    with background_lock:
+                        save_background(background_path, image)
+            elif action == 'clear_background':
+                with background_lock:
+                    background_path.unlink(missing_ok=True)
+            else:
+                raise ValueError('Opción de ventana no válida.')
+            return jsonify(ok=True, preferences=window_preferences())
+        except Exception as exc:
+            return jsonify(ok=False, error=str(exc)), 400
 
     @app.route('/api/player/<token>/state', methods=['GET', 'POST'])
     def player_state(token):
@@ -154,6 +227,9 @@ def register(app, manager, settings):
             with sessions.lock:
                 sessions.windows[token] = window
             window.events.closed += lambda: sessions.release(token, window)
+            opacity = settings.load().get('floating_opacity', 100)
+            if opacity != 100:
+                set_opacity(window, opacity)
             return jsonify(ok=True, state=state, mode=mode)
         except Exception as exc:
             sessions.update(token, {}, owner='main')

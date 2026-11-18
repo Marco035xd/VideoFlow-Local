@@ -1,6 +1,16 @@
-{% macro controls(prefix) -%}
+{% macro volume_control(prefix) -%}
+<div class="media-volume"><button id="{{ prefix }}Mute" class="secondary-button" type="button" aria-label="Silenciar" aria-pressed="false">Silenciar</button><input id="{{ prefix }}Volume" class="media-range" type="range" min="0" max="200" step="1" value="100" aria-label="Volumen"><output id="{{ prefix }}VolumeValue" class="media-volume-value">100 %</output></div>
+{%- endmacro %}
+{% macro controls(prefix, jumps=false, show_volume=true) -%}
 <div class="media-controls" role="group" aria-label="Controles del reproductor">
   <div class="media-timeline"><output id="{{ prefix }}Elapsed" class="media-time">0:00</output><input id="{{ prefix }}Seek" class="media-range media-seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Posición del video" disabled><output id="{{ prefix }}Duration" class="media-time">0:00</output></div>
-  <div class="media-toolbar"><button id="{{ prefix }}Play" class="primary-button" type="button" disabled>Reproducir</button><button id="{{ prefix }}Restart" class="secondary-button" type="button" disabled>Reiniciar</button><div class="media-volume"><button id="{{ prefix }}Mute" class="secondary-button" type="button" aria-label="Silenciar" aria-pressed="false">Silenciar</button><input id="{{ prefix }}Volume" class="media-range" type="range" min="0" max="100" step="1" value="100" aria-label="Volumen"><output id="{{ prefix }}VolumeValue" class="media-volume-value">100 %</output></div><button id="{{ prefix }}Fullscreen" class="secondary-button media-fullscreen" type="button" disabled>Pantalla completa</button></div>
+  <div class="media-toolbar">
+    {% if jumps %}<button id="{{ prefix }}Back" class="secondary-button media-skip" type="button" aria-label="Retroceder 10 segundos" title="Retroceder 10 segundos" disabled>−10 s</button>{% endif %}
+    <button id="{{ prefix }}Play" class="primary-button" type="button" disabled>Reproducir</button>
+    {% if jumps %}<button id="{{ prefix }}Forward" class="secondary-button media-skip" type="button" aria-label="Adelantar 10 segundos" title="Adelantar 10 segundos" disabled>+10 s</button>{% endif %}
+    <button id="{{ prefix }}Restart" class="secondary-button" type="button" disabled>Reiniciar</button>
+    {% if show_volume %}{{ volume_control(prefix) }}{% endif %}
+    <button id="{{ prefix }}Fullscreen" class="secondary-button media-fullscreen" type="button" disabled>Pantalla completa</button>
+  </div>
 </div>
 {%- endmacro %}

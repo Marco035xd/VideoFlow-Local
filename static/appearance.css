@@ -121,6 +121,46 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .appearance-preview-panel > button { margin-bottom: 12px; }
 .appearance-preview-panel > .appearance-hint { margin: 6px 0 0; font-size: 10px; }
 
+body.has-app-wallpaper {
+  --wallpaper-shade: color-mix(in srgb, var(--bg) calc(100% - var(--wallpaper-opacity, 54%)), transparent);
+  background: linear-gradient(var(--wallpaper-shade), var(--wallpaper-shade)),
+              var(--app-wallpaper) center / cover no-repeat fixed var(--bg);
+}
+.has-app-wallpaper .appearance-live-preview {
+  background: linear-gradient(var(--wallpaper-shade), var(--wallpaper-shade)),
+              var(--app-wallpaper) center / cover no-repeat var(--bg);
+}
+.wallpaper-panel .section-heading { flex-wrap: wrap; margin-bottom: 9px; }
+.wallpaper-panel .section-heading h3 { margin: 0; }
+.wallpaper-panel .primary-button { white-space: nowrap; }
+.wallpaper-panel .primary-button > span { margin-right: 4px; font-size: 16px; line-height: 0; }
+.wallpaper-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 11px; }
+.wallpaper-card {
+  position: relative; min-width: 0; padding: 6px; text-align: left;
+  border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface-2); cursor: pointer;
+}
+.wallpaper-card[aria-pressed="true"] { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.wallpaper-card[aria-pressed="true"]::after {
+  content: '✓'; position: absolute; top: 12px; right: 12px;
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--primary); color: var(--on-primary); font-size: 12px; font-weight: 750;
+}
+.wallpaper-card:hover { border-color: var(--primary); }
+.wallpaper-thumb { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 7px; object-fit: cover; background: var(--bg); }
+.wallpaper-theme-sample {
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 80% 0%, var(--primary-soft), transparent 60%), var(--bg);
+}
+.wallpaper-theme-sample i { width: 56%; height: 30%; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-3); }
+.wallpaper-name { display: block; padding: 7px 3px 3px; font-size: 11px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wallpaper-opacity { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 15px; margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line); font-size: 12px; }
+.wallpaper-opacity input { width: clamp(105px, 34%, 260px); accent-color: var(--primary); cursor: pointer; }
+.wallpaper-opacity input:disabled { cursor: default; opacity: .48; }
+.wallpaper-opacity output { color: var(--muted); min-width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+.wallpaper-status { color: var(--muted); margin: 11px 0 0; font-size: 11px; }
+.wallpaper-status:empty { display: none; }
+.wallpaper-status.is-error { color: var(--red); }
+
 html[data-density="compact"] .nav-item { min-height: 40px; }
 html[data-density="compact"] .nav-list { gap: 4px; }
 html[data-density="compact"] .panel { padding: 18px; }

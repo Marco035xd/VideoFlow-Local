@@ -970,7 +970,7 @@ async function init() {
     initVideoCompression();
     initAudioTracks();
     initYouTubeSession();
-    await Promise.all([loadSystem(), loadDownloads(), loadHistory()]);
+    await Promise.all([loadSystem(), loadDownloads(), loadHistory(), initWallpapers()]);
   } catch (error) {
     toast("Error de inicio", error.message, "error", 7000);
   }

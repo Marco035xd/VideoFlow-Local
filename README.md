@@ -28,7 +28,13 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 
 ## Instalar como programa de Windows
 
-Descarga y ejecuta **VideoFlow-Local-1.6.19-Setup-x64.exe** desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+Descarga y ejecuta el instalador de Windows desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Fondos personalizados y ventana flotante · versión 1.6.22
+
+En **Apariencia → Fondos de pantalla**, puedes añadir fotos JPG, PNG o WebP y volver a usar las anteriores desde sus miniaturas. El control **Opacidad del fondo** cambia en vivo la intensidad de la foto entre 25 % y 100 %. Cada foto conserva su ajuste al cambiar de fondo o cerrar la aplicación. **Fondo del tema** recupera el fondo del tema y mantiene la galería.
+
+La ventana flotante y Picture-in-Picture tienen saltos de diez segundos, botones de tamaño y volumen amplificado hasta 200 %. El botón de opciones permite elegir una foto y ajustar la opacidad de la ventana. Los colores se actualizan al cambiar Apariencia con el reproductor abierto.
 
 ### Servidores alternativos de YouTube · versión 1.6.19
 

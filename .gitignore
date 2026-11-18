@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 data/settings.json
 data/history.db
+data/wallpapers.db*
+data/player-background.webp
 data/webview/
 data/separation-models/
 build/

@@ -1,40 +1,46 @@
-{% from 'player_controls.html' import controls %}
+{% from 'player_controls.html' import controls, volume_control %}
 <!doctype html>
-<html lang="{{ ui_language }}"><head><meta charset="utf-8"><title>VideoFlow · Reproductor</title>
-<style>
-:root { {% for key,value in (palette|default({})).items() %}{{ key }}:{{ value }};{% endfor %} }
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101827;color:white;font:14px system-ui;box-sizing:border-box}
-body,.floating-shell{height:100%;display:flex;flex-direction:column;min-height:0}.floating-shell{flex:1;border-radius:0}.floating-shell video{height:0;min-height:0;flex:1}
-button{padding:8px 13px;border:1px solid #40516c;border-radius:9px;color:white;background:#243755;cursor:pointer}button:hover{background:#304b76}button:focus-visible{outline:2px solid #7ea4ff}
-.primary-button{background:var(--primary,#77a1ff);color:var(--on-primary,#101827);border-color:var(--primary,#77a1ff)}.secondary-button{background:var(--surface-solid,#243755);color:var(--text,#f6f8ff);border-color:var(--line-strong,#40516c)}
-p{margin:0;font-size:12px;color:#c4cee0;flex:none;padding:8px 12px}p:empty{display:none}
-</style><link rel="stylesheet" href="/static/player.css"></head><body>
-<div id="floatingShell" class="floating-shell media-shell {{ 'pip-shell' if mode == 'pip' else '' }}"><header class="player-window-header"><span class="pywebview-drag-region">VideoFlow · {{ 'Picture-in-Picture' if mode == 'pip' else 'Reproductor' }} <small>Arrastra para mover</small></span><button id="floatingReturn" type="button" aria-label="Volver al reproductor principal">↗</button><button id="floatingClose" type="button" aria-label="Cerrar ventana">×</button></header><video id="floatingVideo" class="{{ 'pywebview-drag-region' if mode == 'pip' else '' }}" playsinline preload="metadata" tabindex="0" aria-label="Video local" src="/api/media/{{ token }}"></video>{{ controls('floating') }}<p id="floatingMessage" role="status"></p></div>
-<script src="/static/language.js"></script><script src="/static/player.js"></script><script>
-const floatingShell=document.querySelector('#floatingShell');
-const floatingPlayback=new LocalPlayback(document.querySelector('#floatingVideo'), {playButton:document.querySelector('#floatingPlay'),restartButton:document.querySelector('#floatingRestart'),message:document.querySelector('#floatingMessage'),keepPlayingHidden:true}).bindControls('floating',floatingShell).bindSurfaceClick({draggable:floatingShell.classList.contains('pip-shell')});
-floatingPlayback.video.setAttribute('aria-label','Video local. Haz clic para reproducir o pausar.');
-const floatingSession=new PlayerSession(floatingPlayback,'floating',{{ token|tojson }});floatingSession.tick();
-const closeFloating=async returnToMain=>{
-  await floatingSession.sending;
-  await floatingSession.command(floatingPlayback.snapshot());
-  await fetch('/api/player/{{ token }}/close',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({return_to_main:returnToMain})});
-};
-document.querySelector('#floatingClose').onclick=()=>closeFloating(false);
-document.querySelector('#floatingReturn').onclick=()=>closeFloating(true);
-const pipShell=document.querySelector('.pip-shell');
-if(pipShell){
-  let hideControls;
-  const hide=()=>pipShell.classList.remove('pip-ui-visible');
-  const reveal=()=>{
-    clearTimeout(hideControls);
-    pipShell.classList.add('pip-ui-visible');
-    hideControls=setTimeout(hide,1800);
-  };
-  for(const event of ['pointermove','pointerdown','keydown'])pipShell.addEventListener(event,reveal);
-  pipShell.addEventListener('pointerleave',()=>{clearTimeout(hideControls);hide();});
-  window.addEventListener('pagehide',()=>clearTimeout(hideControls));
-  reveal();
-}
-window.addEventListener('pagehide',()=>floatingSession.stop());
-</script></body></html>
+<html lang="{{ ui_language }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VideoFlow · Reproductor</title>
+  <style>:root { {% for key,value in (palette|default({})).items() %}{{ key }}:{{ value }};{% endfor %} }</style>
+  <link rel="stylesheet" href="/static/player.css">
+  <link rel="stylesheet" href="/static/floating-player.css">
+</head>
+<body class="floating-body">
+  <div id="floatingShell" class="floating-shell media-shell {{ 'pip-shell' if mode == 'pip' else '' }}">
+    <header class="player-window-header">
+      <span class="pywebview-drag-region">VideoFlow · Reproductor <small>Arrastra para mover</small></span>
+      <button id="floatingSmaller" type="button" aria-label="Reducir ventana" title="Reducir ventana">−</button>
+      <button id="floatingLarger" type="button" aria-label="Agrandar ventana" title="Agrandar ventana">+</button>
+      <button id="floatingCustomize" type="button" aria-label="Personalizar ventana" title="Personalizar ventana">⚙</button>
+      <button id="floatingReturn" type="button" aria-label="Volver al reproductor principal" title="Volver al reproductor principal">↗</button>
+      <button id="floatingClose" type="button" aria-label="Cerrar ventana" title="Cerrar ventana">×</button>
+    </header>
+    <video id="floatingVideo" class="{{ 'pywebview-drag-region' if mode == 'pip' else '' }}" playsinline preload="metadata" tabindex="0" aria-label="Video local. Haz clic para reproducir o pausar." src="/api/media/{{ token }}"></video>
+    {{ controls('floating', jumps=true, show_volume=mode != 'pip') }}
+    <p id="floatingMessage" role="status"></p>
+    <dialog id="floatingOptions" aria-labelledby="floatingOptionsTitle">
+      <div class="floating-options-header">
+        <strong id="floatingOptionsTitle">Personalizar ventana</strong>
+        <form method="dialog"><button type="submit" aria-label="Cerrar opciones" title="Cerrar opciones">×</button></form>
+      </div>
+      {% if mode == 'pip' %}{{ volume_control('floating') }}{% endif %}
+      <label class="floating-opacity" for="floatingOpacity"><span>Opacidad</span><output id="floatingOpacityValue">100 %</output></label>
+      <input id="floatingOpacity" class="media-range" type="range" min="25" max="100" step="1" value="100">
+      <div class="floating-background-actions">
+        <button id="floatingPhoto" class="primary-button" type="button">Elegir foto de fondo</button>
+        <button id="floatingClear" class="secondary-button" type="button">Quitar foto</button>
+      </div>
+      <p id="floatingOptionsMessage" role="status"></p>
+    </dialog>
+  </div>
+  <script id="floatingBoot" type="application/json">{{ {'token': token, 'preferences': preferences}|tojson }}</script>
+  <script src="/static/language.js"></script>
+  <script src="/static/appearance.js"></script>
+  <script src="/static/player.js"></script>
+  <script src="/static/floating-player.js"></script>
+</body>
+</html>

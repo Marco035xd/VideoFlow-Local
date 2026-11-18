@@ -11,6 +11,7 @@ class LocalPlayback {
     this.resumeOnReturn = false;
     this.operation = 0;
     this.blobUrl = null;
+    this.lastVolume = video.volume || 1;
     playButton?.addEventListener('click', () => this.toggle());
     restartButton?.addEventListener('click', () => this.play(true));
     for (const name of ['play', 'pause', 'ended', 'loadedmetadata', 'emptied', 'durationchange', 'timeupdate', 'volumechange']) {
@@ -30,20 +31,11 @@ class LocalPlayback {
     video.addEventListener('keydown', event => {
       if (![' ', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
       event.preventDefault();
-      if(this.remoteState){
-        const view=this.remoteState;
-        if(event.key===' ')this.toggle();
-        if(event.key==='ArrowRight'||event.key==='ArrowLeft')this.session.command({position:Math.max(0,Math.min(view.duration,view.position+(event.key==='ArrowRight'?10:-10)))});
-        if(event.key==='ArrowUp'||event.key==='ArrowDown')this.session.command({volume:Math.max(0,Math.min(1,view.volume+(event.key==='ArrowUp' ? .05 : -.05))),muted:false});
-        return;
-      }
       if (event.key === ' ') this.toggle();
-      if (event.key === 'ArrowRight' && Number.isFinite(video.duration)) video.currentTime = Math.min(video.duration, video.currentTime + 10);
-      if (event.key === 'ArrowLeft') video.currentTime = Math.max(0, video.currentTime - 10);
-      if (event.key === 'ArrowUp') video.volume = Math.min(1, video.volume + .05);
-      if (event.key === 'ArrowDown') video.volume = Math.max(0, video.volume - .05);
-      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') video.muted = video.volume === 0;
-      this.session?.command(this.snapshot());
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') this.jump(event.key === 'ArrowRight' ? 10 : -10);
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        this.changeVolume((this.remoteState?.volume ?? this.volume()) + (event.key === 'ArrowUp' ? .05 : -.05));
+      }
     });
     speed?.addEventListener('change', () => { video.playbackRate = Number(speed.value); this.session?.command({rate:video.playbackRate}); });
     document.addEventListener('visibilitychange', () => this.visibilityChanged());
@@ -55,8 +47,57 @@ class LocalPlayback {
   snapshot() {
     if (this.remoteState) return {...this.remoteState};
     return {position:this.video.currentTime || 0, duration:Number.isFinite(this.video.duration)?this.video.duration:0,
-      playing:!this.video.paused && !this.video.ended, volume:this.video.volume, muted:Boolean(this.video.muted),
+      playing:!this.video.paused && !this.video.ended, volume:this.volume(), muted:Boolean(this.video.muted),
       rate:this.video.playbackRate || 1, brightness:this.brightness || 100};
+  }
+
+  maxVolume() { return window.AudioContext ? 2 : 1; }
+
+  volume() { return this.video.volume * (this.gain?.gain.value || 1); }
+
+  resumeAudio() {
+    if (this.audioContext?.state === 'suspended') this.audioContext.resume().catch(() => {});
+  }
+
+  setVolume(level) {
+    const value = Math.max(0, Math.min(this.maxVolume(), level));
+    if (value > 1 && !this.gain) {
+      this.audioContext = new window.AudioContext();
+      this.gain = this.audioContext.createGain();
+      this.audioContext.createMediaElementSource(this.video).connect(this.gain);
+      this.gain.connect(this.audioContext.destination);
+    }
+    if (this.gain) this.gain.gain.value = Math.max(1, value);
+    this.video.volume = Math.min(1, value);
+    if (value > 0) this.lastVolume = value;
+    this.resumeAudio();
+  }
+
+  changeVolume(level) {
+    const volume = Math.max(0, Math.min(this.maxVolume(), level));
+    if (!this.remoteState) {
+      this.setVolume(volume);
+      this.video.muted = volume === 0;
+      this.update();
+    }
+    this.session?.command({volume, muted:volume === 0});
+  }
+
+  seekTo(position) {
+    const length = this.remoteState?.duration ?? this.video.duration;
+    if (!Number.isFinite(length) || length <= 0) return;
+    const target = Math.max(0, Math.min(length, position));
+    if (!this.remoteState) {
+      try { this.video.currentTime = target; }
+      catch { this.say('Espera a que el archivo termine de abrirse para cambiar la posición.'); return; }
+    }
+    this.session?.command({position:target});
+    return target;
+  }
+
+  jump(seconds) {
+    this.seekTo((this.remoteState?.position ?? this.video.currentTime) + seconds);
+    this.update();
   }
   time(value) {
     const total = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
@@ -98,18 +139,18 @@ class LocalPlayback {
   bindControls(prefix, shell) {
     const get = name => document.querySelector(`#${prefix}${name}`);
     this.controls = {seek:get('Seek'), elapsed:get('Elapsed'), duration:get('Duration'),
-      volume:get('Volume'), volumeValue:get('VolumeValue'), mute:get('Mute'), fullscreen:get('Fullscreen'), shell};
+      volume:get('Volume'), volumeValue:get('VolumeValue'), mute:get('Mute'), fullscreen:get('Fullscreen'),
+      back:get('Back'), forward:get('Forward'), shell};
     this.scrubbing = false;
-    this.lastVolume = this.video.volume || 1;
-    const {seek, volume, mute, fullscreen} = this.controls;
+    const {seek, volume, mute, fullscreen, back, forward} = this.controls;
+    volume.max = String(this.maxVolume() * 100);
+    back?.addEventListener('click', () => this.jump(-10));
+    forward?.addEventListener('click', () => this.jump(10));
     const seekToThumb = () => {
-      const duration=this.remoteState?.duration || this.video.duration;
-      if (!Number.isFinite(duration) || duration <= 0) return;
-      try { this.video.currentTime = Math.max(0, Math.min(duration, Number(seek.value))); }
-      catch { this.say('Espera a que el archivo termine de abrirse para cambiar la posición.'); }
-      this.controls.elapsed.textContent = this.time(Number(seek.value));
-      this.fillRange(seek, Number(seek.value), duration);
-      this.session?.command({position:Number(seek.value)});
+      const position = this.seekTo(Number(seek.value));
+      if (position === undefined) return;
+      this.controls.elapsed.textContent = this.time(position);
+      this.fillRange(seek, position, Number(seek.max));
     };
     seek.addEventListener('pointerdown', () => { this.scrubbing = true; });
     seek.addEventListener('input', seekToThumb);
@@ -118,27 +159,17 @@ class LocalPlayback {
     seek.addEventListener('pointerup', finishSeek);
     seek.addEventListener('pointercancel', () => { this.scrubbing = false; this.update(); });
     seek.addEventListener('blur', () => { this.scrubbing = false; this.update(); });
-    volume.addEventListener('input', () => {
-      this.video.volume = Math.max(0, Math.min(1, Number(volume.value) / 100));
-      this.video.muted = this.video.volume === 0;
-      if (this.video.volume > 0) this.lastVolume = this.video.volume;
-      this.session?.command({volume:this.video.volume, muted:this.video.muted});
-      this.update();
-    });
+    volume.addEventListener('input', () => this.changeVolume(Number(volume.value) / 100));
     mute.addEventListener('click', () => {
-      if(this.remoteState){
-        const view=this.remoteState,unmute=view.muted||view.volume===0;
-        this.session.command({muted:!unmute,volume:unmute?(view.volume||this.lastVolume):view.volume});return;
+      const level = this.remoteState?.volume ?? this.volume();
+      const muted = !((this.remoteState?.muted ?? this.video.muted) || level === 0);
+      const volume = level || this.lastVolume;
+      if (!this.remoteState) {
+        this.setVolume(volume);
+        this.video.muted = muted;
+        this.update();
       }
-      if (this.video.muted || this.video.volume === 0) {
-        this.video.volume = this.video.volume || this.lastVolume;
-        this.video.muted = false;
-      } else {
-        this.lastVolume = this.video.volume;
-        this.video.muted = true;
-      }
-      this.session?.command({volume:this.video.volume, muted:this.video.muted});
-      this.update();
+      this.session?.command({volume, muted});
     });
     fullscreen.addEventListener('click', async () => {
       try {
@@ -168,9 +199,11 @@ class LocalPlayback {
     }
     if (this.restartButton) this.restartButton.disabled = !this.hasSource();
     if (this.controls) {
-      const {seek, elapsed, duration, volume, volumeValue, mute, fullscreen, shell} = this.controls;
+      const {seek, elapsed, duration, volume, volumeValue, mute, fullscreen, back, forward, shell} = this.controls;
       const length = view ? view.duration : Number.isFinite(this.video.duration) ? this.video.duration : 0;
       seek.disabled = !this.hasSource() || length <= 0;
+      if (back) back.disabled = seek.disabled;
+      if (forward) forward.disabled = seek.disabled;
       seek.max = String(length);
       duration.textContent = this.time(length);
       if (!this.scrubbing) {
@@ -179,9 +212,10 @@ class LocalPlayback {
         elapsed.textContent = this.time(position);
         this.fillRange(seek, position, length);
       }
-      const level = (view ? view.muted : this.video.muted) ? 0 : Math.round((view ? view.volume : this.video.volume) * 100);
+      if (view?.volume > 0) this.lastVolume = view.volume;
+      const level = (view ? view.muted : this.video.muted) ? 0 : Math.round((view?.volume ?? this.volume()) * 100);
       volume.value = String(level); volumeValue.textContent = `${level} %`;
-      this.fillRange(volume, level, 100);
+      this.fillRange(volume, level, Number(volume.max));
       mute.textContent = level ? 'Silenciar' : 'Activar sonido';
       mute.setAttribute('aria-label', mute.textContent);
       mute.setAttribute('aria-pressed', String(!level));
@@ -210,6 +244,7 @@ class LocalPlayback {
     const operation = ++this.operation;
     const video = this.video;
     try {
+      this.resumeAudio();
       // WebView2 can leave an ended media element at its final frame.
       if (fromStart || video.ended || (Number.isFinite(video.duration) && video.currentTime >= video.duration)) video.currentTime = 0;
       if (video.error) {
@@ -291,7 +326,7 @@ class PlayerSession {
         this.waitingMetadata=false;this.applying=true;
         try{
           if(Math.abs(video.currentTime-state.position)>.25)video.currentTime=state.position;
-          video.volume=state.volume;video.muted=state.muted;video.playbackRate=state.rate;
+          playback.setVolume(state.volume);video.muted=state.muted;video.playbackRate=state.rate;
           playback.brightness=state.brightness;video.style.filter=`brightness(${state.brightness}%)`;
           if(playback.speed)playback.speed.value=String(state.rate);
           if(state.playing&&(this.role==='floating'||(playback.visible()&&!document.hidden)))await video.play().catch(()=>playback.say('Pulsa Reproducir para continuar con el video.'));
@@ -431,7 +466,7 @@ function initMainPlayer() {
     if (event.button !== 0) return;
     // Only the video surface receives gestures; controls are separate siblings.
     gesture = {id: event.pointerId, x: event.clientX, y: event.clientY, active: false,
-      brightness: Number(brightness.value), volume: video.volume,
+      brightness: Number(brightness.value), volume: playback.volume(),
       left: event.clientX < rect.left + rect.width / 2, height: rect.height};
   });
   video.addEventListener('pointermove', event => {
@@ -443,7 +478,7 @@ function initMainPlayer() {
     }
     const delta = moved / gesture.height;
     if (gesture.left) { brightness.value = Math.max(50, Math.min(150, gesture.brightness + delta * 100)); brightness.oninput(); }
-    else { video.volume = Math.max(0, Math.min(1, gesture.volume + delta)); video.muted = video.volume === 0;playback.session?.command({volume:video.volume,muted:video.muted}); }
+    else playback.changeVolume(gesture.volume + delta);
   });
   const endGesture = () => {
     if (gesture?.active) suppressClickUntil = performance.now() + 250;

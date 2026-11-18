@@ -422,6 +422,25 @@
           <div class="appearance-intro"><span class="eyebrow">A TU GUSTO</span><h1>Hazla a tu manera.</h1><p>Elige cómo se ve VideoFlow. Los cambios se muestran al instante y se guardan en este equipo.</p></div>
           <div class="appearance-layout">
             <div class="appearance-options">
+              <section class="panel appearance-panel wallpaper-panel" aria-labelledby="wallpaperTitle">
+                <div class="section-heading">
+                  <h3 id="wallpaperTitle">Fondos de pantalla</h3>
+                  <button id="wallpaperAdd" class="primary-button" type="button"><span aria-hidden="true">+</span> Añadir foto</button>
+                </div>
+                <p class="appearance-hint">Elige una foto para el fondo de VideoFlow. Las fotos que añadas quedan guardadas en esta galería.</p>
+                <div id="wallpaperGallery" class="wallpaper-gallery" role="group" aria-label="Fondos guardados">
+                  <button class="wallpaper-card" type="button" data-wallpaper="" aria-pressed="true">
+                    <span class="wallpaper-thumb wallpaper-theme-sample" aria-hidden="true"><i></i></span>
+                    <span class="wallpaper-name">Fondo del tema</span>
+                  </button>
+                </div>
+                <div class="wallpaper-opacity">
+                  <label for="wallpaperOpacity"><strong>Opacidad del fondo</strong></label>
+                  <input id="wallpaperOpacity" type="range" min="25" max="100" step="1" value="54" disabled>
+                  <output id="wallpaperOpacityValue" for="wallpaperOpacity">54 %</output>
+                </div>
+                <p id="wallpaperStatus" class="wallpaper-status" role="status"></p>
+              </section>
               <section class="panel appearance-panel">
                 <fieldset class="appearance-fieldset"><legend>Modo</legend>
                   <div class="appearance-modes">
@@ -581,6 +600,7 @@
 <script src="/static/audio_tracks.js"></script>
 <script src="/static/youtube_session.js"></script>
 <script src="/static/appearance.js"></script><script src="/static/player.js"></script><script src="/static/updates.js"></script><script src="/static/studio.js"></script>
+<script src="/static/wallpapers.js"></script>
 {% include 'arcade.html' %}
 <script src="/static/arcade.js"></script>
 </body>

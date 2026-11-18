@@ -9,3 +9,4 @@ onnxruntime==1.31.0
 soundfile==0.14.0
 
 cryptography==47.0.0
+Pillow>=12,<14

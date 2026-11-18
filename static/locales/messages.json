@@ -3210,5 +3210,28 @@
   "Cuando el enlace incluye servidores alternativos de YouTube, se prueban hasta dos si el principal no responde. Se conserva el mismo formato y la pista de audio. 0 reintentos desactiva el cambio de servidor.": [
     "When the link includes alternate YouTube servers, up to two are tried if the primary server does not respond. The selected format and audio track are preserved. 0 retries disables server switching.",
     "Quando o link inclui servidores alternativos do YouTube, até dois são tentados se o principal não responder. O formato e a faixa de áudio escolhidos são mantidos. 0 tentativas desativa a troca de servidor."
-  ]
+  ],
+  "Retroceder 10 segundos": ["Skip back 10 seconds", "Voltar 10 segundos"],
+  "Adelantar 10 segundos": ["Skip forward 10 seconds", "Avançar 10 segundos"],
+  "Reducir ventana": ["Shrink window", "Reduzir janela"],
+  "Agrandar ventana": ["Enlarge window", "Aumentar janela"],
+  "Personalizar ventana": ["Customize window", "Personalizar janela"],
+  "Cerrar opciones": ["Close options", "Fechar opções"],
+  "Opacidad": ["Opacity", "Opacidade"],
+  "Elegir foto de fondo": ["Choose background photo", "Escolher foto de fundo"],
+  "Quitar foto": ["Remove photo", "Remover foto"],
+  "La ventana del reproductor está cerrada.": ["The player window is closed.", "A janela do reprodutor está fechada."],
+  "Elige una opacidad entre 25 % y 100 %.": ["Choose an opacity from 25% to 100%.", "Escolha uma opacidade entre 25% e 100%."],
+  "La foto debe pesar 15 MB o menos.": ["The photo must be 15 MB or smaller.", "A foto deve ter até 15 MB."],
+  "Elige una foto de hasta 40 megapíxeles.": ["Choose a photo of up to 40 megapixels.", "Escolha uma foto de até 40 megapixels."],
+  "No se pudo abrir la foto. Elige un archivo JPG, PNG o WebP.": ["Could not open the photo. Choose a JPG, PNG or WebP file.", "Não foi possível abrir a foto. Escolha um arquivo JPG, PNG ou WebP."],
+  "Fondos de pantalla": ["Wallpapers", "Papéis de parede"],
+  "Añadir foto": ["Add photo", "Adicionar foto"],
+  "Elige una foto para el fondo de VideoFlow. Las fotos que añadas quedan guardadas en esta galería.": ["Choose a photo for your VideoFlow background. Photos you add are saved in this gallery.", "Escolha uma foto para o fundo do VideoFlow. As fotos adicionadas ficam salvas nesta galeria."],
+  "Fondos guardados": ["Saved wallpapers", "Papéis de parede salvos"],
+  "Fondo del tema": ["Theme background", "Fundo do tema"],
+  "Fondo aplicado y guardado.": ["Wallpaper applied and saved.", "Papel de parede aplicado e salvo."],
+  "Selecciona un fondo guardado.": ["Select a saved wallpaper.", "Selecione um papel de parede salvo."],
+  "No se pudo guardar o leer la galería de fondos.": ["Could not save or read the wallpaper gallery.", "Não foi possível salvar ou ler a galeria de papéis de parede."],
+  "Opacidad del fondo": ["Wallpaper opacity", "Opacidade do fundo"]
 }
