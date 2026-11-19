@@ -34,7 +34,24 @@ SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
 HOST = "127.0.0.1"
 PORT = 8765
-PLATFORMS = {"youtube": "YouTube", "facebook": "Facebook", "tiktok": "TikTok"}
+@dataclass(frozen=True)
+class Platform:
+    name: str
+    domains: tuple[str, ...]
+    example_url: str
+
+
+PLATFORMS = {
+    "youtube": Platform("YouTube", ("youtube.com", "youtube-nocookie.com", "youtu.be"), "https://www.youtube.com/watch?v=..."),
+    "facebook": Platform("Facebook", ("facebook.com", "fb.com", "fb.watch"), "https://www.facebook.com/.../videos/..."),
+    "tiktok": Platform("TikTok", ("tiktok.com",), "https://www.tiktok.com/@usuario/video/..."),
+    "reddit": Platform("Reddit", ("reddit.com", "redd.it", "redditmedia.com"), "https://www.reddit.com/r/.../comments/..."),
+    "instagram": Platform("Instagram", ("instagram.com", "instagr.am"), "https://www.instagram.com/reel/..."),
+}
+PLATFORM_NAMES = {platform.name for platform in PLATFORMS.values()}
+BROWSER_SESSION_SITES = {"Facebook", "Reddit", "Instagram"}
+EXACT_VIDEO_HEIGHTS = {"TikTok", "Reddit", "Instagram"}
+SINGLE_VIDEO_POSTS = {"Reddit", "Instagram"}
 
 DEFAULT_FOLDER = str((Path.home() / "Downloads").resolve())
 DEFAULT_SETTINGS = {
@@ -97,18 +114,13 @@ def human_duration(seconds: int | float | None) -> str:
 def source_for_url(url: str) -> str | None:
     try:
         parsed = urlparse(url.strip())
-        host = (parsed.hostname or "").lower()
-        if parsed.scheme not in {"http", "https"}:
-            return None
-        if host == "youtu.be" or any(host == name or host.endswith("." + name) for name in ("youtube.com", "youtube-nocookie.com")):
-            return "YouTube"
-        if host == "fb.watch" or any(host == name or host.endswith("." + name) for name in ("facebook.com", "fb.com")):
-            return "Facebook"
-        if host == "tiktok.com" or host.endswith(".tiktok.com"):
-            return "TikTok"
+    except ValueError:
         return None
-    except Exception:
+    if parsed.scheme not in {"http", "https"} or parsed.username is not None or parsed.password is not None:
         return None
+    host = (parsed.hostname or "").lower().rstrip(".")
+    return next((platform.name for platform in PLATFORMS.values()
+                 if any(host == domain or host.endswith("." + domain) for domain in platform.domains)), None)
 
 
 def find_tool(name: str) -> str | None:
@@ -144,8 +156,10 @@ def ydl_environment(source: str = "YouTube", browser: str = "", connection_mode:
     if source == "Facebook":
         from yt_dlp.networking.impersonate import ImpersonateTarget
         options["impersonate"] = ImpersonateTarget("chrome")
-        if browser in {"chrome", "edge", "firefox"}:
-            options["cookiesfrombrowser"] = (browser,)
+    if source in BROWSER_SESSION_SITES and browser in {"brave", "chrome", "edge", "firefox"}:
+        options["cookiesfrombrowser"] = (browser,)
+    if source in SINGLE_VIDEO_POSTS:
+        options["playlist_items"] = "1"
     return options
 
 
@@ -170,7 +184,22 @@ def describe_error(exc: Exception, source: str) -> str:
         return "Facebook no entregó datos de este video. Comprueba que el enlace abra en el navegador y, si requiere sesión, elige ese navegador en la pestaña Facebook."
     if source == "TikTok" and "IP address is blocked" in message:
         return "TikTok bloqueó el acceso a esta publicación desde esta conexión. Prueba otro enlace público o inténtalo más tarde."
+    if source in SINGLE_VIDEO_POSTS:
+        if any(term in lower for term in ("no media found", "no video in", "is not a video", "no video files")):
+            return "Esta publicación no contiene un video disponible."
+        if ('could not copy' in lower and 'cookie' in lower) or 'database is locked' in lower:
+            return "No se pudo leer la sesión del navegador. Ciérralo por completo y vuelve a analizar."
+        if any(term in lower for term in ('failed to decrypt', 'decrypting with dpapi', 'app-bound')):
+            return "Windows no permitió leer esa sesión. Inicia sesión en Firefox y selecciónalo en VideoFlow."
+        if any(term in lower for term in ("login", "authentication is required", "rate-limit", "http error 403", "http error 429", "unable to access the reddit api", "requires authentication")):
+            return f"{source} limitó el acceso a esta publicación. Ábrela en tu navegador, inicia sesión y elige ese navegador en la pestaña {source} antes de volver a analizar."
     return message[:600]
+
+
+def video_from_result(info: dict[str, Any] | None) -> dict[str, Any] | None:
+    if info and "entries" in info:
+        return next((video for entry in info["entries"] or () if (video := video_from_result(entry))), None)
+    return info
 
 
 class SettingsStore:
@@ -419,7 +448,7 @@ class DownloadTask:
             "audio_track": self.advanced.get('audio_track', ''),
             "audio_track_label": self.advanced.get('audio_track_label', ''),
             "audio_track_language": self.advanced.get('audio_track_language', ''),
-            "can_retry": self.status == 'Error' and not self.local_path and self.source in {'YouTube', 'Facebook', 'TikTok', 'Web'},
+            "can_retry": self.status == 'Error' and not self.local_path and (self.source in PLATFORM_NAMES or self.source == 'Web'),
         }
 
 
@@ -794,7 +823,7 @@ class DownloadManager:
                     }
                 )
             elif task.output_format == "vob":
-                vob_height = min(480, quality_number)
+                vob_height = min(480, quality_number or 480)
                 common_opts.update(
                     {
                         "format": (
@@ -808,7 +837,7 @@ class DownloadManager:
                     }
                 )
             else:
-                selector = video_selector(task)
+                selector = video_selector(task, allow_silent=task.source in SINGLE_VIDEO_POSTS)
                 common_opts.update(
                     {
                         "format": selector,
@@ -849,6 +878,8 @@ class DownloadManager:
             info = run_with_recovery(task, download_attempt, self._wait_if_paused,
                                      lambda: self._cleanup_partials(folder, task.id),
                                      network_settings.get('retry_count', 5), network_settings['youtube_connection'])
+            if task.source in SINGLE_VIDEO_POSTS:
+                info = video_from_result(info)
             if not info:
                 raise RuntimeError('El servidor no devolvió los datos de la descarga. Vuelve a intentarlo.')
             task.video_id = str(info.get("id") or task.video_id or "video")
@@ -1096,7 +1127,7 @@ def add_security_headers(response):
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", platforms=PLATFORMS)
 
 
 @app.get("/api/system")
@@ -1141,7 +1172,7 @@ def estimate_video_options(info: dict[str, Any], source: str = "YouTube") -> lis
     options: list[dict[str, Any]] = []
     seen_actual: set[int] = set()
 
-    if source == "TikTok":
+    if source in EXACT_VIDEO_HEIGHTS:
         for height in sorted({int(f.get("height") or 0) for f in video_formats}):
             selected = max(
                 (f for f in video_formats if int(f.get("height") or 0) == height),
@@ -1212,25 +1243,34 @@ def api_analyze():
     url = str(payload.get("url") or "").strip()
     source = source_for_url(url)
     if not source:
-        return jsonify({"ok": False, "error": "Pega una URL válida de YouTube, Facebook o TikTok."}), 400
+        return jsonify({"ok": False, "error": "Pega un enlace válido de una de las plataformas disponibles."}), 400
 
     try:
+        browser = str(payload.get("browser") or "")
         opts = {
             "quiet": True,
             "no_warnings": True,
             "skip_download": True,
             "noplaylist": True,
             "socket_timeout": 25,
-            **ydl_environment(source, str(payload.get("browser") or "")),
+            **ydl_environment(source, browser),
         }
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=False)
         if not info:
             raise RuntimeError("No se pudo leer la información del video.")
-        if info.get("entries"):
-            info = next((entry for entry in info["entries"] if entry), None)
-            if not info:
-                raise RuntimeError("No se encontró un video válido en el enlace.")
+        playlist = "entries" in info
+        info = video_from_result(info)
+        if not info:
+            raise RuntimeError("No se encontró un video válido en el enlace.")
+        if source in SINGLE_VIDEO_POSTS and not any(
+            item.get("vcodec") != "none" and (item.get("vcodec") or item.get("ext") in {"mp4", "webm", "mov", "mkv"})
+            for item in info.get("formats") or ()
+        ):
+            raise RuntimeError("Esta publicación no contiene un video disponible.")
+        video_url = str(info.get("webpage_url") or url)
+        if source in SINGLE_VIDEO_POSTS and (playlist or source_for_url(video_url) != source):
+            video_url = url
 
         duration = int(info.get("duration") or 0)
         audio_options = []
@@ -1247,7 +1287,7 @@ def api_analyze():
 
         result = {
             "id": str(info.get("id") or "video"),
-            "url": str(info.get("webpage_url") or url),
+            "url": video_url,
             "original_url": url,
             "title": str(info.get("title") or f"Video de {source}"),
             "thumbnail": str(info.get("thumbnail") or ""),
@@ -1259,7 +1299,7 @@ def api_analyze():
             "video_options": estimate_video_options(info, source),
             "audio_options": audio_options,
             "audio_tracks": available_tracks(info.get('formats') or []),
-            "browser": str(payload.get('browser') or '') if source in {'YouTube', 'Facebook'} else '',
+            "browser": browser if source == "YouTube" or source in BROWSER_SESSION_SITES else "",
             "source_audio_size": max((format_size(f) for f in (info.get("formats") or []) if f.get("acodec") not in {None, "none"} and f.get("vcodec") == "none"), default=0),
         }
         return jsonify({"ok": True, "video": result})
@@ -1283,7 +1323,7 @@ def api_add_download():
         return jsonify({"ok": False, "error": "Faltan datos de la descarga."}), 400
     source = source_for_url(str(payload["url"]))
     if not source:
-        return jsonify({"ok": False, "error": "URL de YouTube, Facebook o TikTok no válida."}), 400
+        return jsonify({"ok": False, "error": "Pega un enlace válido de una de las plataformas disponibles."}), 400
     original_url = str(payload.get("original_url") or payload["url"]).strip()
     if source_for_url(original_url) != source:
         return jsonify({"ok": False, "error": "El enlace original debe pertenecer a la misma plataforma."}), 400
@@ -1304,8 +1344,8 @@ def api_add_download():
     if mode == "audio" and quality not in ({128, 192, 320} if payload["format"] in {'mp3', 'ogg'} else {0}):
         return jsonify({"ok": False, "error": "Calidad de audio no válida."}), 400
     valid_video_quality = (
-        quality == 0 or 144 <= quality <= 4320
-        if source == "TikTok" else quality in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}
+        0 <= quality <= 4320
+        if source in EXACT_VIDEO_HEIGHTS else quality in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}
     )
     if mode != "audio" and not valid_video_quality:
         return jsonify({"ok": False, "error": "Calidad de video no válida."}), 400
@@ -1588,7 +1628,7 @@ def api_save_path():
         settings_store.remember_folder(source_key, str(target.parent))
         return jsonify({
             "ok": True, "path": str(target), "folder": str(target.parent),
-            "source": PLATFORMS[source_key],
+            "source": PLATFORMS[source_key].name,
             "overwrite": target.exists(),
         })
     except Exception as exc:

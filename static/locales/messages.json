@@ -136,9 +136,9 @@
     "Keep your videos and audio in one place.",
     "Guarde seus vídeos e áudios em um só lugar."
   ],
-  "Analiza enlaces de YouTube, Facebook o TikTok, elige cómo guardarlos y organiza hasta diez descargas en tu PC.": [
-    "Analyze YouTube, Facebook or TikTok links, choose how to save them and manage downloads on your PC.",
-    "Analise links do YouTube, Facebook ou TikTok, escolha como salvá-los e organize os downloads no seu PC."
+  "Analiza enlaces, elige el formato y organiza tus descargas en tu PC.": [
+    "Analyze links, choose a format and organize downloads on your PC.",
+    "Analise links, escolha o formato e organize os downloads no seu PC."
   ],
   "Comenzar": [
     "Get started",
@@ -232,9 +232,9 @@
     "What would you like to save today?",
     "O que você quer salvar hoje?"
   ],
-  "Pega un enlace de YouTube, Facebook o TikTok, revisa la información y agrégalo a tu cola.": [
-    "Paste a YouTube, Facebook or TikTok link, review its details and add it to your queue.",
-    "Cole um link do YouTube, Facebook ou TikTok, confira as informações e adicione à fila."
+  "Pega un enlace, revisa la información del video y agrégalo a tu cola.": [
+    "Paste a link, review the video details and add it to your queue.",
+    "Cole um link, confira os detalhes do vídeo e adicione-o à fila."
   ],
   "sin límite de cantidad": [
     "no item limit",
@@ -264,9 +264,13 @@
     "Add as many videos as you need.",
     "Adicione os vídeos que precisar."
   ],
-  "Sesión de Facebook (opcional)": [
-    "Facebook session (optional)",
-    "Sessão do Facebook (opcional)"
+  "Sesión de {0} (opcional)": [
+    "{0} session (optional)",
+    "Sessão do {0} (opcional)"
+  ],
+  "Si el sitio solicita iniciar sesión, abre el video en el navegador elegido y vuelve a analizar.": [
+    "If the site asks you to sign in, open the video in the selected browser and analyze it again.",
+    "Se o site pedir login, abra o vídeo no navegador escolhido e analise novamente."
   ],
   "Sin sesión · videos públicos": [
     "No session · public videos",
@@ -968,6 +972,14 @@
     "TikTok destination",
     "Destino do TikTok"
   ],
+  "Destino de Reddit": [
+    "Reddit destination",
+    "Destino do Reddit"
+  ],
+  "Destino de Instagram": [
+    "Instagram destination",
+    "Destino do Instagram"
+  ],
   "Formato predeterminado": [
     "Default format",
     "Formato padrão"
@@ -1072,9 +1084,9 @@
     "Local database",
     "Banco de dados local"
   ],
-  "YouTube, Facebook y TikTok": [
-    "YouTube, Facebook and TikTok",
-    "YouTube, Facebook e TikTok"
+  "YouTube, Facebook, TikTok, Reddit e Instagram": [
+    "YouTube, Facebook, TikTok, Reddit and Instagram",
+    "YouTube, Facebook, TikTok, Reddit e Instagram"
   ],
   "Descarga solamente material que tengas derecho a guardar. Algunos contenidos o servicios pueden imponer restricciones adicionales.": [
     "Only download material you have the right to save. Some content or services may impose additional restrictions.",
@@ -1560,9 +1572,29 @@
     "Missing link",
     "Link ausente"
   ],
-  "Pega una URL de YouTube, Facebook o TikTok para continuar.": [
-    "Paste a YouTube, Facebook or TikTok URL to continue.",
-    "Cole uma URL do YouTube, Facebook ou TikTok para continuar."
+  "Pega un enlace de video para continuar.": [
+    "Paste a video link to continue.",
+    "Cole um link de vídeo para continuar."
+  ],
+  "Pega un enlace válido de una de las plataformas disponibles.": [
+    "Paste a valid link from a supported platform.",
+    "Cole um link válido de uma das plataformas disponíveis."
+  ],
+  "Esta publicación no contiene un video disponible.": [
+    "This post does not contain an available video.",
+    "Esta publicação não contém um vídeo disponível."
+  ],
+  "{0} limitó el acceso a esta publicación. Ábrela en tu navegador, inicia sesión y elige ese navegador en la pestaña {0} antes de volver a analizar.": [
+    "{0} restricted access to this post. Open it in your browser, sign in and select that browser on the {0} tab before analyzing again.",
+    "O {0} limitou o acesso a esta publicação. Abra-a no navegador, faça login e selecione esse navegador na aba {0} antes de analisar novamente."
+  ],
+  "No se pudo leer la sesión del navegador. Ciérralo por completo y vuelve a analizar.": [
+    "Could not read the browser session. Close the browser completely and analyze again.",
+    "Não foi possível ler a sessão do navegador. Feche-o completamente e analise novamente."
+  ],
+  "Windows no permitió leer esa sesión. Inicia sesión en Firefox y selecciónalo en VideoFlow.": [
+    "Windows did not allow access to that session. Sign in with Firefox and select it in VideoFlow.",
+    "O Windows não permitiu ler essa sessão. Faça login pelo Firefox e selecione-o no VideoFlow."
   ],
   "Analizando…": [
     "Analyzing…",

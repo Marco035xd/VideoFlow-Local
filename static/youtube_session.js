@@ -11,7 +11,8 @@ function youtubeSessionChoice() {
 function browserForSource(source = state.source) {
   const key = source.toLowerCase();
   if (key === 'youtube') return youtubeSessionChoice();
-  return key === 'facebook' ? $('#facebookBrowser').value : '';
+  const panel = $$('[data-site-session]').find(section => section.dataset.siteSession === key);
+  return panel?.querySelector('select').value || '';
 }
 
 function analysisFeedback(message = '', error = false) {
@@ -26,6 +27,11 @@ function setYouTubeSessionBusy(busy) {
   $('#youtubeCookieChoose').disabled = busy;
 }
 
+function setDownloadSessionBusy(busy) {
+  setYouTubeSessionBusy(busy);
+  for (const select of $$('[data-site-session] select')) select.disabled = busy;
+}
+
 function invalidateYouTubeAnalysis() {
   if (state.video?.source === 'YouTube') {
     state.video = null;
@@ -35,6 +41,15 @@ function invalidateYouTubeAnalysis() {
 }
 
 function initYouTubeSession() {
+  for (const panel of $$('[data-site-session]')) {
+    panel.querySelector('select').addEventListener('change', () => {
+      if (state.video?.source.toLowerCase() === panel.dataset.siteSession) {
+        state.video = null;
+        $('#videoResult').classList.add('hidden');
+      }
+      analysisFeedback('Sesión actualizada. Vuelve a analizar el video para usarla.');
+    });
+  }
   $('#youtubeBrowser').addEventListener('change', () => {
     const file = $('#youtubeBrowser').value === 'cookies';
     $('#youtubeCookieChoose').classList.toggle('hidden', !file);

@@ -64,7 +64,7 @@ async function batchDownload() {
   let browser;
   try { browser = browserForSource(source); }
   catch (error) { toast('Revisa la sesión', error.message, 'error'); return; }
-  setYouTubeSessionBusy(true);
+  setDownloadSessionBusy(true);
   $('#analyzeButton').disabled = true;
   $('#batchStart').disabled = true;
   $('#videoUrl').readOnly = true;
@@ -75,13 +75,11 @@ async function batchDownload() {
   try {
     for (const url of urls) {
       try {
-        const host = new URL(url).hostname.toLowerCase();
-        const domains = {youtube: ['youtube.com','youtu.be'], facebook: ['facebook.com','fb.watch','fb.com'], tiktok: ['tiktok.com']};
-        if (!domains[source].some(d => host === d || host.endsWith('.'+d))) throw new Error('El enlace no corresponde a la plataforma seleccionada.');
+        if (sourceForLink(url) !== source) throw new Error('El enlace no corresponde a la plataforma seleccionada.');
         resultLine('#batchResults', url, 'Analizando…');
         const {video} = await api('/api/analyze', {method:'POST',body:JSON.stringify({url,browser})});
         const heights = video.video_options.map(o=>Number(o.value)).filter(v=>v>0 && (!videoQuality || v<=videoQuality));
-        if (mode !== 'audio' && !heights.length) throw new Error('No hay calidad disponible dentro del máximo elegido.');
+        if (mode !== 'audio' && videoQuality && !heights.length) throw new Error('No hay calidad disponible dentro del máximo elegido.');
         await api('/api/downloads',{method:'POST',body:JSON.stringify({url:video.url, original_url:url, title:video.title, video_id:video.id, thumbnail:video.thumbnail, duration:video.duration, folder, mode, format, quality:mode==='audio'?(['mp3','ogg'].includes(format)?audioQuality:'0'):String(videoQuality ? Math.max(...heights) : 0),browser,advanced:advancedOptions()})});
         resultLine('#batchResults', video.title, 'Añadido a la cola');
       } catch(error) { failed.push(url); resultLine('#batchResults', url, error.message); }
@@ -90,7 +88,7 @@ async function batchDownload() {
     if (state.source === source) $('#videoUrl').value = platformDrafts[source];
     await loadDownloads();
     toast('Lote procesado', `${urls.length-failed.length} añadidos; ${failed.length} pendientes de revisar.`, failed.length?'info':'success');
-  } finally { setYouTubeSessionBusy(false); $('#analyzeButton').disabled = false; $('#batchStart').disabled = false; $('#videoUrl').readOnly=false; $$('.source-tab').forEach(b=>b.disabled=false); $('#pasteButton').disabled=false; }
+  } finally { setDownloadSessionBusy(false); $('#analyzeButton').disabled = false; $('#batchStart').disabled = false; $('#videoUrl').readOnly=false; $$('.source-tab').forEach(b=>b.disabled=false); $('#pasteButton').disabled=false; }
 }
 function initExtensions() {
   syncBatchDestination();

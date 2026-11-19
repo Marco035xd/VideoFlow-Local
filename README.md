@@ -1,6 +1,6 @@
 # VideoFlow Local
 
-Aplicación de escritorio para Windows. Permite analizar y guardar videos autorizados de YouTube, Facebook y TikTok, con cola, progreso, historial y configuración local, dentro de su propia ventana.
+Aplicación de escritorio para Windows. Permite analizar y guardar videos autorizados de YouTube, Facebook, TikTok, Reddit e Instagram, con cola, progreso, historial y configuración local.
 
 ## Capturas de pantalla
 
@@ -8,7 +8,7 @@ Conoce la interfaz y sus herramientas en este recorrido de **11 capturas**, toma
 
 ![Pantalla de inicio de VideoFlow Local con TikTok seleccionado y entrada de varios enlaces.](docs/capturas/01-inicio-descargas.png)
 
-La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o varios enlaces y preparar sus opciones de descarga. En esta captura está seleccionada la pestaña de TikTok.
+La pantalla de inicio permite elegir la plataforma, pegar uno o varios enlaces y preparar sus opciones de descarga. En esta captura está seleccionada la pestaña de TikTok.
 
 | Pantalla | Qué muestra |
 | --- | --- |
@@ -29,6 +29,10 @@ La pantalla de inicio permite elegir YouTube, Facebook o TikTok, pegar uno o var
 ## Instalar como programa de Windows
 
 Descarga y ejecuta el instalador de Windows desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
+
+### Descargas de Reddit e Instagram · versión 1.6.24
+
+Hay dos pestañas nuevas en Inicio. Pega el enlace de una publicación de Reddit, un enlace directo al video de Reddit, una publicación de Instagram o un Reel. Puedes ver las calidades disponibles, elegir el formato y guardar el video o su audio cuando esté disponible. También puedes añadir varios enlaces de una misma plataforma y configurar una carpeta para cada sitio. Si una publicación incluye varios videos, se toma el primero que devuelve la plataforma. Si el sitio pide iniciar sesión, selecciona el navegador en el que puedes abrir la publicación.
 
 ### Fondos personalizados y ventana flotante · versión 1.6.22
 
@@ -193,7 +197,7 @@ En **Perfil** puedes guardar un nombre visible, un nombre de usuario y una descr
 
 - Ventana de escritorio con pantalla de bienvenida estilo Windows 11.
 - Modo claro y oscuro.
-- Análisis de enlaces de YouTube, Facebook y TikTok: miniatura, título, autor, duración y calidades disponibles.
+- Análisis de enlaces de YouTube, Facebook, TikTok, Reddit e Instagram: miniatura, título, autor, duración y calidades disponibles.
 - TikTok muestra las dimensiones reales de cada versión disponible, incluidas las verticales.
 - Estimación del peso del archivo antes de descargar.
 - Video con audio en MP4, MKV, MOV, AVI, WEBM o VOB; video sin audio en MP4, MKV, MOV, AVI o WEBM; audio en MP3, M4A, WAV o FLAC.
@@ -209,7 +213,7 @@ En **Perfil** puedes guardar un nombre visible, un nombre de usuario y una descr
 - Historial local con fecha, formato, calidad, peso y ubicación.
 - En cada descarga completada se guarda el enlace que pegaste, con opciones para abrirlo o copiarlo desde el historial. Los enlaces permanecen al cerrar la aplicación. Los registros anteriores a esta función muestran «Enlace no registrado».
 - «Volver a descargar» en el historial analiza el enlace guardado y recupera la carpeta, el modo, el formato y la calidad anteriores cuando siguen disponibles. Revisa las opciones y agrega el video a la cola; la nueva descarga recibe un nombre automático.
-- YouTube, Facebook y TikTok recuerdan cada uno su propia carpeta de destino, también al cerrar y abrir la aplicación. Puedes cambiarlas por separado en Configuración o con «Guardar como» en cada plataforma.
+- Cada plataforma recuerda su carpeta de destino al cerrar y abrir la aplicación. Puedes cambiarla en Configuración o con «Guardar como».
 - Botón para mostrar el archivo descargado en el Explorador.
 - Base de datos SQLite y ajustes guardados localmente; la aplicación instalada usa la carpeta de datos del usuario de Windows.
 - Detección de FFmpeg, FFprobe y Deno instalados mediante WinGet aunque una ventana antigua de Windows todavía no los muestre en `PATH`.

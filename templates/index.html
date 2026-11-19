@@ -25,7 +25,7 @@
         </div>
         <span class="eyebrow">TU CENTRO MULTIMEDIA PERSONAL</span>
           <h1>Guarda tus videos y audios en un solo lugar.</h1>
-        <p>Analiza enlaces de YouTube, Facebook o TikTok, elige cómo guardarlos y organiza hasta diez descargas en tu PC.</p>
+        <p>Analiza enlaces, elige el formato y organiza tus descargas en tu PC.</p>
         <button id="startButton" class="primary-button large-button" type="button">
           <span>Comenzar</span><span aria-hidden="true">→</span>
         </button>
@@ -113,7 +113,7 @@
             <div>
               <span class="eyebrow">DESCARGA INTELIGENTE</span>
               <h1>¿Qué quieres guardar hoy?</h1>
-              <p>Pega un enlace de YouTube, Facebook o TikTok, revisa la información y agrégalo a tu cola.</p>
+              <p>Pega un enlace, revisa la información del video y agrégalo a tu cola.</p>
             </div>
             <div class="hero-counter">
               <strong id="slotsAvailable">∞</strong>
@@ -123,9 +123,14 @@
 
           <section class="panel url-panel">
             <div class="source-tabs" role="group" aria-label="Plataforma">
-              <button class="source-tab active" data-source="youtube" type="button"><img class="source-tab-icon youtube" src="{{ url_for('static', filename='icons/youtube.png') }}" alt="" aria-hidden="true"> YouTube</button>
-              <button class="source-tab" data-source="facebook" type="button"><img class="source-tab-icon" src="{{ url_for('static', filename='icons/facebook.png') }}" alt="" aria-hidden="true"> Facebook</button>
-              <button class="source-tab" data-source="tiktok" type="button"><img class="source-tab-icon" src="{{ url_for('static', filename='icons/tiktok.png') }}" alt="" aria-hidden="true"> TikTok</button>
+              {% for key, platform in platforms.items() %}
+              <button class="source-tab{% if loop.first %} active{% endif %}" data-source="{{ key }}" data-platform="{{ platform.name }}"
+                      data-domains="{{ platform.domains | join(' ') }}" data-example-url="{{ platform.example_url }}"
+                      aria-pressed="{{ 'true' if loop.first else 'false' }}" type="button">
+                <img class="source-tab-icon{% if key == 'youtube' %} youtube{% endif %}" src="{{ url_for('static', filename='icons/' ~ key ~ '.png') }}" alt="" aria-hidden="true">
+                <span translate="no">{{ platform.name }}</span>
+              </button>
+              {% endfor %}
             </div>
             <label id="urlLabel" for="videoUrl">Enlace de YouTube</label>
             <div class="url-row">
@@ -159,16 +164,20 @@
               <small>Se aplica al análisis, las descargas y las listas de YouTube. La sesión solo se lee cuando la eliges.</small>
               <small id="youtubeCookieHelp" class="hidden">Usa un archivo en formato Netscape. Su contenido permanece en memoria durante esta sesión de la app; no se modifica el archivo original.</small>
             </div>
-            <div id="facebookNotice" class="facebook-options hidden">
-              <label class="form-field" for="facebookBrowser"><span>Sesión de Facebook (opcional)</span></label>
-              <select id="facebookBrowser">
+            {% for key in ['facebook', 'reddit', 'instagram'] %}
+            {% set platform = platforms[key] %}
+            <div class="facebook-options hidden" data-site-session="{{ key }}">
+              <label class="form-field" for="{{ key }}Browser"><span>Sesión de {{ platform.name }} (opcional)</span></label>
+              <select id="{{ key }}Browser">
                 <option value="">Sin sesión · videos públicos</option>
+                {% if key != 'facebook' %}<option value="brave">Usar sesión de Brave</option>{% endif %}
                 <option value="chrome">Usar sesión de Chrome</option>
                 <option value="edge">Usar sesión de Edge</option>
                 <option value="firefox">Usar sesión de Firefox</option>
               </select>
-              <small>Para videos restringidos, inicia sesión en Facebook en el navegador elegido. Algunas publicaciones pueden seguir sin estar disponibles.</small>
+              <small>Si el sitio solicita iniciar sesión, abre el video en el navegador elegido y vuelve a analizar.</small>
             </div>
+            {% endfor %}
           </section>
 
           <section id="videoResult" class="panel video-result hidden">
@@ -500,27 +509,15 @@
               </div>
               <div class="settings-group">
                 <h4>Descargas</h4>
+                {% for key, platform in platforms.items() %}
                 <label class="form-field">
-                  <span>Destino de YouTube</span>
+                  <span>Destino de {{ platform.name }}</span>
                   <div class="folder-input">
-                    <input id="settingsFolder-youtube" type="text" readonly>
-                    <button data-settings-source="youtube" class="secondary-button" type="button">Cambiar</button>
+                    <input id="settingsFolder-{{ key }}" type="text" readonly>
+                    <button data-settings-source="{{ key }}" class="secondary-button" type="button">Cambiar</button>
                   </div>
                 </label>
-                <label class="form-field">
-                  <span>Destino de Facebook</span>
-                  <div class="folder-input">
-                    <input id="settingsFolder-facebook" type="text" readonly>
-                    <button data-settings-source="facebook" class="secondary-button" type="button">Cambiar</button>
-                  </div>
-                </label>
-                <label class="form-field">
-                  <span>Destino de TikTok</span>
-                  <div class="folder-input">
-                    <input id="settingsFolder-tiktok" type="text" readonly>
-                    <button data-settings-source="tiktok" class="secondary-button" type="button">Cambiar</button>
-                  </div>
-                </label>
+                {% endfor %}
                 <div class="field-grid three-fields">
                   <label class="form-field"><span>Formato predeterminado</span><select id="settingsFormat"><option value="mp4">MP4 · video</option><option value="mkv">MKV · video</option><option value="webm">WEBM · video</option><option value="vob">VOB · video</option><option value="mp3">MP3 · audio</option><option value="m4a">M4A · audio</option><option value="wav">WAV · audio</option><option value="ogg">OGG · Vorbis</option></select></label>
                   <label class="form-field"><span>Calidad de video</span><select id="settingsVideoQuality"><option value="144">144p</option><option value="240">240p</option><option value="360">360p</option><option value="480">480p</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">2K</option><option value="2160">4K</option><option value="4320">8K</option><option value="0">Mejor disponible</option></select></label>
@@ -573,7 +570,7 @@
               <div class="about-list">
                 <span><i></i> Aplicación de escritorio</span>
                 <span><i></i> Base de datos local</span>
-                <span><i></i> YouTube, Facebook y TikTok</span>
+                <span><i></i> YouTube, Facebook, TikTok, Reddit e Instagram</span>
               </div>
               <div class="legal-note">Descarga solamente material que tengas derecho a guardar. Algunos contenidos o servicios pueden imponer restricciones adicionales.</div>
             </aside>

@@ -63,7 +63,7 @@ def validate_options(payload):
                 audio_track_language=str(value.get('audio_track_language') or '')[:64] if audio_track else '')
 
 
-def video_selector(task):
+def video_selector(task, *, allow_silent=False):
     options = task.advanced
     height = f'[height<={int(task.quality)}]' if int(task.quality) else ''
     filters = height
@@ -75,8 +75,12 @@ def video_selector(task):
         filters += "[dynamic_range~='^(HDR|HLG|DV)']"
     elif options.get('dynamic_range') == 'sdr':
         filters += '[dynamic_range=SDR]'
-    return (f'bestvideo{filters}/best{filters}' if task.mode == 'video_only'
-            else f'bestvideo{filters}+bestaudio/best{filters}')
+    if task.mode == 'video_only':
+        return f'bestvideo{filters}/best{filters}'
+    selector = f'bestvideo{filters}+bestaudio/best{filters}'
+    if allow_silent and not options.get('audio_track'):
+        selector += f'/bestvideo{filters}'
+    return selector
 
 
 def apply_options(options, task):

@@ -81,7 +81,7 @@ function qualityLabel(format, quality, source = "", mode = "") {
   if (format === "mp3") return `${quality} kbps`;
   if (format === "ogg") return `Vorbis · ${quality} kbps`;
   if (String(quality) === "0") return "Mejor disponible";
-  if (source === "TikTok") return `${quality} px de alto`;
+  if (["TikTok", "Reddit", "Instagram"].includes(source)) return `${quality} px de alto`;
   if (String(quality) === "1440") return "2K (1440p)";
   if (String(quality) === "2160") return "4K (2160p)";
   return `${quality}p`;
@@ -93,7 +93,23 @@ const formatChoices = {
   audio: [["mp3", "MP3"], ["m4a", "M4A"], ["wav", "WAV"], ["flac", "FLAC"], ["ogg", "OGG · Vorbis"]],
 };
 
-const platformNames = { youtube: "YouTube", facebook: "Facebook", tiktok: "TikTok" };
+const platformTabs = $$(".source-tab");
+const platformNames = Object.fromEntries(platformTabs.map(tab => [tab.dataset.source, tab.dataset.platform]));
+const platformExamples = Object.fromEntries(platformTabs.map(tab => [tab.dataset.source, tab.dataset.exampleUrl]));
+
+function sourceForLink(link) {
+  try {
+    const url = new URL(link);
+    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return null;
+    const host = url.hostname.toLowerCase().replace(/\.+$/, "");
+    const tab = platformTabs.find(button => button.dataset.domains.split(" ").some(
+      domain => host === domain || host.endsWith("." + domain)
+    ));
+    return tab?.dataset.source ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function folderForSource(source = state.source) {
   return state.settings?.platform_folders?.[source.toLowerCase()] || state.settings?.default_folder || "";
@@ -115,17 +131,16 @@ function rememberFolder(source, folder) {
 function selectSource(source) {
   state.source = source;
   syncBatchDestination();
-  $$(".source-tab").forEach((button) => button.classList.toggle("active", button.dataset.source === source));
-  const facebook = source === "facebook";
-  const tiktok = source === "tiktok";
-  $("#urlLabel").textContent = `Enlaces de ${facebook ? "Facebook" : tiktok ? "TikTok" : "YouTube"}`;
-  $("#videoUrl").placeholder = facebook
-    ? "https://www.facebook.com/.../videos/..."
-    : tiktok ? "https://www.tiktok.com/@usuario/video/..." : "https://www.youtube.com/watch?v=...";
-  $("#sourceMark").src = `/static/icons/${facebook ? "facebook" : tiktok ? "tiktok" : "youtube"}.png`;
-  $("#videoUrl").placeholder += "\nPega varios enlaces, uno por línea";
+  for (const button of platformTabs) {
+    const selected = button.dataset.source === source;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+  $("#urlLabel").textContent = `Enlaces de ${platformNames[source]}`;
+  $("#videoUrl").placeholder = platformExamples[source] + "\nPega varios enlaces, uno por línea";
+  $("#sourceMark").src = `/static/icons/${source}.png`;
   $("#sourceHelp").textContent = 'Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».';
-  $("#facebookNotice").classList.toggle("hidden", !facebook);
+  for (const panel of $$("[data-site-session]")) panel.classList.toggle("hidden", panel.dataset.siteSession !== source);
   $('#youtubeNotice').classList.toggle('hidden', source !== 'youtube');
   analysisFeedback();
   state.destinationFolder = folderForSource(source);
@@ -265,7 +280,10 @@ function rebuildFormatOptions() {
   const mode = $("#modeSelect").value;
   const select = $("#formatSelect");
   const previous = select.value;
-  const choices = state.video?.source === "TikTok"
+  const source = state.video?.source;
+  const hasVobQuality = state.video?.video_options.some(({value}) => Number(value) <= 480);
+  const hideVob = source === "TikTok" || (["Reddit", "Instagram"].includes(source) && !hasVobQuality);
+  const choices = hideVob
     ? formatChoices[mode].filter(([value]) => value !== "vob")
     : formatChoices[mode];
   select.innerHTML = choices
@@ -328,16 +346,20 @@ async function analyzeVideo() {
   const url = $("#videoUrl").value.trim();
   if (url.split(/\s+/).length > 1) { toast("Varios enlaces", "Elige las opciones de Descargar varios enlaces y pulsa Añadir enlaces a la cola."); return; }
   if (!url) {
-    toast("Falta el enlace", "Pega una URL de YouTube, Facebook o TikTok para continuar.", "error");
+    toast("Falta el enlace", "Pega un enlace de video para continuar.", "error");
     $("#videoUrl").focus();
     return;
+  }
+  const source = sourceForLink(url);
+  if (source && source !== state.source) {
+    platformDrafts[source] = url;
+    selectSource(source);
   }
   const button = $("#analyzeButton");
   button.classList.add("loading");
   button.disabled = true;
-  setYouTubeSessionBusy(true);
+  setDownloadSessionBusy(true);
   $('#batchStart').disabled = true;
-  $('#facebookBrowser').disabled = true;
   $('#videoUrl').readOnly = true;
   $('#pasteButton').disabled = true;
   $$('.source-tab').forEach(tab => tab.disabled = true);
@@ -357,9 +379,8 @@ async function analyzeVideo() {
   } finally {
     button.classList.remove("loading");
     button.disabled = false;
-    setYouTubeSessionBusy(false);
+    setDownloadSessionBusy(false);
     $('#batchStart').disabled = false;
-    $('#facebookBrowser').disabled = false;
     $('#videoUrl').readOnly = false;
     $('#pasteButton').disabled = false;
     $$('.source-tab').forEach(tab => tab.disabled = false);
