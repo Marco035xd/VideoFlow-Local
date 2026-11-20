@@ -419,6 +419,15 @@
         </section>
 
         <section id="page-gallery" class="page" aria-label="Galería de descargas">
+          <label class="form-field gallery-filter" for="galleryPlatform">
+            <span>Filtrar por plataforma</span>
+            <select id="galleryPlatform">
+              <option value="">Todas las plataformas</option>
+              {% for key, platform in platforms.items() %}
+              <option value="{{ key }}" translate="no">{{ platform.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
           <p id="galleryStatus" class="field-hint" role="status"></p>
           <div id="galleryEmpty" class="panel empty-state hidden">
             <div class="empty-icon" aria-hidden="true">▶</div>
