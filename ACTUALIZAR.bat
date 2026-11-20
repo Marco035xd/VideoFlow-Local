@@ -16,6 +16,8 @@ python -m pip install --upgrade pip wheel
 if errorlevel 1 goto :error
 python -m pip install --upgrade -r requirements.txt
 if errorlevel 1 goto :error
+python packaging\install_separation_runtime.py %1
+if errorlevel 1 goto :error
 
 where winget >nul 2>&1
 if not errorlevel 1 (

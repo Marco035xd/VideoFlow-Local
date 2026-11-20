@@ -18,8 +18,8 @@ MEDIA_EXTENSIONS = {'.mp4', '.mkv', '.mov', '.webm', '.avi', '.wmv', '.flv', '.m
                     '.vob', '.m4v', '.ts', '.mp3', '.m4a', '.wav', '.flac', '.ogg', '.opus', '.aac'}
 
 
-def register_media(path):
-    """Grant a playback token only for a user-selected or natively dropped file."""
+def register_media(path, *, title=None):
+    """Grant a playback token for a file selected by the application."""
     path = Path(path).resolve()
     if not path.is_file():
         raise ValueError('Archivo no encontrado.')
@@ -29,7 +29,7 @@ def register_media(path):
     with _media_lock:
         _media[token] = path
         sessions.open(token)
-    return dict(ok=True, url=f'/api/media/{token}', token=token, name=path.name)
+    return dict(ok=True, url=f'/api/media/{token}', token=token, name=title or path.name)
 
 
 def bind_player_drop(window):

@@ -5,7 +5,7 @@ yt-dlp[default,curl-cffi]>=2026.10.26
 
 pyinstaller>=6.0
 numpy>=2.2,<3
-onnxruntime==1.31.0
+# ONNX Runtime is selected by packaging/install_separation_runtime.py.
 soundfile==0.14.0
 
 cryptography==47.0.0

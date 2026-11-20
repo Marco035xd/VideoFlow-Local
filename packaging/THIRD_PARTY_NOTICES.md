@@ -20,7 +20,7 @@ Sus licencias se distribuyen en la carpeta `_internal/licenses` de la aplicació
   La versión inicial de VideoFlow usa FFmpeg 9.0.2 (Gyan release full),
   cuyo código corresponde a https://github.com/FFmpeg/FFmpeg/commit/946fcce07b.
 
-Los nombres e iconos de YouTube, Facebook y TikTok identifican sus plataformas.
+Los nombres e iconos de YouTube, Facebook, TikTok, Reddit, Instagram, X y Twitch identifican sus plataformas.
 
 - Microsoft Fluent System Icons: MIT, https://github.com/microsoft/fluentui-system-icons. Licencia incluida en static/icons/navigation/LICENSE.txt.
 

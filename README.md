@@ -1,6 +1,6 @@
 # VideoFlow Local
 
-Aplicación de escritorio para Windows. Permite analizar y guardar videos autorizados de YouTube, Facebook, TikTok, Reddit e Instagram, con cola, progreso, historial y configuración local.
+Aplicación de escritorio para Windows. Permite analizar y guardar videos autorizados de YouTube, Facebook, TikTok, Reddit, Instagram, X y clips de Twitch, con cola, galería, historial y configuración local.
 
 ## Capturas de pantalla
 
@@ -33,6 +33,12 @@ Descarga y ejecuta el instalador de Windows desde la sección [Releases del repo
 ### Descargas de Reddit e Instagram · versión 1.6.24
 
 Hay dos pestañas nuevas en Inicio. Pega el enlace de una publicación de Reddit, un enlace directo al video de Reddit, una publicación de Instagram o un Reel. Puedes ver las calidades disponibles, elegir el formato y guardar el video o su audio cuando esté disponible. También puedes añadir varios enlaces de una misma plataforma y configurar una carpeta para cada sitio. Si una publicación incluye varios videos, se toma el primero que devuelve la plataforma. Si el sitio pide iniciar sesión, selecciona el navegador en el que puedes abrir la publicación.
+
+### X, clips de Twitch y galería de descargas · versión 1.6.25
+
+En **Inicio**, puedes pegar enlaces de publicaciones de `x.com` o `twitter.com` y de clips de `clips.twitch.tv` o `twitch.tv/canal/clip/…`. Ambas plataformas admiten descargas individuales y por lotes, con su propia carpeta de destino.
+
+Abre **Galería** en la barra lateral o **Ver galería** en Descargas. Cada video guardado muestra su título, una miniatura generada desde el archivo local y el logo de su plataforma. Selecciona la tarjeta para abrirlo en el reproductor integrado. La galería incorpora los videos disponibles del historial anterior y conserva sus registros al limpiar el historial o la cola. Los trabajos en modo incógnito se excluyen.
 
 ### Fondos personalizados y ventana flotante · versión 1.6.22
 
@@ -197,7 +203,7 @@ En **Perfil** puedes guardar un nombre visible, un nombre de usuario y una descr
 
 - Ventana de escritorio con pantalla de bienvenida estilo Windows 11.
 - Modo claro y oscuro.
-- Análisis de enlaces de YouTube, Facebook, TikTok, Reddit e Instagram: miniatura, título, autor, duración y calidades disponibles.
+- Análisis de enlaces de YouTube, Facebook, TikTok, Reddit, Instagram, X y clips de Twitch con miniatura, título, autor, duración y calidades disponibles.
 - TikTok muestra las dimensiones reales de cada versión disponible, incluidas las verticales.
 - Estimación del peso del archivo antes de descargar.
 - Video con audio en MP4, MKV, MOV, AVI, WEBM o VOB; video sin audio en MP4, MKV, MOV, AVI o WEBM; audio en MP3, M4A, WAV o FLAC.
@@ -318,7 +324,13 @@ La nueva sección permite seleccionar un audio o video local y obtener:
 
 Selecciona el archivo, el modo, WAV de 24 bits, FLAC o MP3, y una carpeta de destino. VideoFlow recuerda la carpeta del separador de forma independiente. Cada trabajo crea una subcarpeta nueva. Puedes cancelar, seguir el progreso y escuchar las pistas desde la sección; también se registra cada pista en Historial. Los reproductores de esta sesión permanecen disponibles mientras el trabajo siga en la cola.
 
-El motor usa HT-Demucs con ONNX Runtime en CPU. No requiere GPU, Python ni una cuenta adicional en la versión instalada. Recomendamos 8 GB de RAM; la velocidad depende del equipo y la duración. Una sola separación se procesa a la vez para limitar el consumo de memoria. El audio se prepara en estéreo a 44,1 kHz y se procesa por fragmentos, sin subirlo a servicios externos.
+En **Voz e instrumentos → Procesador para Demucs**, elige **CPU**, **GPU automática** o el proveedor GPU disponible. En Windows, el instalador predeterminado incluye **DirectML** para adaptadores compatibles con DirectX 12. Si no se puede iniciar o mantener la inferencia en la GPU, la app continúa con CPU e indica qué procesador se utilizó.
+
+Para usar **CUDA** con una GPU NVIDIA, instala la variante con `INSTALAR.bat cuda` desde el repositorio o compila con `CREAR_INSTALADOR.ps1 -SeparationRuntime cuda`. Esa variante usa CUDA 13 y cuDNN 9. Sus DLL deben estar disponibles en Windows. `ACTUALIZAR.bat directml` vuelve a instalar la variante predeterminada. Cada variante incluye el motor de CPU. Consulta los requisitos del [proveedor CUDA de ONNX Runtime](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) y de [DirectML](https://onnxruntime.ai/docs/execution-providers/DirectML-ExecutionProvider.html).
+
+Si ejecutas VideoFlow desde el repositorio con la variante CUDA, también puedes instalar CUDA y cuDNN en su entorno de Python con `.venv\Scripts\python.exe -m pip install "onnxruntime-gpu[cuda,cudnn]==1.31.0"`.
+
+Una sola separación se procesa a la vez. El audio se prepara en estéreo a 44,1 kHz y se procesa localmente por fragmentos.
 
 La primera separación necesita Internet para descargar el modelo: aproximadamente **166 MB** para los modos de 2/4 pistas, o **136 MB** para 6 pistas. Se valida el SHA-256 antes de cargarlo. Los modelos quedan en la carpeta de datos del usuario (`separation-models`) y se reutilizan sin conexión. Cancelar la primera descarga elimina su archivo parcial; el siguiente intento empieza de nuevo. El instalador incluye el motor y descarga los modelos solo al utilizarlos.
 
