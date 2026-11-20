@@ -12,6 +12,7 @@ from pathlib import Path
 from app_paths import APP_DIR, DATA_DIR, IS_FROZEN
 from local_audio import start_process, _processes, _process_lock
 from separation_models import model_for, STEM_LABELS
+from separation_devices import PROVIDERS, available_devices
 
 _separation_lock = threading.Lock()
 MODES = {'separate_2', 'separate_4', 'separate_6'}
@@ -54,6 +55,9 @@ def command(task, args, work, events=None):
                         last_event = event
                         task.phase = str(event.get('phase', ''))
                         task.progress = max(task.progress, min(99, float(event.get('progress', 0))))
+                        if event.get('device'):
+                            task.separation_device_used = event['device']
+                            task.separation_gpu_fallback = bool(event.get('fallback'))
                 if finished:
                     break
             if process.returncode:
@@ -103,7 +107,8 @@ def separate(task, history, find_tool):
             decoded = work / 'entrada.wav'
             command(task, [find_tool('ffmpeg'), '-nostdin', '-v', 'error', '-n', '-i', task.local_path, '-map', '0:a:0', '-vn', '-ar', '44100', '-ac', '2', '-c:a', 'pcm_f32le', '-rf64', 'auto', str(decoded)], work)
             config_path, events = work / 'job.json', work / 'events.jsonl'
-            config_path.write_text(json.dumps(dict(input=str(decoded), work=str(work), models=str(MODELS_DIR), mode=task.mode, events=str(events))), encoding='utf-8')
+            config_path.write_text(json.dumps(dict(input=str(decoded), work=str(work), models=str(MODELS_DIR),
+                                                   mode=task.mode, events=str(events), device=task.separation_device)), encoding='utf-8')
             args = [sys.executable, '--separation-worker', str(config_path)] if IS_FROZEN else [sys.executable, str(APP_DIR / 'separation_worker.py'), str(config_path)]
             result = command(task, args, work, events)
             expected = ['vocals', 'instrumental'] if task.mode == 'separate_2' else model_for(task.mode)['sources']
@@ -155,7 +160,12 @@ def register(app, settings, manager, find_tool):
             model = model_for(mode)
             path = MODELS_DIR / model['filename']
             result[mode] = dict(ready=path.is_file() and path.stat().st_size == model['size'], megabytes=round(model['size'] / 1000000))
-        return jsonify(ok=True, models=result)
+        try:
+            import onnxruntime as ort
+            devices = available_devices(ort)
+        except (ImportError, OSError):
+            devices = ['cpu']
+        return jsonify(ok=True, models=result, devices=devices)
 
     @app.post('/api/separation/file')
     def select_file():
@@ -177,6 +187,9 @@ def register(app, settings, manager, find_tool):
             mode, output_format = data.get('mode'), data.get('format')
             if mode not in MODES or output_format not in {'wav', 'flac', 'mp3'}:
                 raise ValueError('Selecciona un modo y un formato válidos.')
+            device = data.get('device', 'cpu')
+            if device not in ('auto', *PROVIDERS):
+                raise ValueError('Selecciona un dispositivo de separación válido.')
             quality = str(data.get('quality', '320'))
             if quality not in {'128', '192', '320'}:
                 raise ValueError('Calidad de audio no válida.')
@@ -184,7 +197,8 @@ def register(app, settings, manager, find_tool):
                 raise ValueError('Faltan FFmpeg o FFprobe. Reinstala VideoFlow.')
             folder = Path(data.get('folder') or settings.load().get('separation_folder') or settings.load()['default_folder']).expanduser().resolve()
             folder.mkdir(parents=True, exist_ok=True)
-            task = manager.add(dict(url='', local_path=str(source), title=source.stem, format=output_format, quality=quality, mode=mode, folder=str(folder)))
+            task = manager.add(dict(url='', local_path=str(source), title=source.stem, format=output_format,
+                                    quality=quality, mode=mode, folder=str(folder), separation_device=device))
             settings.update({'separation_folder': str(folder)})
             return jsonify(ok=True, download=task.as_dict()), 201
         except Exception as exc:

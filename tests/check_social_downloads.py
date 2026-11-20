@@ -1,4 +1,4 @@
-"""Exercise Reddit and Instagram through the queue using locally generated media."""
+"""Exercise social downloads and gallery playback with locally generated media."""
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -39,13 +39,18 @@ with tempfile.TemporaryDirectory(prefix='videoflow-social-') as directory:
     import app
 
     client = app.app.test_client()
-    assert 'data-source="reddit"' in client.get('/').get_data(as_text=True)
-    assert 'data-source="instagram"' in client.get('/').get_data(as_text=True)
+    page = client.get('/').get_data(as_text=True)
+    assert all(f'data-source="{site}"' in page for site in ('reddit', 'instagram', 'x', 'twitch'))
+    assert 'id="page-gallery"' in page
     assert app.source_for_url('https://redd.it/fixture') == 'Reddit'
     assert app.source_for_url('https://v.redd.it/fixture/HLSPlaylist.m3u8') == 'Reddit'
     assert app.source_for_url('https://www.instagram.com/reel/fixture/') == 'Instagram'
+    assert app.source_for_url('https://twitter.com/user/status/123') == 'X'
+    assert app.source_for_url('https://www.twitch.tv/user/clip/Example') == 'Twitch'
     for url in ('https://reddit.com.example.org/', 'https://instagram.com@elsewhere.test/',
-                'ftp://instagram.com/reel/fixture/', 'https://user@instagram.com/reel/fixture/'):
+                'ftp://instagram.com/reel/fixture/', 'https://user@instagram.com/reel/fixture/',
+                'https://www.twitch.tv/videos/123', 'https://www.twitch.tv/user',
+                'https://clips.twitch.tv.example.org/Clip', 'https://x.com.example.org/user/status/123'):
         assert client.post('/api/analyze', json={'url':url}).status_code == 400
 
     for name, has_audio in (('silent.mp4', False), ('with-audio.mp4', True)):
@@ -60,12 +65,14 @@ with tempfile.TemporaryDirectory(prefix='videoflow-social-') as directory:
         base_url = f'http://127.0.0.1:{server.server_port}'
         reddit = 'https://www.reddit.com/r/example/comments/fixture/'
         reel = 'https://www.instagram.com/reel/fixture/'
+        post = 'https://x.com/user/status/123'
+        clip = 'https://clips.twitch.tv/Example'
         protected = 'https://www.reddit.com/comments/protected/'
         photo = 'https://www.instagram.com/p/still/'
         calls = []
 
         class FixtureIE(InfoExtractor):
-            _VALID_URL = r'https://www\.(?:reddit\.com|instagram\.com)/.+'
+            _VALID_URL = r'https://(?:www\.(?:reddit\.com|instagram\.com)|x\.com|clips\.twitch\.tv)/.+'
 
             def _real_extract(self, url):
                 if url == protected:
@@ -73,14 +80,15 @@ with tempfile.TemporaryDirectory(prefix='videoflow-social-') as directory:
                 if url == photo:
                     self.raise_no_formats('There is no video in this post', expected=True)
                 source = app.source_for_url(url)
-                audio = source == 'Instagram'
+                audio = source != 'Reddit'
                 info = {
                     'id':'first', 'title':f'{source} fixture', 'duration':1,
                     'formats':[{'url':base_url + ('/with-audio.mp4' if audio else '/silent.mp4'),
                                 'width':256, 'height':454, 'format_id':'original', 'ext':'mp4',
                                 'vcodec':'h264', 'acodec':'aac' if audio else 'none'}],
                 }
-                return (self.playlist_result([info, dict(info, id='second')], 'carousel') if audio else info)
+                return (self.playlist_result([info, dict(info, id='second')], 'carousel')
+                        if source in {'Instagram', 'X'} else info)
 
         def fixture_downloader(options):
             options = options.copy()
@@ -96,9 +104,10 @@ with tempfile.TemporaryDirectory(prefix='videoflow-social-') as directory:
             rejected = client.post('/api/analyze', json={'url':photo})
             assert rejected.status_code == 422 and 'no contiene un video' in rejected.json['error']
 
-            folders = {key: str(root / key) for key in ('reddit', 'instagram')}
+            folders = {key: str(root / key) for key in ('reddit', 'instagram', 'x', 'twitch')}
             assert client.put('/api/settings', json={'platform_folders':folders}).status_code == 200
-            for link, source, browser in ((reddit, 'Reddit', ''), (reel, 'Instagram', 'firefox')):
+            sources = ((reddit, 'Reddit', ''), (reel, 'Instagram', 'firefox'), (post, 'X', ''), (clip, 'Twitch', ''))
+            for link, source, browser in sources:
                 response = client.post('/api/analyze', json={'url':link, 'browser':browser})
                 assert response.status_code == 200, response.json
                 video = response.json['video']
@@ -114,9 +123,15 @@ with tempfile.TemporaryDirectory(prefix='videoflow-social-') as directory:
                 assert task['status'] == 'Completado', task
                 streams = subprocess.run([app.find_tool('ffprobe'), '-v', 'error', '-show_entries', 'stream=codec_type',
                                           '-of', 'json', task['final_path']], capture_output=True, check=True)
-                expected = {'audio','video'} if source == 'Instagram' else {'video'}
+                expected = {'video'} if source == 'Reddit' else {'audio','video'}
                 assert {row['codec_type'] for row in json.loads(streams.stdout)['streams']} == expected
                 assert len(list(Path(task['folder']).glob('*.mp4'))) == 1
+
+            response = client.post('/api/downloads', json={
+                'url':clip, 'quality':'0', 'format':'mkv', 'folder':folders['twitch'],
+            })
+            mkv = wait_for_task(client, response.json['download']['id'])
+            assert mkv['status'] == 'Completado', mkv
 
             response = client.post('/api/downloads', json={
                 'url':protected, 'quality':'0', 'format':'mp4', 'folder':folders['reddit'],
@@ -129,9 +144,24 @@ with tempfile.TemporaryDirectory(prefix='videoflow-social-') as directory:
         assert all(call['playlist_items'] == '1' for call in calls)
         assert len([call for call in calls if call.get('cookiesfrombrowser') == ('firefox',)]) == 2
         assert all(call.get('cookiesfrombrowser') is None for call in calls if call.get('cookiesfrombrowser') != ('firefox',))
-        assert {record['source'] for record in client.get('/api/history').json['history']} == {'Reddit','Instagram'}
+        assert {record['source'] for record in client.get('/api/history').json['history']} == {source for _, source, _ in sources}
+        gallery = client.get('/api/gallery').json['videos']
+        assert {entry['platform'] for entry in gallery} == set(folders)
+        twitch, twitch_mp4 = [entry for entry in gallery if entry['platform'] == 'twitch']
+        assert twitch['title'] == 'Twitch fixture'
+        with client.get(f"/api/gallery/{twitch['id']}/thumbnail") as response:
+            assert response.status_code == 200 and response.get_data().startswith(b'\xff\xd8')
+        for video in (twitch, twitch_mp4):
+            response = client.post(f"/api/gallery/{video['id']}/play")
+            assert response.status_code == 200 and response.json['name'] == video['title']
+            with client.get(response.json['url'], headers={'Range': 'bytes=0-31'}) as playback:
+                assert playback.status_code == 206 and b'ftyp' in playback.get_data()
+        assert Path(mkv['final_path']).read_bytes().startswith(b'\x1a\x45\xdf\xa3')
+        assert client.post('/api/gallery/9999/play', json={'path':str(root / 'with-audio.mp4')}).status_code == 404
+        assert client.delete('/api/history').status_code == 200
+        assert client.get('/api/gallery').json['videos'] == gallery
         settings = app.SettingsStore(app.settings_store.path).load()
         assert all(settings['platform_folders'][key] == path for key, path in folders.items())
         server.shutdown()
 
-print('OK: Reddit sin audio, primer video de carrusel de Instagram, calidad original, sesión, destinos, historial y reintento.')
+print('OK: Reddit, Instagram, X y Twitch, destinos, historial, reintento y reproducción desde la galería.')

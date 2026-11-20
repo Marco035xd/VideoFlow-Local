@@ -1,4 +1,4 @@
-const separationUI = { busy: false, models: {}, cards: new Map(), completed: new Set() };
+const separationUI = { busy: false, models: {}, devices: null, cards: new Map(), completed: new Set() };
 const separationNames = {
   separate_2: ['Voz', 'Música'],
   separate_4: ['Voz', 'Batería', 'Bajo', 'Otros'],
@@ -15,6 +15,9 @@ function updateSeparationOptions() {
     ? 'Puedes separar sin Internet. El audio se procesa en tu computadora.'
     : `Al iniciar se descargarán aproximadamente ${model?.megabytes || (mode === 'separate_6' ? 136 : 166)} MB. El modelo se guarda para las siguientes separaciones. Tu audio no se sube a ningún servidor.`;
   $('#separationQuality').disabled = separationUI.busy || $('#separationFormat').value !== 'mp3';
+  $('#separationDeviceHelp').textContent = separationUI.devices && !separationUI.devices.some(device => device !== 'cpu')
+    ? 'Esta instalación tiene disponible el motor de CPU.'
+    : 'Si la GPU no puede ejecutar el modelo, la separación continúa con CPU.';
   $('#separationStart').disabled = separationUI.busy || !$('#separationFile').value;
 }
 function separationBusy(value) {
@@ -23,7 +26,16 @@ function separationBusy(value) {
   updateSeparationOptions();
 }
 async function refreshSeparationModels() {
-  try { separationUI.models = (await api('/api/separation/models')).models; updateSeparationOptions(); }
+  try {
+    const {models, devices} = await api('/api/separation/models');
+    separationUI.models = models;
+    separationUI.devices = devices;
+    for (const option of $('#separationDevice').options) {
+      if (['cuda', 'directml'].includes(option.value)) option.disabled = !devices.includes(option.value);
+      if (option.value === 'auto') option.disabled = !devices.some(device => device !== 'cpu');
+    }
+    updateSeparationOptions();
+  }
   catch { /* Separating remains available; the worker reports download errors. */ }
 }
 function initSeparation() {
@@ -49,7 +61,8 @@ function initSeparation() {
   };
   $('#separationStart').onclick = async () => {
     if (separationUI.busy || !$('#separationFile').value) return;
-    const payload = {path:$('#separationFile').value, mode:separationMode(), format:$('#separationFormat').value, quality:$('#separationQuality').value, folder:$('#separationFolder').value};
+    const payload = {path:$('#separationFile').value, mode:separationMode(), format:$('#separationFormat').value,
+      quality:$('#separationQuality').value, folder:$('#separationFolder').value, device:$('#separationDevice').value};
     separationBusy(true);
     try {
       await api('/api/separation', {method:'POST', body:JSON.stringify(payload)});
@@ -77,12 +90,15 @@ function renderSeparationJobs() {
     let card = separationUI.cards.get(job.id);
     if (!card) {
       card = document.createElement('article'); card.className = 'separation-job';
-      card.innerHTML = `<div class="separation-heading"><strong class="separation-job-title"></strong><span class="status-chip"></span></div><p class="separation-phase" role="status"></p><div class="progress-track" role="progressbar" aria-label="Progreso de separación" aria-valuemin="0" aria-valuemax="100"><i></i></div><div class="separation-job-actions"></div><div class="separation-stems"></div>`;
+      card.innerHTML = `<div class="separation-heading"><strong class="separation-job-title"></strong><span class="status-chip"></span></div><p class="separation-phase" role="status"></p><small class="separation-device field-hint"></small><div class="progress-track" role="progressbar" aria-label="Progreso de separación" aria-valuemin="0" aria-valuemax="100"><i></i></div><div class="separation-job-actions"></div><div class="separation-stems"></div>`;
       container.prepend(card); separationUI.cards.set(job.id, card);
     }
     card.querySelector('.separation-job-title').textContent = job.title;
     const chip = card.querySelector('.status-chip'); chip.textContent = job.status; chip.className = 'status-chip '+statusClass(job.status);
     card.querySelector('.separation-phase').textContent = job.error || job.phase || 'En cola';
+    card.querySelector('.separation-device').textContent = job.separation_gpu_fallback && job.separation_device_used === 'CPU'
+      ? 'La GPU no estuvo disponible para esta separación. Se utilizó CPU.'
+      : job.separation_device_used ? `Procesador: ${job.separation_device_used}` : '';
     const percentage = Math.max(0, Math.min(100, Number(job.progress) || 0));
     card.querySelector('.progress-track i').style.width = percentage+'%';
     card.querySelector('.progress-track').setAttribute('aria-valuenow', String(Math.round(percentage)));

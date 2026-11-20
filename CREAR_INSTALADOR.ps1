@@ -1,10 +1,14 @@
-param([string]$InnoCompiler = "")
+param([string]$InnoCompiler = "", [ValidateSet('directml', 'cuda', 'cpu')][string]$SeparationRuntime)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 $pythonBuild = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $pythonBuild)) { throw 'Ejecuta INSTALAR.bat primero.' }
 & $pythonBuild -m pip install --upgrade -r requirements-build.txt
 if ($LASTEXITCODE -ne 0) { throw 'No se pudieron preparar las herramientas de compilacion.' }
+$runtimeArguments = @('packaging/install_separation_runtime.py')
+if ($SeparationRuntime) { $runtimeArguments += $SeparationRuntime }
+& $pythonBuild @runtimeArguments
+if ($LASTEXITCODE -ne 0) { throw 'No se pudo preparar el motor de separacion.' }
 $prerequisiteFolder = Join-Path $PSScriptRoot 'build\prerequisites'
 New-Item -ItemType Directory -Path $prerequisiteFolder -Force | Out-Null
 $webviewBootstrapper = Join-Path $prerequisiteFolder 'MicrosoftEdgeWebview2Setup.exe'

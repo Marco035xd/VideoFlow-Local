@@ -1,4 +1,5 @@
 from pathlib import Path
+from importlib.metadata import packages_distributions
 from PyInstaller.utils.hooks import collect_all
 
 root = Path(SPECPATH)
@@ -19,9 +20,11 @@ for package in ("yt_dlp", "yt_dlp_ejs", "curl_cffi"):
     binaries += package_binaries
     hiddenimports += package_imports
 
-from PyInstaller.utils.hooks import collect_dynamic_libs, copy_metadata
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs, copy_metadata
 binaries += collect_dynamic_libs('onnxruntime')
-datas += copy_metadata('onnxruntime')
+datas += collect_data_files('onnxruntime', includes=['LICENSE', 'ThirdPartyNotices.txt'])
+for runtime in packages_distributions().get('onnxruntime', ()):
+    datas += copy_metadata(runtime)
 
 a = Analysis([str(root / "launcher.py")], pathex=[str(root)], binaries=binaries,
              datas=datas, hiddenimports=hiddenimports, hookspath=[],

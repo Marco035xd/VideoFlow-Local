@@ -63,10 +63,11 @@ def main() -> None:
     if python_license.is_file():
         shutil.copy2(python_license, license_dir / "PYTHON-LICENSE.txt")
     shutil.copy2(ROOT / "packaging" / "DENO-LICENSE.txt", license_dir / "DENO-LICENSE.txt")
+    runtime_package, = importlib.metadata.packages_distributions()["onnxruntime"]
     (vendor / "build-info.json").write_text(json.dumps({
         "version": APP_VERSION,
         "python": sys.version,
-        "packages": {name: importlib.metadata.version(name) for name in ("yt-dlp", "yt-dlp-ejs", "Flask", "waitress", "curl-cffi", "pywebview", "pythonnet", "numpy", "onnxruntime", "soundfile", "cryptography")},
+        "packages": {name: importlib.metadata.version(name) for name in ("yt-dlp", "yt-dlp-ejs", "Flask", "waitress", "curl-cffi", "pywebview", "pythonnet", "numpy", runtime_package, "soundfile", "cryptography")},
     }, indent=2), encoding="utf-8")
     print(f"Recursos preparados para VideoFlow Local {APP_VERSION}")
 

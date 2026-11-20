@@ -1,4 +1,4 @@
-"""Isolated CPU inference. Stream overlap-add audio to disk with bounded buffers.
+"""Isolated HT-Demucs inference. Stream overlap-add audio to disk with bounded buffers.
 
 Model tensor layout and overlap scheme follow StemSplit's MIT ONNX reference;
 the streaming adapter keeps memory independent of the song's duration.
@@ -13,6 +13,7 @@ from contextlib import ExitStack
 from pathlib import Path
 
 from separation_models import model_for
+from separation_devices import DEVICE_NAMES, available_devices, open_session
 
 
 def report(progress, phase, **extra):
@@ -61,10 +62,21 @@ def run(config):
 
     model_path, model = obtain_model(config)
     report(20, 'Cargando el modelo en memoria')
-    options = ort.SessionOptions()
-    options.intra_op_num_threads = max(1, min(4, (os.cpu_count() or 2) // 2))
-    options.inter_op_num_threads = 1
-    session = ort.InferenceSession(str(model_path), sess_options=options, providers=['CPUExecutionProvider'])
+    requested = config.get('device', 'cpu')
+    available = available_devices(ort)
+    candidates = [device for device in available if requested in ('auto', device)]
+    threads = max(1, min(4, (os.cpu_count() or 2) // 2))
+    session = None
+    fallback = requested not in {'auto', 'cpu'} and not candidates
+    for device in dict.fromkeys([*candidates, 'cpu']):
+        try:
+            session = open_session(ort, model_path, config['mode'], device, threads)
+            break
+        except Exception:
+            if device == 'cpu':
+                raise
+            fallback = True
+    report(22, 'Separando voz e instrumentos', device=DEVICE_NAMES[device], fallback=fallback)
     names = ['vocals', 'instrumental'] if config['mode'] == 'separate_2' else model['sources']
     segment = 343980  # Fixed model input: 7.8 seconds, stereo, 44.1 kHz.
     overlap = segment // 4
@@ -80,14 +92,24 @@ def run(config):
         if source.samplerate != 44100 or source.channels != 2 or not source.frames:
             raise ValueError('No se pudo preparar una pista de audio válida.')
         outputs = [stack.enter_context(sf.SoundFile(str(Path(config['work']) / f'{name}.wav'), 'w', samplerate=44100, channels=2, subtype='FLOAT', format='RF64')) for name in names]
-        report(22, 'Separando voz e instrumentos')
         for start in range(0, source.frames, stride):
             source.seek(start)
             chunk = source.read(segment, dtype='float32', always_2d=True).T
             length = chunk.shape[1]
             padded = np.zeros((1, 2, segment), dtype=np.float32)
             padded[0, :, :length] = chunk
-            predicted = session.run(['stems'], {'mix': padded})[0][0]
+            try:
+                predicted = session.run(['stems'], {'mix': padded})[0][0]
+            except Exception:
+                if device == 'cpu':
+                    raise
+                session = None
+            if session is None:
+                device = 'cpu'
+                fallback = True
+                report(22, 'La GPU no pudo continuar. Usando CPU.', device='CPU', fallback=True)
+                session = open_session(ort, model_path, config['mode'], device, threads)
+                predicted = session.run(['stems'], {'mix': padded})[0][0]
             if not np.isfinite(predicted).all():
                 raise ValueError('El modelo produjo audio no válido. Prueba otra grabación.')
             if config['mode'] == 'separate_2':
@@ -106,7 +128,8 @@ def run(config):
             weights[overlap:] = 0
             report(22 + 66 * min(start + count, source.frames) / source.frames,
                    f'Separando audio · {min(start + count, source.frames) / 44100:.0f} / {source.frames / 44100:.0f} s')
-    report(88, 'Separación terminada. Preparando los archivos', stems=names, gain=0.99 / peak)
+    report(88, 'Separación terminada. Preparando los archivos', stems=names, gain=0.99 / peak,
+           device=DEVICE_NAMES[device], fallback=fallback)
 
 
 def main():

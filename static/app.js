@@ -24,6 +24,7 @@ const pageTitles = {
   compress: "Comprimir video",
   separate: "Voz e instrumentos",
   downloads: "Gestión de descargas",
+  gallery: "Galería de descargas",
   history: "Historial",
   appearance: "Apariencia",
   profile: "Perfil",
@@ -81,7 +82,7 @@ function qualityLabel(format, quality, source = "", mode = "") {
   if (format === "mp3") return `${quality} kbps`;
   if (format === "ogg") return `Vorbis · ${quality} kbps`;
   if (String(quality) === "0") return "Mejor disponible";
-  if (["TikTok", "Reddit", "Instagram"].includes(source)) return `${quality} px de alto`;
+  if (["TikTok", "Reddit", "Instagram", "X", "Twitch"].includes(source)) return `${quality} px de alto`;
   if (String(quality) === "1440") return "2K (1440p)";
   if (String(quality) === "2160") return "4K (2160p)";
   return `${quality}p`;
@@ -105,6 +106,11 @@ function sourceForLink(link) {
     const tab = platformTabs.find(button => button.dataset.domains.split(" ").some(
       domain => host === domain || host.endsWith("." + domain)
     ));
+    if (tab?.dataset.source === "twitch") {
+      const isClip = host === "clips.twitch.tv" ? url.pathname.length > 1
+        : /^(?:(?:www|go|m)\.)?twitch\.tv$/.test(host) && /^\/(?:[^/]+\/)?clip\/[^/]+/.test(url.pathname);
+      if (!isClip) return null;
+    }
     return tab?.dataset.source ?? null;
   } catch {
     return null;
@@ -139,7 +145,9 @@ function selectSource(source) {
   $("#urlLabel").textContent = `Enlaces de ${platformNames[source]}`;
   $("#videoUrl").placeholder = platformExamples[source] + "\nPega varios enlaces, uno por línea";
   $("#sourceMark").src = `/static/icons/${source}.png`;
-  $("#sourceHelp").textContent = 'Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».';
+  $("#sourceHelp").textContent = source === 'twitch'
+    ? 'Pega un enlace a un clip de Twitch. Puedes añadir varios clips a la cola.'
+    : 'Un enlace: Analizar video. Varios enlaces: elige las opciones de abajo y pulsa «Añadir enlaces a la cola».';
   for (const panel of $$("[data-site-session]")) panel.classList.toggle("hidden", panel.dataset.siteSession !== source);
   $('#youtubeNotice').classList.toggle('hidden', source !== 'youtube');
   analysisFeedback();
@@ -282,7 +290,7 @@ function rebuildFormatOptions() {
   const previous = select.value;
   const source = state.video?.source;
   const hasVobQuality = state.video?.video_options.some(({value}) => Number(value) <= 480);
-  const hideVob = source === "TikTok" || (["Reddit", "Instagram"].includes(source) && !hasVobQuality);
+  const hideVob = source === "TikTok" || (["Reddit", "Instagram", "X", "Twitch"].includes(source) && !hasVobQuality);
   const choices = hideVob
     ? formatChoices[mode].filter(([value]) => value !== "vob")
     : formatChoices[mode];
@@ -580,8 +588,13 @@ function renderDownloads() {
 }
 
 function handleDownloadNotifications(downloads) {
+  let galleryChanged = false;
   for (const task of downloads) {
     const previous = state.previousStatuses.get(task.id);
+    if (task.status === 'Completado' && previous !== task.status && !task.incognito &&
+        platformNames[task.source.toLowerCase()] && ['video_audio', 'video_only'].includes(task.mode)) {
+      galleryChanged = true;
+    }
     if (previous && previous !== task.status) {
       if (task.status === "Completado") {
         const label = task.mode.startsWith('separate_') ? 'Separación completada' : task.mode === 'video_compress' ? 'Video comprimido' : task.mode === 'video_convert' ? 'Video convertido' : 'Descarga completada';
@@ -596,6 +609,7 @@ function handleDownloadNotifications(downloads) {
     }
     state.previousStatuses.set(task.id, task.status);
   }
+  if (galleryChanged && state.currentPage === 'gallery') loadGallery();
 }
 
 function browserNotification(title, body) {

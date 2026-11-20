@@ -79,6 +79,8 @@ if errorlevel 1 goto :error
  echo [5/5] Instalando VideoFlow y el motor de descarga...
 python -m pip install --upgrade -r requirements.txt
 if errorlevel 1 goto :error
+python packaging\install_separation_runtime.py %1
+if errorlevel 1 goto :error
 
  echo.
  echo ================================================================

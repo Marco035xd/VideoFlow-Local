@@ -29,6 +29,7 @@ from audio_tracks import available_tracks, restrict_audio_selector
 from youtube_session import session_options, validate_choice as validate_youtube_session
 from network_recovery import CONNECTION_MODES, connection_error_message, run_with_recovery
 from youtube_cdn import YouTubeCDNDownloader
+from download_gallery import create_gallery, record_video, register as register_gallery
 
 SETTINGS_FILE = DATA_DIR / "settings.json"
 DB_FILE = DATA_DIR / "history.db"
@@ -47,11 +48,13 @@ PLATFORMS = {
     "tiktok": Platform("TikTok", ("tiktok.com",), "https://www.tiktok.com/@usuario/video/..."),
     "reddit": Platform("Reddit", ("reddit.com", "redd.it", "redditmedia.com"), "https://www.reddit.com/r/.../comments/..."),
     "instagram": Platform("Instagram", ("instagram.com", "instagr.am"), "https://www.instagram.com/reel/..."),
+    "x": Platform("X", ("x.com", "twitter.com"), "https://x.com/usuario/status/..."),
+    "twitch": Platform("Twitch", ("twitch.tv",), "https://clips.twitch.tv/..."),
 }
 PLATFORM_NAMES = {platform.name for platform in PLATFORMS.values()}
-BROWSER_SESSION_SITES = {"Facebook", "Reddit", "Instagram"}
-EXACT_VIDEO_HEIGHTS = {"TikTok", "Reddit", "Instagram"}
-SINGLE_VIDEO_POSTS = {"Reddit", "Instagram"}
+BROWSER_SESSION_SITES = {"Facebook", "Reddit", "Instagram", "X", "Twitch"}
+EXACT_VIDEO_HEIGHTS = {"TikTok", "Reddit", "Instagram", "X", "Twitch"}
+SINGLE_VIDEO_POSTS = {"Reddit", "Instagram", "X", "Twitch"}
 
 DEFAULT_FOLDER = str((Path.home() / "Downloads").resolve())
 DEFAULT_SETTINGS = {
@@ -119,6 +122,10 @@ def source_for_url(url: str) -> str | None:
     if parsed.scheme not in {"http", "https"} or parsed.username is not None or parsed.password is not None:
         return None
     host = (parsed.hostname or "").lower().rstrip(".")
+    if host == "twitch.tv" or host.endswith(".twitch.tv"):
+        from yt_dlp.extractor.twitch import TwitchClipsIE
+
+        return "Twitch" if TwitchClipsIE.suitable(parsed.geturl()) else None
     return next((platform.name for platform in PLATFORMS.values()
                  if any(host == domain or host.endswith("." + domain) for domain in platform.domains)), None)
 
@@ -185,7 +192,7 @@ def describe_error(exc: Exception, source: str) -> str:
     if source == "TikTok" and "IP address is blocked" in message:
         return "TikTok bloqueó el acceso a esta publicación desde esta conexión. Prueba otro enlace público o inténtalo más tarde."
     if source in SINGLE_VIDEO_POSTS:
-        if any(term in lower for term in ("no media found", "no video in", "is not a video", "no video files")):
+        if any(term in lower for term in ("no media found", "no video in", "is not a video", "no video files", "no video could be found")):
             return "Esta publicación no contiene un video disponible."
         if ('could not copy' in lower and 'cookie' in lower) or 'database is locked' in lower:
             return "No se pudo leer la sesión del navegador. Ciérralo por completo y vuelve a analizar."
@@ -282,6 +289,7 @@ class HistoryStore:
 
     def _init_db(self) -> None:
         with self.connect() as con:
+            con.execute("BEGIN IMMEDIATE")
             con.execute(
                 """
                 CREATE TABLE IF NOT EXISTS history (
@@ -312,6 +320,7 @@ class HistoryStore:
             for column in ('audio_track', 'audio_track_label', 'audio_track_language'):
                 if column not in columns:
                     con.execute(f"ALTER TABLE history ADD COLUMN {column} TEXT NOT NULL DEFAULT ''")
+            create_gallery(con, PLATFORM_NAMES)
             con.commit()
 
     def add(self, task: "DownloadTask") -> None:
@@ -345,6 +354,8 @@ class HistoryStore:
                     task.advanced.get('audio_track_language', ''),
                 ),
             )
+            if task.source in PLATFORM_NAMES and task.mode in {"video_audio", "video_only"} and task.final_path:
+                record_video(con, task)
             con.commit()
 
     def list(self, limit: int = 250) -> list[dict[str, Any]]:
@@ -405,6 +416,9 @@ class DownloadTask:
     outputs: list = field(default_factory=list)
     advanced: dict = field(default_factory=dict)
     compression: dict = field(default_factory=dict)
+    separation_device: str = "cpu"
+    separation_device_used: str = ""
+    separation_gpu_fallback: bool = False
     pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
 
@@ -445,6 +459,8 @@ class DownloadTask:
             "outputs": self.outputs,
             "incognito": self.advanced.get('incognito', False),
             "compression": dict(self.compression),
+            "separation_device_used": self.separation_device_used,
+            "separation_gpu_fallback": self.separation_gpu_fallback,
             "audio_track": self.advanced.get('audio_track', ''),
             "audio_track_label": self.advanced.get('audio_track_label', ''),
             "audio_track_language": self.advanced.get('audio_track_language', ''),
@@ -513,6 +529,7 @@ class DownloadManager:
             estimated_size=int(payload.get("estimated_size") or 0),
             advanced=validate_options(payload),
             compression=dict(payload.get('compression') or {}),
+            separation_device=payload.get('separation_device', 'cpu'),
         )
         with self.lock:
             if task.save_path and any(
@@ -884,6 +901,7 @@ class DownloadManager:
                 raise RuntimeError('El servidor no devolvió los datos de la descarga. Vuelve a intentarlo.')
             task.video_id = str(info.get("id") or task.video_id or "video")
             task.title = str(info.get("title") or task.title)
+            task.thumbnail = str(info.get("thumbnail") or task.thumbnail)
             task.duration = int(task.advanced['end'] - task.advanced['start']) if task.advanced.get('start') is not None else int(info.get('duration') or task.duration)
             task.phase = ''
             if task.advanced.get('subtitles', 'none') != 'none' and not info.get('requested_subtitles'):
@@ -1678,6 +1696,7 @@ from vault import register as register_vault
 private_vault = register_vault(app, DATA_DIR)
 from media_tools import register as register_media_tools
 register_media_tools(app, download_manager, settings_store)
+register_gallery(app, history_store, PLATFORMS, find_tool, human_duration)
 from wallpapers import register as register_wallpapers
 register_wallpapers(app, settings_store)
 from ffmpeg_updates import register as register_ffmpeg_updates
