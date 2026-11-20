@@ -129,7 +129,7 @@ def run() -> None:
                 language = settings_store.load()['language']
                 confirmed = window.create_confirmation_dialog(
                     translate("Cerrar VideoFlow", language),
-                    translate("Hay descargas pendientes o en curso. ¿Quieres detenerlas y cerrar?", language),
+                    translate("Hay trabajos pendientes o en curso. Puedes retomarlos al volver a abrir VideoFlow, excepto los de incógnito. ¿Quieres cerrar?", language),
                 )
                 if not confirmed:
                     runtime.exiting = False
@@ -153,12 +153,9 @@ def run() -> None:
         if manager is not None:
             from app import collection_jobs, private_vault
             private_vault.close()
+            manager.shutdown()
             for job in collection_jobs.list():
-                collection_jobs.cancel(job['id'])
-            with manager.lock:
-                for task in manager.tasks.values():
-                    task.cancel_event.set()
-                    task.pause_event.clear()
+                collection_jobs.cancel(job['id'], cancel_downloads=False)
         from local_audio import shutdown
         shutdown()
         from audio_separation import wait_for_cleanup

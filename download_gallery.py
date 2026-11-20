@@ -116,7 +116,8 @@ def register(app, history, platforms, find_tool, human_duration):
             rows = connection.execute('SELECT * FROM gallery ORDER BY downloaded_at DESC, id DESC').fetchall()
         return jsonify(ok=True, videos=[
             dict(id=row['id'], title=row['title'], source=row['source'],
-                 platform=platform_keys[row['source']], duration=human_duration(row['duration']))
+                 platform=platform_keys[row['source']], duration=human_duration(row['duration']),
+                 duration_seconds=row['duration'])
             for row in rows if row['source'] in platform_keys and saved_video(row)
         ])
 

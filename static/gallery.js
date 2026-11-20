@@ -2,10 +2,29 @@ let galleryRequest = 0;
 let galleryOpening = false;
 let galleryVideos = null;
 
+function normalizeGalleryTitle(value) {
+  return value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
 function renderGallery() {
   if (!galleryVideos) return;
   const platform = $('#galleryPlatform').value;
-  const videos = platform ? galleryVideos.filter(video => video.platform === platform) : galleryVideos;
+  const query = normalizeGalleryTitle($('#gallerySearch').value).trim().split(/\s+/).filter(Boolean);
+  const order = $('#galleryOrder').value;
+  const videos = galleryVideos.filter(video =>
+    (!platform || video.platform === platform) &&
+    (!query.length || query.every(term => video.searchTitle.includes(term)))
+  );
+  if (order === 'oldest') videos.reverse();
+  if (order === 'title') {
+    const collator = new Intl.Collator(window.VideoFlowI18n.locale, {sensitivity: 'base', numeric: true});
+    videos.sort((a, b) => collator.compare(a.title, b.title));
+  }
+  if (order === 'longest' || order === 'shortest') {
+    const direction = order === 'longest' ? -1 : 1;
+    videos.sort((a, b) => Number(!a.duration_seconds) - Number(!b.duration_seconds) ||
+      direction * ((a.duration_seconds || 0) - (b.duration_seconds || 0)));
+  }
   const template = $('#galleryCard').content.firstElementChild;
   const cards = videos.map(video => {
     const card = template.cloneNode(true);
@@ -29,10 +48,10 @@ function renderGallery() {
   const empty = $('#galleryEmpty');
   empty.classList.toggle('hidden', videos.length > 0);
   if (!videos.length) {
-    empty.querySelector('h3').textContent = platform
+    empty.querySelector('h3').textContent = query.length ? 'No se encontraron videos' : platform
       ? 'No hay videos de esta plataforma'
       : 'Todavía no hay videos guardados';
-    empty.querySelector('p').textContent = platform
+    empty.querySelector('p').textContent = query.length ? 'Cambia el texto de búsqueda o el filtro de plataforma.' : platform
       ? 'Prueba con otra plataforma o muestra todos los videos.'
       : 'Los videos que descargues aparecerán aquí.';
   }
@@ -45,7 +64,7 @@ async function loadGallery() {
   try {
     const {videos} = await api('/api/gallery');
     if (request !== galleryRequest) return;
-    galleryVideos = videos;
+    galleryVideos = videos.map(video => ({...video, searchTitle: normalizeGalleryTitle(video.title)}));
     renderGallery();
     status.textContent = galleryOpening ? 'Preparando el video…' : '';
   } catch (error) {
@@ -77,6 +96,8 @@ async function playGalleryVideo(id) {
 
 $('#openGallery').addEventListener('click', () => navigate('gallery'));
 $('#galleryPlatform').addEventListener('change', renderGallery);
+$('#gallerySearch').addEventListener('input', renderGallery);
+$('#galleryOrder').addEventListener('change', renderGallery);
 window.addEventListener('videoflow:navigate', ({detail}) => {
   if (detail.page === 'gallery') loadGallery();
 });

@@ -498,7 +498,7 @@ function statusClass(status) {
   if (value === "completado") return "completed";
   if (value === "error") return "error";
   if (value === "cancelado") return "cancelled";
-  if (value === "pausado") return "paused";
+  if (value === "pausado" || value === "interrumpido") return "paused";
   if (value === "pendiente") return "pending";
   if (value === "procesando") return "processing";
   return "";
@@ -511,8 +511,8 @@ function actionButtons(task) {
     buttons.push(`<button class="action-button danger" data-action="cancel" data-id="${task.id}" title="Cancelar">×</button>`);
   } else if (task.status === "Procesando") {
     buttons.push(`<button class="action-button danger" data-action="cancel" data-id="${task.id}" title="Cancelar">×</button>`);
-  } else if (task.status === "Pausado") {
-    buttons.push(`<button class="action-button" data-action="resume" data-id="${task.id}" title="Reanudar">▶</button>`);
+  } else if (task.status === "Pausado" || task.status === "Interrumpido") {
+    buttons.push(`<button class="action-button" data-action="resume" data-id="${task.id}" title="Reanudar" aria-label="Reanudar">▶</button>`);
     buttons.push(`<button class="action-button danger" data-action="cancel" data-id="${task.id}" title="Cancelar">×</button>`);
   } else if (task.status === "Pendiente") {
     buttons.push(`<button class="action-button danger" data-action="cancel" data-id="${task.id}" title="Cancelar">×</button>`);
@@ -521,6 +521,7 @@ function actionButtons(task) {
     buttons.push(`<button class="action-button danger" data-action="delete" data-id="${task.id}" title="Quitar de la lista">⌫</button>`);
   } else {
     if (task.can_retry) buttons.push(`<button class="action-button retry-button" data-action="retry" data-id="${task.id}" title="Reintentar descarga" aria-label="Reintentar descarga">↻</button>`);
+    if (task.diagnostic) buttons.push(`<button class="action-button" data-action="diagnosis" data-id="${task.id}" title="Ver diagnóstico" aria-label="Ver diagnóstico">ⓘ</button>`);
     buttons.push(`<button class="action-button danger" data-action="delete" data-id="${task.id}" title="Quitar de la lista">⌫</button>`);
   }
   return buttons.join("");
@@ -541,7 +542,7 @@ function renderDownloads() {
         ? `${task.final_size_human} · ${task.phase || "Guardado correctamente"}${task.incognito ? " · Incógnito" : ""}`
         : task.status === "Procesando"
           ? task.phase || "FFmpeg está preparando el archivo final"
-          : task.status;
+          : task.status === "Interrumpido" ? task.phase : task.status;
     return `
       <article class="download-card">
         <img class="download-thumb" src="${escapeHtml(task.thumbnail || "/static/logo.svg")}" alt="">
@@ -751,11 +752,13 @@ async function clearRemovedDownloads() {
 
 async function downloadAction(action, id) {
   try {
+    const task = state.downloads.find(download => download.id === id);
     if (action === "cancel") {
       const accepted = await confirmAction("Cancelar descarga", "Se detendrá el trabajo y se eliminarán los archivos temporales.");
       if (!accepted) return;
     }
-    await api(`/api/downloads/${id}/${action}`, { method: "POST", body: "{}" });
+    const options = action === 'resume' && task?.needs_cookie_file ? {browser: youtubeCookieToken} : {};
+    await api(`/api/downloads/${id}/${action}`, { method: "POST", body: JSON.stringify(options) });
     if (action === 'retry') toast('Descarga en cola', 'Se volverá a conectar con el formato y la pista de audio elegidos.');
     await loadDownloads();
   } catch (error) {
@@ -985,6 +988,7 @@ function bindEvents() {
     }
     if (action === "delete") deleteDownload(id);
     if (action === "open") openPath(path);
+    if (action === "diagnosis") openDownloadDiagnosis(state.downloads.find(task => task.id === id));
   });
 
   $("#historyBody").addEventListener("click", (event) => {

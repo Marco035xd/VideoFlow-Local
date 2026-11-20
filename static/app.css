@@ -192,7 +192,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .source-tab[data-source="twitch"] .source-tab-icon,
 .source-mark[src$="/twitch.png"] { border-radius: 25%; }
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 215px), 1fr)); gap: 18px; }
-.gallery-filter { width: min(100%, 248px); padding: 8px 10px 10px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-solid); }
+.gallery-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 18px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-solid); }
+.gallery-toolbar .form-field { flex: 1 1 175px; min-width: 0; margin: 0; }
+.gallery-toolbar .gallery-search { flex: 3 1 260px; }
 #galleryStatus:empty { display: none; }
 .gallery-card { display: grid; align-content: start; min-width: 0; text-align: start; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text); cursor: pointer; }
 .gallery-card:hover, .gallery-card:focus-visible { border-color: var(--primary); background: var(--surface-solid); }
@@ -419,6 +421,11 @@ td { padding: 13px 12px; border-bottom: 1px solid var(--line); font-size: 10px; 
 .modal-icon { width: 50px; height: 50px; margin: 0 auto 14px; border-radius: 15px; display: grid; place-items: center; color: var(--red); background: var(--red-soft); font-size: 22px; font-weight: 800; }
 .modal-card h3 { margin: 0 0 8px; }
 .modal-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.diagnostic-dialog { width: min(480px, calc(100% - 30px)); color: var(--text); text-align: start; }
+.diagnostic-dialog::backdrop { background: #0009; }
+.diagnostic-dialog strong { display: block; margin-bottom: 6px; }
+.diagnostic-dialog .form-field { margin-top: 16px; margin-bottom: 0; }
+.diagnostic-dialog textarea { min-height: 100px; resize: vertical; }
 .modal-actions { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
 
 @keyframes spin { to { transform: rotate(360deg); } }

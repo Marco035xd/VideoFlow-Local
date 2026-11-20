@@ -148,13 +148,14 @@ def compress(task, history, find_tool):
             raise ValueError('No se puede reemplazar el video original.')
         if target.exists() and not task.overwrite:
             raise ValueError('El archivo ya existe. Elige otro nombre con Guardar como.')
+        saved = original.st_size - final_size
+        reduction = round(saved / original.st_size * 100, 1)
+        task.compression.update(saved_bytes=saved, reduction_percent=reduction)
+        history.prepare_output(task, partial, target)
         if task.overwrite:
             partial.replace(target)
         else:
             partial.rename(target)
-        saved = original.st_size - final_size
-        reduction = round(saved / original.st_size * 100, 1)
-        task.compression.update(saved_bytes=saved, reduction_percent=reduction)
         task.final_path, task.final_size, task.completed_at = str(target), final_size, now_iso()
         task.progress, task.status = 100, 'Completado'
         task.phase = f'Video comprimido · {human_bytes(original.st_size)} → {human_bytes(final_size)} · {reduction:g}% menos'

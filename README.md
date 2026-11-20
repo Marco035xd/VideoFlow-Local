@@ -30,6 +30,12 @@ La pantalla de inicio permite elegir la plataforma, pegar uno o varios enlaces y
 
 Descarga y ejecuta el instalador de Windows desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
+### Cola recuperable, búsqueda y diagnóstico · versión 1.6.29
+
+En **Descargas**, los trabajos pendientes o en curso aparecen como **Interrumpido** después de reiniciar VideoFlow. Pulsa **Reanudar** para continuar con su formato, pista y destino. Las descargas compatibles aprovechan sus archivos parciales. Las conversiones locales vuelven a empezar y los trabajos en incógnito duran solo la sesión. Si usaste un archivo de cookies de YouTube, vuelve a seleccionarlo en **Inicio** antes de reanudar.
+
+En **Galería**, puedes buscar por título y combinar la búsqueda con el filtro por plataforma. También puedes ordenar por fecha, título o duración. Si un trabajo falla, abre **Ver diagnóstico** en su tarjeta. Desde ahí puedes copiar un informe con la categoría del error, la plataforma y el formato, sin URLs, títulos, rutas ni datos de sesión.
+
 ### Descargas de Reddit e Instagram · versión 1.6.24
 
 Hay dos pestañas nuevas en Inicio. Pega el enlace de una publicación de Reddit, un enlace directo al video de Reddit, una publicación de Instagram o un Reel. Puedes ver las calidades disponibles, elegir el formato y guardar el video o su audio cuando esté disponible. También puedes añadir varios enlaces de una misma plataforma y configurar una carpeta para cada sitio. Si una publicación incluye varios videos, se toma el primero que devuelve la plataforma. Si el sitio pide iniciar sesión, selecciona el navegador en el que puedes abrir la publicación.

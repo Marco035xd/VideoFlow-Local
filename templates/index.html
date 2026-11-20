@@ -419,15 +419,31 @@
         </section>
 
         <section id="page-gallery" class="page" aria-label="Galería de descargas">
-          <label class="form-field gallery-filter" for="galleryPlatform">
-            <span>Filtrar por plataforma</span>
-            <select id="galleryPlatform">
-              <option value="">Todas las plataformas</option>
-              {% for key, platform in platforms.items() %}
-              <option value="{{ key }}" translate="no">{{ platform.name }}</option>
-              {% endfor %}
-            </select>
-          </label>
+          <div class="gallery-toolbar">
+            <label class="form-field gallery-search" for="gallerySearch">
+              <span>Buscar por título</span>
+              <input id="gallerySearch" type="search">
+            </label>
+            <label class="form-field" for="galleryPlatform">
+              <span>Filtrar por plataforma</span>
+              <select id="galleryPlatform">
+                <option value="">Todas las plataformas</option>
+                {% for key, platform in platforms.items() %}
+                <option value="{{ key }}" translate="no">{{ platform.name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="form-field" for="galleryOrder">
+              <span>Ordenar por</span>
+              <select id="galleryOrder">
+                <option value="newest">Más recientes</option>
+                <option value="oldest">Más antiguos</option>
+                <option value="title">Título (A–Z)</option>
+                <option value="longest">Mayor duración</option>
+                <option value="shortest">Menor duración</option>
+              </select>
+            </label>
+          </div>
           <p id="galleryStatus" class="field-hint" role="status"></p>
           <div id="galleryEmpty" class="panel empty-state hidden">
             <div class="empty-icon" aria-hidden="true">▶</div>
@@ -633,8 +649,22 @@
     </div>
   </div>
 
+  <dialog id="downloadDiagnosis" class="modal-card diagnostic-dialog" aria-labelledby="diagnosisTitle">
+    <h3 id="diagnosisTitle">Diagnóstico de la descarga</h3>
+    <strong id="diagnosisCategory"></strong>
+    <p id="diagnosisAdvice"></p>
+    <label class="form-field" for="diagnosisReport"><span>Informe para compartir</span>
+      <textarea id="diagnosisReport" rows="5" readonly></textarea>
+    </label>
+    <div class="modal-actions">
+      <button id="closeDiagnosis" class="secondary-button" type="button">Cerrar</button>
+      <button id="copyDiagnosis" class="primary-button" type="button">Copiar informe</button>
+    </div>
+  </dialog>
+
   <script src="/static/language.js"></script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="/static/download-diagnostics.js"></script>
 <script src="/static/extensions.js"></script>
 <script src="/static/separation.js"></script>
 <script src="/static/gallery.js"></script>

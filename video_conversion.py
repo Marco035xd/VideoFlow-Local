@@ -93,6 +93,7 @@ def transcode(task, history, find_tool):
             raise ValueError('El video convertido no tiene el formato esperado.')
         if target.exists() and not task.overwrite:
             raise ValueError('El archivo ya existe. Elige otro nombre con Guardar como.')
+        history.prepare_output(task, partial, target)
         if task.overwrite:
             partial.replace(target)
         else:

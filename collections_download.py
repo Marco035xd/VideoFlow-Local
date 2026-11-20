@@ -107,14 +107,15 @@ class CollectionJobs:
         with self.lock:
             return [{key: value for key, value in job.items() if key not in {'cancel', 'task_ids'}} for job in self.jobs.values()]
 
-    def cancel(self, identifier):
+    def cancel(self, identifier, *, cancel_downloads=True):
         with self.lock:
             job = self.jobs[identifier]
             job['cancel'].set()
             job['status'] = 'Cancelado'
-            for task_id in job['task_ids']:
-                if self.manager.get(task_id):
-                    self.manager.cancel(task_id)
+            if cancel_downloads:
+                for task_id in job['task_ids']:
+                    if self.manager.get(task_id):
+                        self.manager.cancel(task_id)
 
 
 def register(app, manager, settings, environment, source_for_url, describe_error=None):

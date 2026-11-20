@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import queue
 import re
@@ -28,6 +29,7 @@ from download_options import validate_options, video_selector, apply_options
 from audio_tracks import available_tracks, restrict_audio_selector
 from youtube_session import session_options, validate_choice as validate_youtube_session
 from network_recovery import CONNECTION_MODES, connection_error_message, run_with_recovery
+from download_diagnostics import classify_failure
 from youtube_cdn import YouTubeCDNDownloader
 from download_gallery import create_gallery, record_video, register as register_gallery
 
@@ -321,7 +323,42 @@ class HistoryStore:
                 if column not in columns:
                     con.execute(f"ALTER TABLE history ADD COLUMN {column} TEXT NOT NULL DEFAULT ''")
             create_gallery(con, PLATFORM_NAMES)
+            con.execute("""
+                CREATE TABLE IF NOT EXISTS pending_downloads (
+                    id TEXT PRIMARY KEY,
+                    payload TEXT NOT NULL,
+                    output TEXT
+                )
+            """)
             con.commit()
+
+    def save_pending(self, task: "DownloadTask") -> None:
+        if task.advanced.get('incognito'):
+            return
+        with self.connect() as con:
+            con.execute("""
+                INSERT INTO pending_downloads (id, payload) VALUES (?, ?)
+                ON CONFLICT(id) DO UPDATE SET payload = excluded.payload, output = NULL
+            """, (task.id, json.dumps(task.pending_payload(), ensure_ascii=False)))
+
+    def pending_downloads(self):
+        with self.connect() as con:
+            return con.execute('SELECT * FROM pending_downloads ORDER BY rowid').fetchall()
+
+    def remove_pending(self, task_id: str, *, keep_prepared: bool = False) -> None:
+        with self.connect() as con:
+            con.execute('DELETE FROM pending_downloads WHERE id = ? AND (? = 0 OR output IS NULL)',
+                        (task_id, int(keep_prepared)))
+
+    def prepare_output(self, task: "DownloadTask", staged: Path, target: Path) -> None:
+        if task.advanced.get('incognito'):
+            return
+        stat = staged.stat()
+        output = dict(staged=str(staged.resolve()), target=str(target.resolve()),
+                      size=stat.st_size, mtime=stat.st_mtime_ns)
+        with self.connect() as con:
+            con.execute('UPDATE pending_downloads SET payload = ?, output = ? WHERE id = ?',
+                        (json.dumps(task.pending_payload(), ensure_ascii=False), json.dumps(output), task.id))
 
     def add(self, task: "DownloadTask") -> None:
         if task.advanced.get('incognito'):
@@ -356,6 +393,7 @@ class HistoryStore:
             )
             if task.source in PLATFORM_NAMES and task.mode in {"video_audio", "video_only"} and task.final_path:
                 record_video(con, task)
+            con.execute('DELETE FROM pending_downloads WHERE id = ?', (task.id,))
             con.commit()
 
     def list(self, limit: int = 250) -> list[dict[str, Any]]:
@@ -419,8 +457,19 @@ class DownloadTask:
     separation_device: str = "cpu"
     separation_device_used: str = ""
     separation_gpu_fallback: bool = False
+    diagnostic: str = ""
     pause_event: threading.Event = field(default_factory=threading.Event, repr=False)
     cancel_event: threading.Event = field(default_factory=threading.Event, repr=False)
+
+    def pending_payload(self):
+        names = ('id', 'url', 'original_url', 'video_id', 'title', 'thumbnail', 'duration',
+                 'output_format', 'quality', 'folder', 'source', 'mode', 'browser',
+                 'save_path', 'overwrite', 'estimated_size', 'local_path', 'created_at',
+                 'advanced', 'compression', 'separation_device')
+        payload = {name: getattr(self, name) for name in names}
+        if self.browser.startswith('cookies:'):
+            payload['browser'] = 'cookies'
+        return payload
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -450,6 +499,9 @@ class DownloadTask:
             "eta": self.eta,
             "eta_human": human_duration(self.eta),
             "error": self.error,
+            "diagnostic": (self.diagnostic or classify_failure(self.error, self.local_path, self.phase, self.progress))
+                          if self.status == 'Error' else '',
+            "needs_cookie_file": self.status == 'Interrumpido' and self.browser == 'cookies',
             "created_at": self.created_at,
             "completed_at": self.completed_at,
             "final_path": self.final_path,
@@ -494,7 +546,50 @@ class DownloadManager:
         self.work_queue: queue.Queue[str] = queue.Queue()
         self.active_count = 0
         self.running_tasks = set()
+        self.suspended_tasks = set()
+        self.stopping = False
+        self._recover_pending()
         threading.Thread(target=self._worker, name='download-dispatcher', daemon=True).start()
+
+    def _recover_pending(self) -> None:
+        for row in self.history.pending_downloads():
+            try:
+                task = DownloadTask(**json.loads(row['payload']))
+                if task.id != row['id'] or task.advanced.get('incognito'):
+                    continue
+                if row['output']:
+                    output = json.loads(row['output'])
+                    staged, target = Path(output['staged']), Path(output['target'])
+                    try:
+                        stat = target.stat()
+                        already_saved = target.is_file() and (staged == target or not staged.exists()) and (
+                            stat.st_size, stat.st_mtime_ns
+                        ) == (output['size'], output['mtime'])
+                    except OSError:
+                        already_saved = False
+                    if already_saved:
+                        task.final_path, task.final_size = str(target), stat.st_size
+                        task.downloaded_bytes = task.total_bytes = stat.st_size
+                        task.completed_at, task.progress, task.status = now_iso(), 100, 'Completado'
+                        self.history.add(task)
+                        self.tasks[task.id] = task
+                        continue
+                task.status = 'Interrumpido'
+                task.phase = 'Guardada de la sesión anterior. Pulsa Reanudar.'
+                self.tasks[task.id] = task
+            except (TypeError, ValueError, KeyError):
+                logging.getLogger(__name__).warning('No se pudo leer un registro de la cola guardada.')
+
+    def shutdown(self) -> None:
+        with self.condition:
+            self.stopping = True
+            for task in self.tasks.values():
+                if task.id in self.running_tasks:
+                    if not task.cancel_event.is_set() and not task.advanced.get('incognito'):
+                        self.suspended_tasks.add(task.id)
+                    task.cancel_event.set()
+                    task.pause_event.clear()
+            self.condition.notify_all()
 
     def notify_settings_changed(self) -> None:
         with self.condition:
@@ -505,7 +600,7 @@ class DownloadManager:
             return sum(
                 1
                 for task in self.tasks.values()
-                if task.status not in {"Completado", "Error", "Cancelado"}
+                if task.status not in {"Completado", "Error", "Cancelado", "Interrumpido"}
             )
 
     def add(self, payload: dict[str, Any]) -> DownloadTask:
@@ -531,15 +626,18 @@ class DownloadManager:
             compression=dict(payload.get('compression') or {}),
             separation_device=payload.get('separation_device', 'cpu'),
         )
-        with self.lock:
+        with self.condition:
+            if self.stopping:
+                raise ValueError('VideoFlow se está cerrando.')
             if task.save_path and any(
                 existing.save_path == task.save_path
                 and existing.status not in {"Completado", "Error", "Cancelado"}
                 for existing in self.tasks.values()
             ):
                 raise ValueError("Ese archivo ya está reservado por otra descarga en curso.")
+            self.history.save_pending(task)
             self.tasks[task.id] = task
-        self.work_queue.put(task.id)
+            self.work_queue.put(task.id)
         return task
 
     def list(self) -> list[dict[str, Any]]:
@@ -565,16 +663,29 @@ class DownloadManager:
             task.status = "Pausado"
         return task
 
-    def resume(self, task_id: str) -> DownloadTask:
-        task = self._require(task_id)
-        if task.status == "Pausado":
-            task.pause_event.clear()
-            task.status = "Descargando"
-        return task
+    def resume(self, task_id: str, browser: str = "") -> DownloadTask:
+        with self.condition:
+            task = self._require(task_id)
+            if task.status == "Pausado":
+                task.pause_event.clear()
+                task.status = "Descargando"
+            elif task.status == "Interrumpido":
+                if self.stopping:
+                    raise ValueError('VideoFlow se está cerrando.')
+                if task.browser == 'cookies':
+                    if not isinstance(browser, str) or not browser.startswith('cookies:'):
+                        raise ValueError('Vuelve a seleccionar el archivo de cookies de YouTube en Inicio y pulsa Reanudar de nuevo.')
+                    task.browser = validate_youtube_session(browser)
+                task.phase = ""
+                task.status = "Pendiente"
+                self.work_queue.put(task.id)
+            return task
 
     def retry(self, task_id: str) -> DownloadTask:
         with self.condition:
             task = self._require(task_id)
+            if self.stopping:
+                raise ValueError('VideoFlow se está cerrando.')
             if not task.as_dict()['can_retry']:
                 raise ValueError('Solo se pueden reintentar descargas de Internet con error.')
             if task.id in self.running_tasks:
@@ -585,9 +696,10 @@ class DownloadManager:
                                       and other.status not in {'Completado', 'Error', 'Cancelado'}
                                       for other in self.tasks.values()):
                 raise ValueError('Ese archivo ya está reservado por otra descarga en curso.')
+            self.history.save_pending(task)
             task.pause_event.clear()
             task.cancel_event.clear()
-            task.error, task.phase, task.completed_at, task.final_path = '', '', '', ''
+            task.error, task.phase, task.completed_at, task.final_path, task.diagnostic = '', '', '', '', ''
             task.progress, task.downloaded_bytes, task.total_bytes, task.final_size = 0, 0, 0, 0
             task.speed, task.eta = 0, None
             task.status = 'Pendiente'
@@ -596,13 +708,19 @@ class DownloadManager:
             return task
 
     def cancel(self, task_id: str) -> DownloadTask:
-        task = self._require(task_id)
-        if task.status not in {"Completado", "Error", "Cancelado"}:
-            task.cancel_event.set()
-            task.pause_event.clear()
-            if task.status == "Pendiente":
-                task.status = "Cancelado"
-        return task
+        with self.condition:
+            task = self._require(task_id)
+            if task.status not in {"Completado", "Error", "Cancelado"}:
+                self.history.remove_pending(task.id)
+                self.suspended_tasks.discard(task.id)
+                task.cancel_event.set()
+                task.pause_event.clear()
+                if task.id not in self.running_tasks:
+                    task.status, task.phase = "Cancelado", ""
+                    if not task.local_path:
+                        self._cleanup_partials(Path(task.folder), task.id)
+                self.condition.notify_all()
+            return task
 
     def delete(self, task_id: str) -> None:
         with self.lock:
@@ -681,6 +799,8 @@ class DownloadManager:
                 slot_acquired = False
                 with self.condition:
                     while True:
+                        if self.stopping:
+                            return
                         if task.cancel_event.is_set():
                             task.status = "Cancelado"
                             break
@@ -701,9 +821,15 @@ class DownloadManager:
                 except Exception as exc:
                     task.status, task.error = 'Error', str(exc)
                     with self.condition:
-                        self.active_count -= 1
-                        self.running_tasks.discard(task.id)
-                        self.condition.notify_all()
+                        try:
+                            if not self.stopping:
+                                self.history.remove_pending(task.id)
+                        except sqlite3.Error:
+                            logging.getLogger(__name__).exception('No se pudo retirar un trabajo que no pudo iniciar.')
+                        finally:
+                            self.active_count -= 1
+                            self.running_tasks.discard(task.id)
+                            self.condition.notify_all()
             finally:
                 self.work_queue.task_done()
 
@@ -712,10 +838,17 @@ class DownloadManager:
             self._download(task)
         except Exception as exc:
             task.status, task.error = 'Error', str(exc)
+            task.diagnostic = classify_failure(exc, task.local_path)
         finally:
             with self.condition:
+                try:
+                    if task.status == 'Completado' or task.id not in self.suspended_tasks:
+                        self.history.remove_pending(task.id, keep_prepared=task.status == 'Error')
+                except sqlite3.Error:
+                    logging.getLogger(__name__).exception('No se pudo actualizar la cola al terminar un trabajo.')
                 self.active_count = max(0, self.active_count - 1)
                 self.running_tasks.discard(task.id)
+                self.suspended_tasks.discard(task.id)
                 self.condition.notify_all()
         sound = {"Completado": "complete", "Error": "error"}.get(task.status)
         if sound and os.name == "nt" and self.settings.load()['sounds'].get(sound):
@@ -937,6 +1070,8 @@ class DownloadManager:
                     raise FileExistsError("El archivo elegido ya existe. Usa Guardar como para confirmar si deseas reemplazarlo.")
                 if target.is_dir():
                     raise IsADirectoryError("La ruta elegida corresponde a una carpeta.")
+                self._wait_if_paused(task)
+                self.history.prepare_output(task, final_file, target)
                 final_file.replace(target)
                 for subtitle in folder.glob('*.srt'):
                     if f'[{task.id}]' in subtitle.name:
@@ -946,6 +1081,8 @@ class DownloadManager:
                         subtitle.rename(subtitle_target)
                 final_file = target
 
+            if not task.save_path:
+                self.history.prepare_output(task, final_file, final_file)
             task.final_path = str(final_file.resolve())
             task.final_size = final_file.stat().st_size
             task.total_bytes = task.final_size
@@ -958,7 +1095,8 @@ class DownloadManager:
         except DownloadCancelled:
             task.status = "Cancelado"
             task.error = ""
-            self._cleanup_partials(Path(task.folder), task.id)
+            if task.id not in self.suspended_tasks:
+                self._cleanup_partials(Path(task.folder), task.id)
         except Exception as exc:
             if task.cancel_event.is_set():
                 task.status = "Cancelado"
@@ -966,7 +1104,9 @@ class DownloadManager:
             else:
                 task.status = "Error"
                 task.error = describe_error(exc, task.source)
-            self._cleanup_partials(Path(task.folder), task.id)
+                task.diagnostic = classify_failure(exc, task.local_path, task.phase, task.progress)
+            if task.id not in self.suspended_tasks:
+                self._cleanup_partials(Path(task.folder), task.id)
 
     def _strip_audio(self, task: DownloadTask, source_file: Path) -> Path:
         target_file = source_file.with_name(source_file.stem + ".video-only" + source_file.suffix)
@@ -1095,9 +1235,11 @@ class DownloadManager:
 
     @staticmethod
     def _cleanup_partials(folder: Path, video_id: str) -> None:
-        if not folder.exists():
+        try:
+            paths = list(folder.iterdir())
+        except OSError:
             return
-        for path in folder.iterdir():
+        for path in paths:
             if not path.is_file() or f"[{video_id}]" not in path.name:
                 continue
             if path.name.lower().endswith((".part", ".ytdl", ".temp")) or re.search(r'\.part-Frag\d+(?:\.part)?$', path.name, re.IGNORECASE):
@@ -1405,7 +1547,8 @@ def api_download_action(task_id: str, action: str):
         if action == "pause":
             task = download_manager.pause(task_id)
         elif action == "resume":
-            task = download_manager.resume(task_id)
+            data = request.get_json(silent=True)
+            task = download_manager.resume(task_id, data.get('browser', '') if isinstance(data, dict) else '')
         elif action == "cancel":
             task = download_manager.cancel(task_id)
         elif action == "retry":

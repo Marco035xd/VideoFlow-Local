@@ -115,6 +115,7 @@ def convert(task, history, find_tool):
             raise ValueError('El destino no puede ser el archivo original.')
         if target.exists() and not task.overwrite:
             raise ValueError('El archivo de destino ya existe. Elige otro nombre con Guardar como.')
+        history.prepare_output(task, partial, target)
         if task.overwrite:
             partial.replace(target)
         else:
