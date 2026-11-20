@@ -30,6 +30,12 @@ La pantalla de inicio permite elegir la plataforma, pegar uno o varios enlaces y
 
 Descarga y ejecuta el instalador de Windows desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
+### Actualizar FFmpeg desde Configuración · versión 1.6.30
+
+En **Configuración → Conexión y recuperación**, pulsa **Actualizar FFmpeg** cuando aparezca una nueva versión. VideoFlow descarga la compilación completa de Gyan, verifica su SHA-256 y comprueba que FFmpeg y FFprobe funcionen y coincidan. Los dos se guardan en los datos de VideoFlow. [Compilaciones de FFmpeg para Windows](https://www.gyan.dev/ffmpeg/builds/)
+
+Cuando la app indique que la actualización está lista, ciérrala por completo y vuelve a abrirla. Si VideoFlow se queda en la bandeja, usa **Salir** en el icono junto al reloj. Las tareas en curso conservan la compilación que estaban usando durante la descarga y la verificación.
+
 ### Cola recuperable, búsqueda y diagnóstico · versión 1.6.29
 
 En **Descargas**, los trabajos pendientes o en curso aparecen como **Interrumpido** después de reiniciar VideoFlow. Pulsa **Reanudar** para continuar con su formato, pista y destino. Las descargas compatibles aprovechan sus archivos parciales. Las conversiones locales vuelven a empezar y los trabajos en incógnito duran solo la sesión. Si usaste un archivo de cookies de YouTube, vuelve a seleccionarlo en **Inicio** antes de reanudar.
@@ -160,7 +166,7 @@ La ventana flotante distribuye toda su altura entre video y controles. Conserva 
 
 En escritorio, **Picture-in-Picture** abre una miniventana propia siempre encima. Arrastra el video para moverla en vivo. Este movimiento usa la región de arrastre de la app y conserva la reproducción. Usa ↗ para volver al reproductor principal o × para cerrar. En el modo navegador se utiliza PiP nativo cuando está disponible.
 
-Cada inicio comprueba la versión estable de FFmpeg en segundo plano mediante la API de versiones de Gyan. Configuración muestra la versión instalada, la última publicada y la hora de comprobación; si hay una nueva, aparece un aviso y un enlace a la página del proveedor. **Comprobar ahora** repite la consulta. La comprobación avisa de las actualizaciones y la descarga se abre al pulsar el enlace. Sin conexión, la app conserva sus funciones locales y permite reintentar la búsqueda.
+Cada inicio comprueba la versión estable de FFmpeg en segundo plano mediante la API de versiones de Gyan. Configuración muestra la versión instalada, la última publicada y la hora de comprobación. **Comprobar ahora** repite la consulta. Desde la versión 1.6.30, puedes descargar e instalar las actualizaciones dentro de VideoFlow.
 
 ### Reproductor y secreto retro · versión 1.6.2
 

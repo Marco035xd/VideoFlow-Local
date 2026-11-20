@@ -7,6 +7,7 @@ data/wallpapers.db*
 data/player-background.webp
 data/webview/
 data/separation-models/
+data/ffmpeg-runtime/
 build/
 dist/
 release/

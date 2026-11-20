@@ -30,6 +30,7 @@ from audio_tracks import available_tracks, restrict_audio_selector
 from youtube_session import session_options, validate_choice as validate_youtube_session
 from network_recovery import CONNECTION_MODES, connection_error_message, run_with_recovery
 from download_diagnostics import classify_failure
+from ffmpeg_updates import TOOLS as FFMPEG_TOOLS, register as register_ffmpeg_updates, select_managed_pair
 from youtube_cdn import YouTubeCDNDownloader
 from download_gallery import create_gallery, record_video, register as register_gallery
 
@@ -132,7 +133,7 @@ def source_for_url(url: str) -> str | None:
                  if any(host == domain or host.endswith("." + domain) for domain in platform.domains)), None)
 
 
-def find_tool(name: str) -> str | None:
+def find_unmanaged_tool(name: str) -> str | None:
     bundled = APP_DIR / "bin" / (name + ".exe")
     if IS_FROZEN and bundled.is_file():
         return str(bundled)
@@ -147,6 +148,16 @@ def find_tool(name: str) -> str | None:
         if local.exists():
             candidates.extend(local.glob(f"{package}/**/{exe}"))
     return next((str(path) for path in candidates if path.is_file()), None)
+
+
+FFMPEG_RUNTIME = DATA_DIR / 'ffmpeg-runtime'
+MANAGED_FFMPEG = select_managed_pair(FFMPEG_RUNTIME, find_unmanaged_tool) if os.name == 'nt' else None
+
+
+def find_tool(name: str) -> str | None:
+    if MANAGED_FFMPEG and name in FFMPEG_TOOLS:
+        return str(MANAGED_FFMPEG / f'{name}.exe')
+    return find_unmanaged_tool(name)
 
 
 def ydl_environment(source: str = "YouTube", browser: str = "", connection_mode: str | None = None) -> dict[str, Any]:
@@ -1842,8 +1853,7 @@ register_media_tools(app, download_manager, settings_store)
 register_gallery(app, history_store, PLATFORMS, find_tool, human_duration)
 from wallpapers import register as register_wallpapers
 register_wallpapers(app, settings_store)
-from ffmpeg_updates import register as register_ffmpeg_updates
-ffmpeg_updates = register_ffmpeg_updates(app, find_tool)
+ffmpeg_updates = register_ffmpeg_updates(app, find_tool, FFMPEG_RUNTIME)
 
 
 if __name__ == "__main__":

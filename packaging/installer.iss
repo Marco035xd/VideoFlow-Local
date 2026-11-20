@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "1.6.29"
+  #define AppVersion "1.6.30"
 #endif
 #define ProjectRoot SourcePath + ".."
 #ifndef BuildOutput

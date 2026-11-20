@@ -598,7 +598,18 @@
 
               <div class="settings-group">
                 <h4>Conexión y recuperación</h4>
-                <div class="ffmpeg-update-card"><div><strong id="ffmpegUpdateStatus" role="status">Se comprobará FFmpeg al iniciar la aplicación.</strong><p id="ffmpegUpdateVersions">Buscando información de versiones…</p><small>La búsqueda se realiza en segundo plano en cada inicio. Las versiones nuevas se descargan desde el proveedor de FFmpeg para Windows.</small></div><div class="studio-player-controls"><button id="ffmpegCheck" class="secondary-button" type="button">Comprobar ahora</button><a id="ffmpegDownload" class="secondary-button hidden" href="https://www.gyan.dev/ffmpeg/builds/" target="_blank" rel="noopener noreferrer">Abrir descarga oficial</a></div></div>
+                <div class="ffmpeg-update-card">
+                  <strong id="ffmpegUpdateStatus" role="status">Se comprobará FFmpeg al iniciar la aplicación.</strong>
+                  <p id="ffmpegUpdateVersions">Buscando información de versiones…</p>
+                  <small id="ffmpegUpdateError" class="hidden" role="status"></small>
+                  <progress id="ffmpegUpdateProgress" class="hidden" max="100" aria-label="Progreso de la actualización de FFmpeg"></progress>
+                  <small>VideoFlow comprueba las versiones al iniciar. Puedes instalar FFmpeg y FFprobe desde aquí y aplicarlos la próxima vez que abras la app.</small>
+                  <div class="studio-player-controls">
+                    <button id="ffmpegInstall" class="primary-button hidden" type="button">Actualizar FFmpeg</button>
+                    <button id="ffmpegCheck" class="secondary-button" type="button">Comprobar ahora</button>
+                    <a id="ffmpegDownload" class="secondary-button hidden" href="https://www.gyan.dev/ffmpeg/builds/" target="_blank" rel="noopener noreferrer">Abrir descarga oficial</a>
+                  </div>
+                </div>
                 <div class="field-grid"><label class="form-field"><span>Límite por descarga (KB/s, 0 = sin límite)</span><input id="settingsRate" type="number" min="0" max="102400" step="1"></label><label class="form-field"><span>Reintentos ante errores de red</span><input id="settingsRetries" type="number" min="0" max="20" step="1"></label></div>
                 <label class="form-field" for="settingsYouTubeConnection"><span>Conexión para YouTube</span><select id="settingsYouTubeConnection"><option value="auto">Automática · recuperar mediante IPv4</option><option value="ipv4">IPv4</option><option value="ipv6">IPv6 · requiere soporte de tu red</option></select></label>
                 <p class="field-hint">Si el video abre en el navegador pero la descarga agota el tiempo de espera, prueba IPv4 o IPv6 y guarda la configuración. Automática renueva el enlace una vez mediante IPv4 tras un fallo de conexión; 0 reintentos desactiva esa recuperación.</p>
