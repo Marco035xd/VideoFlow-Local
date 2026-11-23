@@ -3223,6 +3223,18 @@
     "Could not select the cookies file.",
     "Não foi possível selecionar o arquivo de cookies."
   ],
+  "Este video es privado y no está disponible para el público. Si el propietario te dio acceso, abre el video con la cuenta autorizada, elige ese navegador en «Sesión de YouTube» y vuelve a analizar.": [
+    "This video is private and unavailable to the public. If the owner gave you access, open the video with the authorized account, select that browser under YouTube session and analyze again.",
+    "Este vídeo é privado e não está disponível para o público. Se o proprietário concedeu acesso, abra o vídeo com a conta autorizada, escolha esse navegador em Sessão do YouTube e analise novamente."
+  ],
+  "Este video tiene restricción de edad. Inicia sesión en YouTube y confirma tu edad si te lo solicita. Si puedes reproducirlo, elige ese navegador en «Sesión de YouTube» y vuelve a analizar.": [
+    "This video is age-restricted. Sign in to YouTube and confirm your age if prompted. If it plays, select that browser under YouTube session and analyze again.",
+    "Este vídeo tem restrição de idade. Entre no YouTube e confirme sua idade se solicitado. Se conseguir reproduzi-lo, escolha esse navegador em Sessão do YouTube e analise novamente."
+  ],
+  "Este video fue retirado o no está disponible en YouTube.": [
+    "This video was removed or is unavailable on YouTube.",
+    "Este vídeo foi removido ou não está disponível no YouTube."
+  ],
   "YouTube solicita confirmar el acceso a este video. Ábrelo en tu navegador, inicia sesión y completa allí la comprobación si aparece. Luego elige esa sesión en «Sesión de YouTube» y vuelve a analizar.": [
     "YouTube requires access verification for this video. Open it in your browser, sign in and complete any verification shown there. Then select that session under YouTube session and analyze again.",
     "O YouTube exige confirmar o acesso a este vídeo. Abra-o no navegador, entre na sua conta e conclua a verificação, se aparecer. Depois escolha essa sessão em Sessão do YouTube e analise novamente."

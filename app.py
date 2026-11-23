@@ -29,7 +29,7 @@ from download_options import validate_options, video_selector, apply_options
 from audio_tracks import available_tracks, restrict_audio_selector
 from youtube_session import session_options, validate_choice as validate_youtube_session
 from network_recovery import CONNECTION_MODES, connection_error_message, run_with_recovery
-from download_diagnostics import classify_failure
+from download_diagnostics import classify_failure, youtube_playability_message
 from ffmpeg_updates import TOOLS as FFMPEG_TOOLS, register as register_ffmpeg_updates, select_managed_pair
 from youtube_cdn import YouTubeCDNDownloader
 from download_gallery import create_gallery, record_video, register as register_gallery
@@ -183,13 +183,16 @@ def ydl_environment(source: str = "YouTube", browser: str = "", connection_mode:
     return options
 
 
-def describe_error(exc: Exception, source: str) -> str:
+def describe_error(exc: Exception | str, source: str) -> str:
     message = str(exc).strip() or exc.__class__.__name__
     connection_message = connection_error_message(message, source)
     if connection_message:
         return connection_message
     lower = message.lower()
     if source == 'YouTube':
+        playability = youtube_playability_message(message)
+        if playability:
+            return playability
         if 'sign in to confirm' in lower or 'not a bot' in lower:
             return 'YouTube solicita confirmar el acceso a este video. Ábrelo en tu navegador, inicia sesión y completa allí la comprobación si aparece. Luego elige esa sesión en «Sesión de YouTube» y vuelve a analizar.'
         if ('could not copy' in lower and 'cookie' in lower) or 'database is locked' in lower:
@@ -483,6 +486,9 @@ class DownloadTask:
         return payload
 
     def as_dict(self) -> dict[str, Any]:
+        error = self.error
+        if self.source == 'YouTube' and self.status == 'Error':
+            error = youtube_playability_message(error) or error
         return {
             "id": self.id,
             "url": self.url,
@@ -510,7 +516,7 @@ class DownloadTask:
             "speed_human": f"{human_bytes(self.speed)}/s" if self.speed else "—",
             "eta": self.eta,
             "eta_human": human_duration(self.eta),
-            "error": self.error,
+            "error": error,
             "diagnostic": (self.diagnostic or classify_failure(self.error, self.local_path, self.phase, self.progress))
                           if self.status == 'Error' else '',
             "needs_cookie_file": self.status == 'Interrumpido' and self.browser == 'cookies',
