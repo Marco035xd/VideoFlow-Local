@@ -15,6 +15,14 @@
     </div>
     <div class="form-field"><label for="collectionFolder">Carpeta de destino</label><div class="folder-input"><input id="collectionFolder" readonly><button id="collectionBrowse" class="secondary-button" type="button">Elegir carpeta</button></div></div>
     {{ options('collection') }}
+    <div id="collectionEstimate" class="collection-estimate hidden">
+      <div role="status" aria-live="polite" aria-atomic="true">
+        <strong id="collectionEstimateLabel">Tamaño estimado de la colección</strong>
+        <strong id="collectionEstimateSize" translate="no"></strong>
+        <p id="collectionEstimateDetail" class="field-hint"></p>
+      </div>
+      <button id="collectionEstimateRetry" class="text-button hidden" type="button">Volver a calcular</button>
+    </div>
     <button id="collectionDownload" class="primary-button" type="button">Descargar colección</button>
     <p id="collectionFeedback" class="field-hint" role="status" aria-live="polite"></p>
     <p class="field-hint">Se omiten duplicados dentro de la colección y entradas privadas no disponibles. El progreso de cada video aparece en Descargas; los errores de un video no detienen los demás.</p>

@@ -3337,5 +3337,19 @@
   "Fondo aplicado y guardado.": ["Wallpaper applied and saved.", "Papel de parede aplicado e salvo."],
   "Selecciona un fondo guardado.": ["Select a saved wallpaper.", "Selecione um papel de parede salvo."],
   "No se pudo guardar o leer la galería de fondos.": ["Could not save or read the wallpaper gallery.", "Não foi possível salvar ou ler a galeria de papéis de parede."],
-  "Opacidad del fondo": ["Wallpaper opacity", "Opacidade do fundo"]
+  "Opacidad del fondo": ["Wallpaper opacity", "Opacidade do fundo"],
+  "Filtrar por estado": ["Filter by status", "Filtrar por status"],
+  "Todos los estados": ["All statuses", "Todos os status"],
+  "Solo errores": ["Errors only", "Só erros"],
+  "No hay descargas con ese estado.": ["No downloads match this status.", "Nenhum download com esse status."],
+  "Inténtalo de nuevo.": ["Try again.", "Tente novamente."],
+  "Tamaño estimado de la colección": ["Estimated collection size", "Tamanho estimado da coleção"],
+  "Subtotal estimado de la colección": ["Estimated collection subtotal", "Subtotal estimado da coleção"],
+  "Calculando el tamaño de la colección…": ["Estimating collection size…", "Calculando o tamanho da coleção…"],
+  "No se pudo estimar el tamaño con los datos disponibles.": ["The available data was insufficient to estimate the size.", "Os dados disponíveis não foram suficientes para estimar o tamanho."],
+  "{0} de {1} videos estimados.": ["Estimated {0} of {1} videos.", "{0} de {1} vídeos estimados."],
+  "Proyección a partir de {0} videos.": ["Projected from {0} videos.", "Projeção baseada em {0} vídeos."],
+  "El tamaño final puede variar.": ["The final size may vary.", "O tamanho final pode variar."],
+  "Volver a calcular": ["Recalculate", "Calcular novamente"],
+  "La estimación ya no está disponible.": ["The estimate is no longer available.", "A estimativa não está mais disponível."]
 }

@@ -30,6 +30,12 @@ La pantalla de inicio permite elegir la plataforma, pegar uno o varios enlaces y
 
 Descarga y ejecuta el instalador de Windows desde la sección [Releases del repositorio](https://github.com/Marco035xd/VideoFlow-Local/releases). Es compatible con Windows 10 (versión 1809 o posterior) y Windows 11 de 64 bits.
 
+### Filtros de descargas y tamaño de colecciones · versión 1.6.31
+
+En **Descargas**, usa **Solo errores** para encontrar los trabajos fallidos. Puedes ordenar por fecha o título y copiar el enlace original desde la tarjeta del video.
+
+En **Listas y canales**, pega un enlace de YouTube y elige el contenido, formato y calidad. La app muestra un tamaño aproximado antes de añadir los videos a la cola. Si faltan datos de algunos videos, muestra el subtotal y cuántos pudo estimar. En las colecciones grandes, puede proyectar el tamaño a partir de una muestra de videos.
+
 ### Actualizar FFmpeg desde Configuración · versión 1.6.30
 
 En **Configuración → Conexión y recuperación**, pulsa **Actualizar FFmpeg** cuando aparezca una nueva versión. VideoFlow descarga la compilación completa de Gyan, verifica su SHA-256 y comprueba que FFmpeg y FFprobe funcionen y coincidan. Los dos se guardan en los datos de VideoFlow. [Compilaciones de FFmpeg para Windows](https://www.gyan.dev/ffmpeg/builds/)

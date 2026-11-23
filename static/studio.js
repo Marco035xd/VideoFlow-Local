@@ -2,6 +2,7 @@ let vaultConfigured = true;
 let studioBound = false;
 let vaultBusy = false;
 let vaultRefreshing = false;
+const collectionEstimate = {revision: 0, timer: null, requestId: '', body: ''};
 
 function advancedOptions(prefix='download') {
   return {fps:$('#'+prefix+'Fps').value, dynamic_range:$('#'+prefix+'Range').value,
@@ -32,6 +33,84 @@ function collectionQuality() {
   const options=audio?(bitrate?[[320,'320 kbps'],[192,'192 kbps'],[128,'128 kbps']]:[[0,'Mejor disponible']]):[[0,'Mejor disponible'],[4320,'8K · hasta 4320p'],[2160,'4K · hasta 2160p'],[1440,'2K · hasta 1440p'],[1080,'Hasta 1080p'],[720,'Hasta 720p'],[480,'Hasta 480p']];
   $('#collectionQuality').replaceChildren(...options.map(([v,l])=>new Option(l,v)));
 }
+
+function collectionPayload() {
+  return {
+    url: $('#collectionUrl').value.trim(), browser: youtubeSessionChoice(),
+    mode: $('#collectionMode').value, format: $('#collectionFormat').value, quality: $('#collectionQuality').value,
+    advanced: advancedOptions('collection'),
+  };
+}
+
+function showCollectionEstimate(detail, result, retry = false) {
+  const subtotal = result && result.estimated < result.total;
+  $('#collectionEstimateLabel').textContent = subtotal ? 'Subtotal estimado de la colección' : 'Tamaño estimado de la colección';
+  $('#collectionEstimateSize').textContent = result ? '≈ ' + compressionBytes(result.size_bytes) : '';
+  $('#collectionEstimateDetail').textContent = detail;
+  $('#collectionEstimateRetry').classList.toggle('hidden', !retry);
+}
+
+function cancelCollectionEstimate(id) {
+  if (id) api('/api/collections/estimate/' + id, {method: 'DELETE'}).catch(() => {});
+}
+
+async function pollCollectionEstimate(id, revision) {
+  const result = await api('/api/collections/estimate/' + id);
+  if (revision !== collectionEstimate.revision) return;
+  if (result.status === 'pending') {
+    collectionEstimate.timer = setTimeout(() => {
+      pollCollectionEstimate(id, revision).catch(() => failCollectionEstimate(revision));
+    }, 1000);
+    return;
+  }
+  if (result.status === 'error' || !result.estimated) {
+    failCollectionEstimate(revision);
+    return;
+  }
+  let detail = result.estimated + ' de ' + result.total + ' videos estimados.';
+  if (result.projected) detail += ' · Proyección a partir de ' + result.samples + ' videos.';
+  detail += ' · El tamaño final puede variar.';
+  showCollectionEstimate(detail, result);
+}
+
+function failCollectionEstimate(revision) {
+  if (revision === collectionEstimate.revision) {
+    showCollectionEstimate('No se pudo estimar el tamaño con los datos disponibles.', null, true);
+  }
+}
+
+function scheduleCollectionEstimate(force = false) {
+  const hasLink = Boolean($('#collectionUrl').value.trim());
+  let body = '', error = '';
+  if (hasLink) {
+    try { body = JSON.stringify(collectionPayload()); }
+    catch (exception) { error = exception.message; }
+  }
+  if (!force && body && body === collectionEstimate.body) return;
+  collectionEstimate.body = body;
+  const revision = ++collectionEstimate.revision;
+  clearTimeout(collectionEstimate.timer);
+  cancelCollectionEstimate(collectionEstimate.requestId);
+  collectionEstimate.requestId = '';
+  $('#collectionEstimate').classList.toggle('hidden', !hasLink);
+  if (!hasLink) return;
+  showCollectionEstimate(error || 'Calculando el tamaño de la colección…');
+  if (error) return;
+  collectionEstimate.timer = setTimeout(async () => {
+    try {
+      const {id} = await api('/api/collections/estimate', {method: 'POST', body});
+      if (revision !== collectionEstimate.revision) {
+        cancelCollectionEstimate(id);
+        return;
+      }
+      collectionEstimate.requestId = id;
+      await pollCollectionEstimate(id, revision);
+    } catch (exception) {
+      if (revision === collectionEstimate.revision) showCollectionEstimate(exception.message, null, true);
+    }
+  }, 650);
+}
+
 async function refreshCollections() {
   const {collections}=await api('/api/collections');
   const list=$('#collectionJobs'); list.replaceChildren();
@@ -92,6 +171,13 @@ function initStudio() {
   initFFmpegUpdates();
   collectionFormats();
   $('#collectionMode').onchange=collectionFormats;$('#collectionFormat').onchange=collectionQuality;
+  for (const input of $$('#page-collections input:not([readonly]), #page-collections select')) {
+    input.addEventListener(input.matches('select, [type=checkbox]') ? 'change' : 'input', () => scheduleCollectionEstimate());
+  }
+  $('#collectionEstimateRetry').onclick = () => scheduleCollectionEstimate(true);
+  window.addEventListener('videoflow:navigate', ({detail}) => {
+    if (detail.page === 'collections') scheduleCollectionEstimate();
+  });
   $('#collectionBrowse').onclick=()=>pickFolder('#collectionFolder');$('#browserBrowse').onclick=()=>pickFolder('#browserFolder');
   $('#collectionDownload').onclick=async()=>{
     const button=$('#collectionDownload'),feedback=$('#collectionFeedback');
@@ -99,7 +185,7 @@ function initStudio() {
     if(!url){feedback.textContent='Pega el enlace de una lista o un canal de YouTube.';$('#collectionUrl').focus();return;}
     button.disabled=true;feedback.classList.remove('error-message');feedback.textContent='Iniciando la lectura de la colección…';
     try {
-      await api('/api/collections',{method:'POST',body:JSON.stringify({url,browser:youtubeSessionChoice(),format:$('#collectionFormat').value,mode:$('#collectionMode').value,quality:$('#collectionQuality').value,folder:$('#collectionFolder').value,advanced:advancedOptions('collection')})});
+      await api('/api/collections',{method:'POST',body:JSON.stringify({...collectionPayload(),folder:$('#collectionFolder').value})});
       feedback.textContent='Colección iniciada. El estado de lectura aparece abajo; cada canción o video se descarga en Descargas.';
       toast('Colección iniciada','Los videos se añadirán conforme se lea la lista.');
       refreshCollections().catch(()=>{feedback.textContent='La colección se inició, pero no se pudo actualizar su estado. Vuelve a entrar en Listas y canales.';});

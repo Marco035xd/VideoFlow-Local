@@ -524,6 +524,10 @@ function actionButtons(task) {
     if (task.diagnostic) buttons.push(`<button class="action-button" data-action="diagnosis" data-id="${task.id}" title="Ver diagnóstico" aria-label="Ver diagnóstico">ⓘ</button>`);
     buttons.push(`<button class="action-button danger" data-action="delete" data-id="${task.id}" title="Quitar de la lista">⌫</button>`);
   }
+  const videoUrl = task.original_url || task.url;
+  if (!task.incognito && /^https?:\/\//i.test(videoUrl || "")) {
+    buttons.unshift(`<button class="action-button" type="button" data-action="copy" data-url="${escapeHtml(videoUrl)}" title="Copiar enlace" aria-label="Copiar enlace del video">⎘</button>`);
+  }
   return buttons.join("");
 }
 
@@ -531,10 +535,19 @@ function renderDownloads() {
   renderSeparationJobs();
   const list = $("#downloadList");
   const empty = $("#emptyDownloads");
+  const filter = $("#downloadFilter").value;
+  const order = $("#downloadOrder").value;
+  const visible = state.downloads.filter(task => !filter || task.status === filter);
+  if (order === "oldest") visible.reverse();
+  if (order === "title") {
+    const collator = new Intl.Collator(window.VideoFlowI18n.locale, {sensitivity: "base", numeric: true});
+    visible.sort((a, b) => collator.compare(a.title, b.title));
+  }
   empty.classList.toggle("hidden", state.downloads.length > 0);
-  list.classList.toggle("hidden", state.downloads.length === 0);
+  list.classList.toggle("hidden", visible.length === 0);
+  $("#emptyDownloadFilter").classList.toggle("hidden", !state.downloads.length || visible.length > 0);
 
-  list.innerHTML = state.downloads.map((task) => {
+  list.innerHTML = visible.map((task) => {
     const total = task.total_human !== "—" ? task.total_human : task.estimated_size_human;
     const detail = task.status === "Descargando"
       ? task.phase || `${task.speed_human} · ${task.eta_human} restantes`
@@ -802,12 +815,12 @@ function historyUrlCell(url = "") {
   return `<div class="history-url"><a href="${escaped}" target="_blank" rel="noopener noreferrer" title="${escaped}">${escaped}</a><button class="text-button" type="button" data-copy-url="${escaped}" aria-label="Copiar enlace del video">Copiar</button></div>`;
 }
 
-async function copyHistoryUrl(url) {
+async function copyVideoUrl(url, failureHint = "Puedes abrir el enlace y copiarlo desde la barra del navegador.") {
   try {
     await navigator.clipboard.writeText(url);
     toast("Enlace copiado", "La URL del video está en el portapapeles.", "success");
   } catch {
-    toast("No se pudo copiar", "Puedes abrir el enlace y copiarlo desde la barra del navegador.", "error");
+    toast("No se pudo copiar", failureHint, "error");
   }
 }
 
@@ -978,6 +991,8 @@ function bindEvents() {
     if (event.target.id === "confirmModal") closeConfirm(false);
   });
 
+  $("#downloadFilter").addEventListener("change", renderDownloads);
+  $("#downloadOrder").addEventListener("change", renderDownloads);
   $("#downloadList").addEventListener("click", (event) => {
     const button = event.target.closest("[data-action]");
     if (!button) return;
@@ -988,6 +1003,7 @@ function bindEvents() {
     }
     if (action === "delete") deleteDownload(id);
     if (action === "open") openPath(path);
+    if (action === "copy") copyVideoUrl(button.dataset.url, "Inténtalo de nuevo.");
     if (action === "diagnosis") openDownloadDiagnosis(state.downloads.find(task => task.id === id));
   });
 
@@ -995,7 +1011,7 @@ function bindEvents() {
     const button = event.target.closest("[data-open-path]");
     if (button) openPath(button.dataset.openPath);
     const copyButton = event.target.closest("[data-copy-url]");
-    if (copyButton) copyHistoryUrl(copyButton.dataset.copyUrl);
+    if (copyButton) copyVideoUrl(copyButton.dataset.copyUrl);
     const repeatButton = event.target.closest("[data-redownload-id]");
     if (repeatButton) redownloadFromHistory(repeatButton.dataset.redownloadId, repeatButton);
   });

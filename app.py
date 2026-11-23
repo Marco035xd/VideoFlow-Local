@@ -486,6 +486,7 @@ class DownloadTask:
         return {
             "id": self.id,
             "url": self.url,
+            "original_url": self.original_url or self.url,
             "video_id": self.video_id,
             "title": self.title,
             "thumbnail": self.thumbnail,

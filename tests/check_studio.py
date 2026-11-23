@@ -95,6 +95,57 @@ with tempfile.TemporaryDirectory(prefix='videoflow-studio-') as temporary:
         assert (job['added'], job['skipped']) == (350, 2), job
     wait_for(lambda: manager.count_unfinished() == 0)
 
+    # Estimation reads catalog metadata and a bounded sample without writing any files or queue entries.
+    class EstimateYDL:
+        calls = []
+
+        def __init__(self, options):
+            self.options = options
+            assert options['skip_download']
+
+        def __enter__(self): return self
+        def __exit__(self, *_): pass
+
+        def extract_info(self, url, download):
+            assert download is False
+            self.calls.append((url, self.options.get('format')))
+            if 'list=' in url:
+                entries = [dict(id=f'clip{i}', duration=60) for i in range(10)]
+                return {'entries': [*entries, entries[0], {'id': 'unknown'}, {'id': 'private', 'availability': 'private'}]}
+            if url.endswith('unknown'):
+                return None
+            tracks = [{'filesize': 6_000_000, 'acodec': 'none'}, {'filesize_approx': 960_000, 'vcodec': 'none'}]
+            if self.options['format'] == 'bestvideo[height<=480]/best[height<=480]':
+                return {'duration': 60, **tracks[0]}
+            assert self.options['format'] == 'bestvideo[height<=720]+bestaudio/best[height<=720]'
+            return {'duration': 60, 'requested_formats': tracks}
+
+    estimate_payload = dict(url='https://www.youtube.com/playlist?list=estimate-fixture', folder=str(root / 'preview-only'))
+
+    def estimate(**options):
+        response = client.post('/api/collections/estimate', json={**estimate_payload, **options})
+        assert response.status_code == 202, response.json
+        path = '/api/collections/estimate/' + response.json['id']
+        wait_for(lambda: client.get(path).json['status'] != 'pending')
+        return client.get(path).json
+
+    with patch('collection_estimates.yt_dlp.YoutubeDL', EstimateYDL):
+        assert client.post('/api/collections/estimate', json={'url': 'https://example.com/'}).status_code == 400
+        assert estimate(mode='audio', format='mp3', quality=320) == {
+            'ok': True, 'status': 'ready', 'size_bytes': 24_000_000, 'estimated': 10, 'total': 11,
+            'samples': 0, 'projected': False,
+        }
+        assert len(EstimateYDL.calls) == 1
+        assert estimate(mode='video_audio', format='mp4', quality=720) == {
+            'ok': True, 'status': 'ready', 'size_bytes': 69_600_000, 'estimated': 10, 'total': 11,
+            'samples': 5, 'projected': True,
+        }
+        assert len(EstimateYDL.calls) == 7
+        assert estimate(mode='video_only', format='mp4', quality=480)['size_bytes'] == 60_000_000
+        assert estimate(mode='audio', format='ogg', quality=192, advanced={'start': '30', 'end': '45'})['size_bytes'] == 3_600_000
+        assert not (root / 'preview-only').exists()
+        assert client.get('/api/downloads').json['downloads'] == []
+
     # PIN failures, encrypted names/data, process restart and corrupted ciphertext.
     vault = Vault(root / 'private')
     vault.unlock('12345678')

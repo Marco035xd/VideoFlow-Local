@@ -1,6 +1,9 @@
 .studio-advanced{margin:20px 0;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .studio-advanced summary{font-weight:650;cursor:pointer;padding:4px 0}
 .studio-advanced[open] summary{margin-bottom:16px}
+.collection-estimate { margin: 0 0 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
+#collectionEstimateSize:not(:empty) { margin-inline-start: 10px; color: var(--primary); white-space: nowrap; }
+.collection-estimate .field-hint { margin: 6px 0 0; }
 .studio-checks,.studio-player-controls{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:18px 0}
 .studio-checks label{display:flex;align-items:center;gap:8px;font-size:13px}
 .studio-checks input{width:17px;height:17px;accent-color:var(--primary)}

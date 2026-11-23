@@ -5,6 +5,48 @@ from pathlib import Path
 
 import yt_dlp
 from download_options import validate_options, VIDEO_FORMATS, AUDIO_FORMATS
+from youtube_session import validate_choice
+
+
+def collection_options(payload, source_for_url):
+    url = str(payload.get('url', '')).strip()
+    if source_for_url(url) != 'YouTube':
+        raise ValueError('Pega el enlace de una lista o un canal de YouTube.')
+    mode, fmt = payload.get('mode', 'video_audio'), payload.get('format', 'mp4')
+    if mode not in {'audio', 'video_only', 'video_audio'} or fmt not in (AUDIO_FORMATS if mode == 'audio' else VIDEO_FORMATS - {'vob'}):
+        raise ValueError('Formato de la colección no válido.')
+    quality = int(payload.get('quality', 0))
+    audio_qualities = {128, 192, 320} if fmt in {'mp3', 'ogg'} else {0}
+    video_qualities = {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}
+    if quality not in (audio_qualities if mode == 'audio' else video_qualities):
+        raise ValueError('Calidad de la colección no válida.')
+    advanced = validate_options({**payload, 'mode': mode, 'format': fmt})
+    browser = validate_choice(payload.get('browser') or '')
+    return url, dict(format=fmt, mode=mode, quality=str(quality), advanced=advanced, browser=browser)
+
+
+def collection_entries(info, source_for_url, check):
+    def flatten(entry):
+        check()
+        if entry and (entry.get('_type') in ('playlist', 'multi_video') or 'entries' in entry):
+            for child in entry.get('entries') or ():
+                yield from flatten(child)
+        else:
+            yield entry
+
+    seen = set()
+    for entry in flatten(info):
+        if not entry or entry.get('availability') in {'private', 'premium_only', 'subscriber_only'}:
+            yield None, ''
+            continue
+        url = entry.get('webpage_url') or entry.get('url') or ''
+        if source_for_url(url) != 'YouTube' and entry.get('id'):
+            url = f"https://www.youtube.com/watch?v={entry['id']}"
+        if url in seen or source_for_url(url) != 'YouTube':
+            yield None, ''
+            continue
+        seen.add(url)
+        yield entry, url
 
 
 class CollectionJobs:
@@ -15,18 +57,7 @@ class CollectionJobs:
         self.jobs, self.lock = {}, threading.RLock()
 
     def start(self, payload):
-        url = str(payload.get('url', '')).strip()
-        if self.source_for_url(url) != 'YouTube':
-            raise ValueError('Pega el enlace de una lista o un canal de YouTube.')
-        mode, fmt = payload.get('mode', 'video_audio'), payload.get('format', 'mp4')
-        if mode not in {'audio', 'video_only', 'video_audio'} or fmt not in (AUDIO_FORMATS if mode == 'audio' else VIDEO_FORMATS - {'vob'}):
-            raise ValueError('Formato de la colección no válido.')
-        quality = int(payload.get('quality', 0))
-        if (mode == 'audio' and quality not in ({128, 192, 320} if fmt in {'mp3', 'ogg'} else {0})) or (mode != 'audio' and quality not in {0, 144, 240, 360, 480, 720, 1080, 1440, 2160, 4320}):
-            raise ValueError('Calidad de la colección no válida.')
-        advanced = validate_options({**payload, 'mode': mode, 'format': fmt})
-        from youtube_session import validate_choice
-        browser = validate_choice(payload.get('browser') or '')
+        url, base = collection_options(payload, self.source_for_url)
         folder = Path(payload.get('folder') or self.settings.folder_for('YouTube')).expanduser().resolve()
         folder.mkdir(parents=True, exist_ok=True)
         identifier = uuid.uuid4().hex
@@ -35,7 +66,7 @@ class CollectionJobs:
         with self.lock:
             self.jobs[identifier] = job
         self.settings.remember_folder('YouTube', str(folder))
-        base = dict(format=fmt, mode=mode, quality=str(quality), folder=str(folder), advanced=advanced, browser=browser)
+        base['folder'] = str(folder)
         threading.Thread(target=self._run, args=(job, url, base), daemon=True).start()
         return identifier
 
@@ -47,38 +78,21 @@ class CollectionJobs:
             if job['cancel'].is_set():
                 raise StopCollection()
 
-        def entries(info):
-            if not info:
-                with self.lock:
-                    job['skipped'] += 1
-                return
-            if info.get('_type') in ('playlist', 'multi_video') or 'entries' in info:
-                for entry in info.get('entries') or []:
-                    check()
-                    yield from entries(entry)
-            else:
-                yield info
         try:
             opts = dict(quiet=True, no_warnings=True, extract_flat='in_playlist', lazy_playlist=True,
                         ignoreerrors='only_download', skip_download=True, socket_timeout=25, retries=3,
                         match_filter=check, **self.environment('YouTube', base.get('browser', '')))
-            seen = set()
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(url, download=False)
                 if not info:
                     raise ValueError('No se pudo leer la colección. Comprueba que sea pública o accesible.')
                 with self.lock:
                     job['title'] = info.get('title') or 'Colección de YouTube'
-                for entry in entries(info):
-                    check()
-                    video_url = entry.get('webpage_url') or entry.get('url') or ''
-                    if self.source_for_url(video_url) != 'YouTube' and entry.get('id'):
-                        video_url = f"https://www.youtube.com/watch?v={entry['id']}"
-                    if video_url in seen or self.source_for_url(video_url) != 'YouTube' or entry.get('availability') in {'private', 'premium_only', 'subscriber_only'}:
+                for entry, video_url in collection_entries(info, self.source_for_url, check):
+                    if entry is None:
                         with self.lock:
                             job['skipped'] += 1
                         continue
-                    seen.add(video_url)
                     with self.lock:
                         check()
                         try:
@@ -120,7 +134,27 @@ class CollectionJobs:
 
 def register(app, manager, settings, environment, source_for_url, describe_error=None):
     from flask import jsonify, request
+    from collection_estimates import CollectionEstimates
+
     jobs = CollectionJobs(manager, settings, environment, source_for_url, describe_error)
+    estimates = CollectionEstimates(environment, source_for_url)
+
+    @app.post('/api/collections/estimate')
+    def estimate_collection():
+        try:
+            return jsonify(ok=True, id=estimates.start(request.get_json() or {})), 202
+        except (ValueError, TypeError) as exc:
+            return jsonify(ok=False, error=str(exc)), 400
+
+    @app.route('/api/collections/estimate/<identifier>', methods=['GET', 'DELETE'])
+    def collection_estimate(identifier):
+        if request.method == 'DELETE':
+            estimates.cancel(identifier)
+            return jsonify(ok=True)
+        result = estimates.result(identifier)
+        if result is None:
+            return jsonify(ok=False, error='La estimación ya no está disponible.'), 404
+        return jsonify(ok=True, **result)
 
     @app.route('/api/collections', methods=['GET', 'POST'])
     def collections():

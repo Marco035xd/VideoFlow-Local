@@ -401,12 +401,29 @@
               <div><span class="eyebrow">COLA DE TRABAJO</span><h3>Descargas</h3></div>
               <button id="newDownloadButton" class="secondary-button" type="button">＋ Nueva descarga</button>
             </div>
+            <div class="queue-toolbar download-filters">
+              <label class="form-field" for="downloadFilter"><span>Filtrar por estado</span>
+                <select id="downloadFilter">
+                  <option value="">Todos los estados</option>
+                  <option value="Error">Solo errores</option>
+                  <option value="Completado">Completadas</option>
+                </select>
+              </label>
+              <label class="form-field" for="downloadOrder"><span>Ordenar por</span>
+                <select id="downloadOrder">
+                  <option value="newest">Más recientes</option>
+                  <option value="oldest">Más antiguos</option>
+                  <option value="title">Título (A–Z)</option>
+                </select>
+              </label>
+            </div>
             <div id="downloadList" class="download-list"></div>
             <div id="emptyDownloads" class="empty-state">
               <div class="empty-icon">⇩</div>
               <h3>Todavía no hay descargas</h3>
               <p>Agrega un video desde la pantalla de inicio.</p>
             </div>
+            <p id="emptyDownloadFilter" class="field-hint hidden" role="status">No hay descargas con ese estado.</p>
           </section>
           <details id="removedDownloads" class="panel removed-downloads-panel">
             <summary>Retiradas temporalmente</summary>
